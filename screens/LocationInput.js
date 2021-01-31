@@ -1,6 +1,7 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, View, Button } from "react-native";
+import { StyleSheet, Text, View, Button, Platform } from "react-native";
 import { TextInput, TouchableOpacity } from "react-native-gesture-handler";
+import colors from "../constants/colors";
 
 class LocationInput extends Component {
   state = {
@@ -11,10 +12,10 @@ class LocationInput extends Component {
   };
 
   updateLatLng = (value, inputType) => {
-    // var newVal = parseInt(value, 10);
-    // if (isNaN(newVal)) return;
-    // if (newVal > 180 || newVal < -180) return;
-    // if (inputType % 2 == 0 && (newVal > 90 || newVal < -90)) return;
+    var newVal = parseFloat(value, 10);
+    if (isNaN(newVal)) return;
+    if (newVal > 180 || newVal < -180) return;
+    if (inputType % 2 == 0 && (newVal > 90 || newVal < -90)) return;
 
     if (inputType == 0) this.setState({ startingLat: value });
     else if (inputType == 1) this.setState({ startingLong: value });
@@ -28,25 +29,33 @@ class LocationInput extends Component {
         <Text style={styles.inputTitle}>Starting Latitude:</Text>
         <TextInput
           style={styles.inputBox}
-          keyboardType="numeric"
+          keyboardType={
+            Platform.OS == "android" ? "numeric" : "numbers-and-punctuation"
+          }
           onChangeText={(text) => this.updateLatLng(text, 0)}
         />
         <Text style={styles.inputTitle}>Starting Longitude:</Text>
         <TextInput
           style={styles.inputBox}
-          keyboardType="numeric"
+          keyboardType={
+            Platform.OS == "android" ? "numeric" : "numbers-and-punctuation"
+          }
           onChangeText={(text) => this.updateLatLng(text, 1)}
         />
         <Text style={styles.inputTitle}>Ending Latitude:</Text>
         <TextInput
           style={styles.inputBox}
-          keyboardType="numeric"
+          keyboardType={
+            Platform.OS == "android" ? "numeric" : "numbers-and-punctuation"
+          }
           onChangeText={(text) => this.updateLatLng(text, 2)}
         />
         <Text style={styles.inputTitle}>Ending Longitude:</Text>
         <TextInput
           style={styles.inputBox}
-          keyboardType="numeric"
+          keyboardType={
+            Platform.OS == "android" ? "numeric" : "numbers-and-punctuation"
+          }
           onChangeText={(text) => this.updateLatLng(text, 3)}
         />
 
@@ -110,7 +119,7 @@ const styles = StyleSheet.create({
   navigateButton: {
     paddingHorizontal: 40,
     paddingVertical: 22,
-    backgroundColor: "#32ba47",
+    backgroundColor: colors.defaultGreen,
     borderRadius: 100,
   },
 

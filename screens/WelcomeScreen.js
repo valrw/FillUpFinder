@@ -10,6 +10,7 @@ import {
   StatusBarIOS,
 } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
+import colors from "../constants/colors";
 
 function WelcomeScreen({ navigation }) {
   return (
@@ -72,11 +73,11 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     alignItems: "center",
     bottom: "20%",
-    marginBottom: "5%"
+    marginBottom: "5%",
   },
 
   mapButton: {
-    backgroundColor: "#32ba47",
+    backgroundColor: colors.defaultGreen,
     paddingHorizontal: "15%",
     paddingVertical: "5%",
     borderRadius: 15,
