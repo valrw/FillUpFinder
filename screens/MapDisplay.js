@@ -8,14 +8,15 @@ class MapDisplay extends Component {
   state = { coords: [] };
 
   componentDidMount() {
-    this.getDirections("Disneyland", "Universal+Studios+Hollywood");
+    var params = this.props.route.params;
+    var start = params.startingLat + "," + params.startingLong;
+    var end = params.endingLat + "," + params.endingLong;
+    console.log(start + " " + end);
+    this.getDirections(start, end);
   }
 
   async getDirections(startLoc, destinationLoc) {
     try {
-      console.log(
-        `https://maps.googleapis.com/maps/api/directions/json?origin=${startLoc}&destination=${destinationLoc}&key=${API_KEY}`
-      );
       let resp = await fetch(
         `https://maps.googleapis.com/maps/api/directions/json?origin=${startLoc}&destination=${destinationLoc}&key=${API_KEY}`
       );
@@ -39,8 +40,8 @@ class MapDisplay extends Component {
       <MapView
         style={{ flex: 1 }}
         initialRegion={{
-          latitude: 33.8121,
-          longitude: -117.919,
+          latitude: parseFloat(this.props.route.params.startingLat),
+          longitude: parseFloat(this.props.route.params.startingLong),
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
         }}
