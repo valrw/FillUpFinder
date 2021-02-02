@@ -5,6 +5,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import MapDisplay from "./screens/MapDisplay";
 import LocationInput from "./screens/LocationInput";
+import VehicleInput from "./screens/VehicleInput";
 
 export default function App() {
   const Stack = createStackNavigator();
@@ -20,6 +21,11 @@ export default function App() {
           name="MapDisplay"
           component={MapDisplay}
           options={{ title: "Map Directions" }}
+        />
+        <Stack.Screen
+          name="VehicleInput"
+          component={VehicleInput}
+          options={{ title: "Enter Vehicle Info", headerTitleAlign: "center" }}
         />
       </Stack.Navigator>
     </NavigationContainer>
