@@ -9,7 +9,18 @@ class LocationInput extends Component {
     startingLong: -117.919,
     endingLat: 0,
     endingLong: 0,
+    vehicle: null,
+    vehicleSet: false,
   };
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.route.params?.vehicle !== prevState.vehicle) {
+        this.setState({
+            vehicleSet: true,
+            vehicle: this.props.route.params?.vehicle,
+        })
+    }
+  }
 
   updateLatLng = (value, inputType) => {
     var newVal = parseFloat(value, 10);
@@ -59,6 +70,27 @@ class LocationInput extends Component {
           onChangeText={(text) => this.updateLatLng(text, 3)}
         />
 
+        <Text style={styles.inputTitle}>Vehicle:</Text>
+        { this.state.vehicleSet ? (
+            <Text>Current vehicle: {this.state.vehicle}</Text>
+        ) : (
+            <Text>No vehicle set</Text>
+        )}
+        <TouchableOpacity
+          style={styles.vehicleButton}
+          title="Set Vehicle"
+          onPress={() => {
+              this.props.navigation.navigate("VehicleInput");
+            }
+          }
+        >
+          { this.state.vehicleSet ? (
+                <Text style={{fontSize: 12, color: "white"}}>Change vehicle</Text>
+            ) : (
+                <Text style={{fontSize: 12, color: "white"}}>Add vehicle</Text>
+          )}
+        </TouchableOpacity>
+
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.navigateButton}
@@ -72,7 +104,11 @@ class LocationInput extends Component {
               })
             }
           >
-            <Text style={styles.buttonText}>Get Directions</Text>
+            <Text
+                style={styles.buttonText}
+                disabled={!this.state.vehicleSet}>
+                Get Directions
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -100,13 +136,13 @@ const styles = StyleSheet.create({
 
   inputBox: {
     paddingHorizontal: 10,
-    marginTop: 8,
+    marginTop: 6,
     width: "80%",
-    height: 40,
+    height: 30,
     borderWidth: 1,
     borderColor: "#c4c4c4",
     backgroundColor: "white",
-    marginBottom: 15,
+    marginBottom: 4,
   },
 
   buttonContainer: {
@@ -121,6 +157,20 @@ const styles = StyleSheet.create({
     paddingVertical: 22,
     backgroundColor: colors.defaultGreen,
     borderRadius: 100,
+  },
+
+  vehicleContainer: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+
+  vehicleButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 11,
+    backgroundColor: colors.defaultGreen,
+    borderRadius: 100,
+    marginBottom: 11,
   },
 
   buttonText: {
