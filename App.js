@@ -6,6 +6,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import MapDisplay from "./screens/MapDisplay";
 import LocationInput from "./screens/LocationInput";
 import VehicleInput from "./screens/VehicleInput";
+import LocationInputText from "./components/LocationInputText";
 
 export default function App() {
   const Stack = createStackNavigator();
