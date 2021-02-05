@@ -9,8 +9,9 @@ const LocationInputText = (props) => {
     <View style={props.stylesContainer}>
       <GooglePlacesAutocomplete
         placeholder="Search"
-        onPress={(data) => {
-          props.onSelectLocation(data);
+        fetchDetails={true}
+        onPress={(data, details) => {
+          props.onSelectLocation(data, details);
         }}
         query={{
           key: API_KEY,
@@ -22,7 +23,7 @@ const LocationInputText = (props) => {
           listView: {
             top: 40,
             color: "black",
-            zIndex: 16,
+            zIndex: 15,
             position: "absolute",
           },
         }}
@@ -30,6 +31,7 @@ const LocationInputText = (props) => {
         onNotFound={() => console.log("Not found")}
         onTimeout={() => console.log("timeout")}
         session={session}
+        debounce={200}
       />
     </View>
   );

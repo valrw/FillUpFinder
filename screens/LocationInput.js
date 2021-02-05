@@ -8,10 +8,8 @@ class LocationInput extends Component {
   state = {
     startingLat: 33.8121,
     startingLong: -117.919,
-    endingLat: 0,
-    endingLong: 0,
-    startingPlaceId: 0,
-    endingPlaceId: 0,
+    startingPlaceId: "",
+    endingPlaceId: "",
     vehicle: null,
     vehicleSet: false,
   };
@@ -25,20 +23,20 @@ class LocationInput extends Component {
     }
   }
 
-  updateLatLng = (value, inputType) => {
-    var newVal = parseFloat(value, 10);
-    if (isNaN(newVal)) return;
-    if (newVal > 180 || newVal < -180) return;
-    if (inputType % 2 == 0 && (newVal > 90 || newVal < -90)) return;
-
-    if (inputType == 0) this.setState({ startingLat: value });
-    else if (inputType == 1) this.setState({ startingLong: value });
-    else if (inputType == 2) this.setState({ endingLat: value });
-    else if (inputType == 3) this.setState({ endingLong: value });
-  };
-
-  getPlaceInfo = (place) => {
-    console.log(place.place_id);
+  getPlaceInfo = (place, details, index) => {
+    if (index == 0) {
+      // Starting Location
+      var location = details.geometry.location;
+      this.setState({
+        startingPlaceId: place.place_id,
+        startingLat: location.lat,
+        startingLong: location.lng,
+      });
+      return;
+    } else if (index == 1) {
+      // Ending Location
+      this.setState({ endingPlaceId: place.place_id });
+    }
   };
 
   render() {
@@ -46,16 +44,20 @@ class LocationInput extends Component {
       <View style={styles.container}>
         <Text style={styles.inputTitle}>Starting Location:</Text>
         <LocationInputText
-          onSelectLocation={this.getPlaceInfo}
+          onSelectLocation={(data, details) =>
+            this.getPlaceInfo(data, details, 0)
+          }
           stylesInput={styles.inputBox}
-          stylesContainer={{ width: "86%", height: 30 }}
+          stylesContainer={{ width: "86%", height: 30, zIndex: 5 }}
         />
 
         <Text style={styles.inputTitle}>Ending Location:</Text>
         <LocationInputText
-          onSelectLocation={this.getPlaceInfo}
+          onSelectLocation={(data, details) =>
+            this.getPlaceInfo(data, details, 1)
+          }
           stylesInput={styles.inputBox}
-          stylesContainer={{ width: "86%", height: 30 }}
+          stylesContainer={{ width: "86%", height: 30, zIndex: 4 }}
         />
 
         <Text style={styles.inputTitle}>Vehicle:</Text>
@@ -86,8 +88,8 @@ class LocationInput extends Component {
               this.props.navigation.navigate("MapDisplay", {
                 startingLat: this.state.startingLat,
                 startingLong: this.state.startingLong,
-                endingLat: this.state.endingLat,
-                endingLong: this.state.endingLong,
+                startingPlaceId: this.state.startingPlaceId,
+                endingPlaceId: this.state.endingPlaceId,
               })
             }
           >
@@ -117,11 +119,13 @@ const styles = StyleSheet.create({
     width: "80%",
     fontSize: 18,
     textAlign: "left",
+    zIndex: -1,
   },
 
   inputContainer: {
     width: "86%",
     height: 30,
+    zIndex: 10,
   },
 
   inputBox: {
@@ -132,6 +136,7 @@ const styles = StyleSheet.create({
     borderColor: "#c4c4c4",
     backgroundColor: "white",
     marginBottom: 4,
+    zIndex: 5,
   },
 
   buttonContainer: {
@@ -139,6 +144,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "flex-end",
     marginBottom: "10%",
+    zIndex: -1,
   },
 
   navigateButton: {
