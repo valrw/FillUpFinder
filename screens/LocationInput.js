@@ -48,7 +48,11 @@ class LocationInput extends Component {
             this.getPlaceInfo(data, details, 0)
           }
           stylesInput={styles.inputBox}
-          stylesContainer={{ width: "86%", height: 30, zIndex: 5 }}
+          stylesContainer={
+            Platform.OS == "android"
+              ? { width: "86%", height: 40 }
+              : { width: "86%", height: 40, zIndex: 5 }
+          }
         />
 
         <Text style={styles.inputTitle}>Ending Location:</Text>
@@ -57,7 +61,11 @@ class LocationInput extends Component {
             this.getPlaceInfo(data, details, 1)
           }
           stylesInput={styles.inputBox}
-          stylesContainer={{ width: "86%", height: 30, zIndex: 4 }}
+          stylesContainer={
+            Platform.OS == "android"
+              ? { width: "86%", height: 40 }
+              : { width: "86%", height: 40, zIndex: 4 }
+          }
         />
 
         <Text style={styles.inputTitle}>Vehicle:</Text>
@@ -116,21 +124,15 @@ const styles = StyleSheet.create({
 
   inputTitle: {
     marginTop: "5%",
-    width: "80%",
+    width: "86%",
     fontSize: 18,
     textAlign: "left",
     zIndex: -1,
   },
 
-  inputContainer: {
-    width: "86%",
-    height: 30,
-    zIndex: 10,
-  },
-
   inputBox: {
     paddingHorizontal: 10,
-    height: 30,
+    height: 40,
     marginTop: 6,
     borderWidth: 1,
     borderColor: "#c4c4c4",
