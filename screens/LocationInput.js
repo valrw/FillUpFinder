@@ -2,92 +2,89 @@ import React, { Component } from "react";
 import { StyleSheet, Text, View, Button, Platform } from "react-native";
 import { TextInput, TouchableOpacity } from "react-native-gesture-handler";
 import colors from "../constants/colors";
+import LocationInputText from "../components/LocationInputText";
 
 class LocationInput extends Component {
   state = {
     startingLat: 33.8121,
     startingLong: -117.919,
-    endingLat: 0,
-    endingLong: 0,
+    startingPlaceId: "",
+    endingPlaceId: "",
     vehicle: null,
     vehicleSet: false,
   };
 
   componentDidUpdate(prevProps, prevState) {
     if (this.props.route.params?.vehicle !== prevState.vehicle) {
-        this.setState({
-            vehicleSet: true,
-            vehicle: this.props.route.params?.vehicle,
-        })
+      this.setState({
+        vehicleSet: true,
+        vehicle: this.props.route.params?.vehicle,
+      });
     }
   }
 
-  updateLatLng = (value, inputType) => {
-    var newVal = parseFloat(value, 10);
-    if (isNaN(newVal)) return;
-    if (newVal > 180 || newVal < -180) return;
-    if (inputType % 2 == 0 && (newVal > 90 || newVal < -90)) return;
-
-    if (inputType == 0) this.setState({ startingLat: value });
-    else if (inputType == 1) this.setState({ startingLong: value });
-    else if (inputType == 2) this.setState({ endingLat: value });
-    else if (inputType == 3) this.setState({ endingLong: value });
+  getPlaceInfo = (place, details, index) => {
+    if (index == 0) {
+      // Starting Location
+      var location = details.geometry.location;
+      this.setState({
+        startingPlaceId: place.place_id,
+        startingLat: location.lat,
+        startingLong: location.lng,
+      });
+      return;
+    } else if (index == 1) {
+      // Ending Location
+      this.setState({ endingPlaceId: place.place_id });
+    }
   };
 
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.inputTitle}>Starting Latitude:</Text>
-        <TextInput
-          style={styles.inputBox}
-          keyboardType={
-            Platform.OS == "android" ? "numeric" : "numbers-and-punctuation"
+        <Text style={styles.inputTitle}>Starting Location:</Text>
+        <LocationInputText
+          onSelectLocation={(data, details) =>
+            this.getPlaceInfo(data, details, 0)
           }
-          onChangeText={(text) => this.updateLatLng(text, 0)}
+          stylesInput={styles.inputBox}
+          stylesContainer={
+            Platform.OS == "android"
+              ? { width: "86%", height: 40 }
+              : { width: "86%", height: 40, zIndex: 5 }
+          }
         />
-        <Text style={styles.inputTitle}>Starting Longitude:</Text>
-        <TextInput
-          style={styles.inputBox}
-          keyboardType={
-            Platform.OS == "android" ? "numeric" : "numbers-and-punctuation"
+
+        <Text style={styles.inputTitle}>Ending Location:</Text>
+        <LocationInputText
+          onSelectLocation={(data, details) =>
+            this.getPlaceInfo(data, details, 1)
           }
-          onChangeText={(text) => this.updateLatLng(text, 1)}
-        />
-        <Text style={styles.inputTitle}>Ending Latitude:</Text>
-        <TextInput
-          style={styles.inputBox}
-          keyboardType={
-            Platform.OS == "android" ? "numeric" : "numbers-and-punctuation"
+          stylesInput={styles.inputBox}
+          stylesContainer={
+            Platform.OS == "android"
+              ? { width: "86%", height: 40 }
+              : { width: "86%", height: 40, zIndex: 4 }
           }
-          onChangeText={(text) => this.updateLatLng(text, 2)}
-        />
-        <Text style={styles.inputTitle}>Ending Longitude:</Text>
-        <TextInput
-          style={styles.inputBox}
-          keyboardType={
-            Platform.OS == "android" ? "numeric" : "numbers-and-punctuation"
-          }
-          onChangeText={(text) => this.updateLatLng(text, 3)}
         />
 
         <Text style={styles.inputTitle}>Vehicle:</Text>
-        { this.state.vehicleSet ? (
-            <Text>Current vehicle: {this.state.vehicle}</Text>
+        {this.state.vehicleSet ? (
+          <Text>Current vehicle: {this.state.vehicle}</Text>
         ) : (
-            <Text>No vehicle set</Text>
+          <Text>No vehicle set</Text>
         )}
         <TouchableOpacity
           style={styles.vehicleButton}
           title="Set Vehicle"
           onPress={() => {
-              this.props.navigation.navigate("VehicleInput");
-            }
-          }
+            this.props.navigation.navigate("VehicleInput");
+          }}
         >
-          { this.state.vehicleSet ? (
-                <Text style={{fontSize: 12, color: "white"}}>Change vehicle</Text>
-            ) : (
-                <Text style={{fontSize: 12, color: "white"}}>Add vehicle</Text>
+          {this.state.vehicleSet ? (
+            <Text style={{ fontSize: 12, color: "white" }}>Change vehicle</Text>
+          ) : (
+            <Text style={{ fontSize: 12, color: "white" }}>Add vehicle</Text>
           )}
         </TouchableOpacity>
 
@@ -99,15 +96,13 @@ class LocationInput extends Component {
               this.props.navigation.navigate("MapDisplay", {
                 startingLat: this.state.startingLat,
                 startingLong: this.state.startingLong,
-                endingLat: this.state.endingLat,
-                endingLong: this.state.endingLong,
+                startingPlaceId: this.state.startingPlaceId,
+                endingPlaceId: this.state.endingPlaceId,
               })
             }
           >
-            <Text
-                style={styles.buttonText}
-                disabled={!this.state.vehicleSet}>
-                Get Directions
+            <Text style={styles.buttonText} disabled={!this.state.vehicleSet}>
+              Get Directions
             </Text>
           </TouchableOpacity>
         </View>
@@ -129,20 +124,21 @@ const styles = StyleSheet.create({
 
   inputTitle: {
     marginTop: "5%",
-    width: "80%",
+    width: "86%",
     fontSize: 18,
     textAlign: "left",
+    zIndex: -1,
   },
 
   inputBox: {
     paddingHorizontal: 10,
+    height: 40,
     marginTop: 6,
-    width: "80%",
-    height: 30,
     borderWidth: 1,
     borderColor: "#c4c4c4",
     backgroundColor: "white",
     marginBottom: 4,
+    zIndex: 5,
   },
 
   buttonContainer: {
@@ -150,6 +146,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "flex-end",
     marginBottom: "10%",
+    zIndex: -1,
   },
 
   navigateButton: {
