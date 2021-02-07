@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import MapView, { Marker } from "react-native-maps";
-import { API_KEY } from "../constants/api-key";
+import { API_KEY, API_URL } from "../constants/api";
 import PolyLine from "@mapbox/polyline";
 
 class MapDisplay extends Component {
@@ -21,16 +21,10 @@ class MapDisplay extends Component {
   async getDirections(startId, destinationId) {
     try {
       let resp = await fetch(
-        `https://maps.googleapis.com/maps/api/directions/json?origin=place_id:${startId}&destination=place_id:${destinationId}&key=${API_KEY}`
+        `${API_URL}/api/directions/${startId}/${destinationId}/80/100/20/true`
       );
       let respJson = await resp.json();
-      let points = PolyLine.decode(respJson.routes[0].overview_polyline.points);
-      let coords = points.map((point, index) => {
-        return {
-          latitude: point[0],
-          longitude: point[1],
-        };
-      });
+      let coords = respJson.route;
 
       var start = coords[0];
       var end = coords[coords.length - 1];
