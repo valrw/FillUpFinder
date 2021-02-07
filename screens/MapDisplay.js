@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import MapView, { Marker } from "react-native-maps";
-import { API_KEY, API_URL } from "../constants/api";
+import { API_KEY, ROOT_URL } from "../constants/api";
 import PolyLine from "@mapbox/polyline";
 
 class MapDisplay extends Component {
@@ -21,7 +21,7 @@ class MapDisplay extends Component {
   async getDirections(startId, destinationId) {
     try {
       let resp = await fetch(
-        `${API_URL}/api/directions/${startId}/${destinationId}/80/100/20/true`
+        `${ROOT_URL}/api/directions/${startId}/${destinationId}/80/100/20/true`
       );
       let respJson = await resp.json();
       let coords = respJson.route;
