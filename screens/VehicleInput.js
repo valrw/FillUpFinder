@@ -3,6 +3,8 @@ import { StyleSheet, Text, View, Button, Platform } from "react-native";
 import { TextInput, TouchableOpacity } from "react-native-gesture-handler";
 import axios from "axios";
 
+const ROOT_URL = "https://fillupfinder.herokuapp.com"
+
 class VehicleInput extends Component {
     constructor(props) {
         super(props);
@@ -37,38 +39,33 @@ class VehicleInput extends Component {
             let vehicle = [this.state.year, this.state.make, this.state.model].join(' ');
             console.log(vehicle);
 
-            // look up the ID
-            let getIdUrl = `https://fueleconomy.gov/ws/rest/vehicle/menu/options?make=${this.state.make}&model=${this.state.model}&year=${this.state.year}`
-            axios.get(getIdUrl)
+            axios.get(`${ROOT_URL}/api/vehicle/${this.state.make}/${this.state.model}/${this.state.year}`)
                 .then((response) => {
                     console.log(response);
-                    let id;
-                    if (Array.isArray(response.data.menuItem)) {
-                        id = response.data.menuItem[0].value; // whichever is the first match
-                    } else {
-                        id = response.data.menuItem.value;
-                    }
+                    if (response.status == 200) {
+                        // OK
+                        vehicle = [response.data.year, response.data.make, response.data.model].join(' ');
 
-                    // use the ID to look up MPG
-                    let getMPGUrl = `https://fueleconomy.gov/ws/rest/vehicle/${id}`
-                    axios.get(getMPGUrl)
-                        .then((response) => {
-                            console.log(response);
-                            let mpg = response.data.comb08; // combination city + highway for primary fuel type
-                            console.log("MPG is " + mpg);
-                        })
-                        .catch((error) => {
-                            console.log(error);
-                        })
+                        this.props.navigation.navigate("LocationInput", {
+                            vehicleSet: true,
+                            vehicle: vehicle,
+                        });
+                    }
                 })
                 .catch((error) => {
                     console.log(error);
-                })
-
-            this.props.navigation.navigate("LocationInput", {
-                vehicleSet: true,
-                vehicle: vehicle,
-            });
+                    if (error.response) {
+                        if (error.response.status == 300) {
+                            // just show what the options are for now
+                            this.setState({ instruction: "Did you mean one of these?: " + error.response.data.join(', ')});
+                        }
+                        else if (error.response.status == 404) {
+                            this.setState({ instruction: "Couldn't find that vehicle." });
+                        } else {
+                            this.setState({ instruction: "Server error" })
+                        }
+                    }
+                });
         }
     }
 
