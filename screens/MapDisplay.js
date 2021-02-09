@@ -26,6 +26,9 @@ class MapDisplay extends Component {
       let respJson = await resp.json();
       let coords = respJson.route;
 
+      // TODO: Display the number of stops on the screen
+      console.log(respJson.stops);
+
       var start = coords[0];
       var end = coords[coords.length - 1];
       this.setState({ coords, start, end });
