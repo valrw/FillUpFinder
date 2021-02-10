@@ -87,7 +87,15 @@ class LocationInput extends Component {
             <Text style={{ fontSize: 12, color: "white" }}>Add vehicle</Text>
           )}
         </TouchableOpacity>
-
+        <TouchableOpacity
+          style={styles.vehicleButton}
+          title="Go to Options"
+          onPress={() => {
+            this.props.navigation.navigate("Options");
+          }}
+        >
+          <Text style={{ fontSize: 12, color: "white" }}>Go to Options</Text>
+        </TouchableOpacity>
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.navigateButton}
