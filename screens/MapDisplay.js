@@ -34,6 +34,7 @@ class MapDisplay extends Component {
       this.setState({ coords, start, end });
       return coords;
     } catch (error) {
+      console.log(error);
       return error;
     }
   }
@@ -65,7 +66,18 @@ class MapDisplay extends Component {
         />
 
         <MapView.Polyline
-          coordinates={this.state.coords}
+          coordinates={this.state.coords.slice(
+            0,
+            Math.floor(this.state.coords.length / 2) + 1
+          )}
+          strokeWidth={4}
+          strokeColor="blue"
+        />
+        <MapView.Polyline
+          coordinates={this.state.coords.slice(
+            Math.floor(this.state.coords.length / 2),
+            this.state.coords.length
+          )}
           strokeWidth={4}
           strokeColor="blue"
         />
