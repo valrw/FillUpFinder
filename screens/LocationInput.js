@@ -12,13 +12,20 @@ class LocationInput extends Component {
     endingPlaceId: "",
     vehicle: null,
     vehicleSet: false,
+    fuelLeft: 17, // default values may change to be more accurate
+    fuelCap: 17,
+    mpg: 15,
   };
 
   componentDidUpdate(prevProps, prevState) {
     if (this.props.route.params?.vehicle !== prevState.vehicle) {
+      var params = this.props.route.params;
       this.setState({
         vehicleSet: true,
-        vehicle: this.props.route.params?.vehicle,
+        vehicle: params.vehicle,
+        fuelCap: params.fuelCap,
+        mpg: params.mpg,
+        // TODO: get the fuelLeft value from Options
       });
     }
   }
@@ -106,6 +113,9 @@ class LocationInput extends Component {
                 startingLong: this.state.startingLong,
                 startingPlaceId: this.state.startingPlaceId,
                 endingPlaceId: this.state.endingPlaceId,
+                fuelLeft: this.state.fuelCap,
+                fuelCap: this.state.fuelCap,
+                mpg: this.state.mpg,
               })
             }
           >

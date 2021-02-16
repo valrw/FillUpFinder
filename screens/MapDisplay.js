@@ -16,13 +16,16 @@ class MapDisplay extends Component {
     var params = this.props.route.params;
     var start = params.startingPlaceId;
     var end = params.endingPlaceId;
-    this.getDirections(start, end);
+    var fuelLeft = params.fuelLeft;
+    var fuelCap = params.fuelCap;
+    var mpg = params.mpg;
+    this.getDirections(start, end, fuelLeft, fuelCap, mpg);
   }
 
-  async getDirections(startId, destinationId) {
+  async getDirections(startId, destinationId, fuelLeft, fuelCap, mpg) {
     try {
       let resp = await fetch(
-        `${ROOT_URL}/api/directions/${startId}/${destinationId}/17/17/15/true`
+        `${ROOT_URL}/api/directions/${startId}/${destinationId}/${fuelLeft}/${fuelCap}/${mpg}/true`
       );
       let respJson = await resp.json();
       let coords = respJson.route;
