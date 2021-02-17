@@ -18,6 +18,7 @@ class LocationInput extends Component {
   };
 
   componentDidUpdate(prevProps, prevState) {
+    if (this.props.route.params == null) return;
     if (this.props.route.params?.vehicle !== prevState.vehicle) {
       var params = this.props.route.params;
       this.setState({
