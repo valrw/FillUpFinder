@@ -10,6 +10,7 @@ class MapDisplay extends Component {
     start: { latitude: 0, longitude: 0 },
     end: { latitude: 0, longitude: 0 },
     stops: 0,
+    stopsList: [],
   };
 
   componentDidMount() {
@@ -25,18 +26,19 @@ class MapDisplay extends Component {
   async getDirections(startId, destinationId, fuelLeft, fuelCap, mpg) {
     try {
       let resp = await fetch(
-        `${ROOT_URL}/api/directions/${startId}/${destinationId}/${fuelLeft}/${fuelCap}/${mpg}/true`
+        `${ROOT_URL}/api/directions/${startId}/${destinationId}/${fuelLeft}/${fuelCap}/${mpg}/false/4`
       );
       let respJson = await resp.json();
       let coords = respJson.route;
 
       // TODO: Display the number of stops on the screen
-      console.log(respJson.stops);
+      console.log(respJson.stopsList);
       let stops = respJson.stops;
+      let stopsList = respJson.stopsList;
 
       var start = coords[0];
       var end = coords[coords.length - 1];
-      this.setState({ coords, start, end, stops });
+      this.setState({ coords, start, end, stops, stopsList });
       return coords;
     } catch (error) {
       console.log(error);
@@ -64,12 +66,23 @@ class MapDisplay extends Component {
             }}
           />
           <MapView.Marker
-            title="start"
+            title="end"
             coordinate={{
               latitude: this.state.end.latitude,
               longitude: this.state.end.longitude,
             }}
           />
+
+          {this.state.stopsList.map((station, index) => (
+            <MapView.Marker
+              title="Hey"
+              key={index}
+              coordinate={{
+                latitude: station.latitude,
+                longitude: station.longitude,
+              }}
+            />
+          ))}
 
           <MapView.Polyline
             coordinates={this.state.coords.slice(
@@ -88,9 +101,8 @@ class MapDisplay extends Component {
             strokeColor="blue"
           />
         </MapView>
-        <Text
-        style={{ backgroundColor: 'white' }}>
-        Total stops: {this.state.stops}
+        <Text style={{ backgroundColor: "white" }}>
+          Total stops: {this.state.stops}
         </Text>
       </View>
     );
