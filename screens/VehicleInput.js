@@ -53,9 +53,14 @@ class VehicleInput extends Component {
               response.data.model,
             ].join(" ");
 
+            let fuelCap = response.data.fuelCap;
+            let mpg = response.data.mpg;
+
             this.props.navigation.navigate("LocationInput", {
               vehicleSet: true,
               vehicle: vehicle,
+              fuelCap: fuelCap,
+              mpg: mpg
             });
           }
         })
