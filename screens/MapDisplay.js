@@ -26,13 +26,12 @@ class MapDisplay extends Component {
   async getDirections(startId, destinationId, fuelLeft, fuelCap, mpg) {
     try {
       let resp = await fetch(
-        `${ROOT_URL}/api/directions/${startId}/${destinationId}/${fuelLeft}/${fuelCap}/${mpg}/false/4`
+        `${ROOT_URL}/api/directions/${startId}/${destinationId}/${fuelLeft}/${fuelCap}/${mpg}/true`
       );
       let respJson = await resp.json();
       let coords = respJson.route;
 
       // TODO: Display the number of stops on the screen
-      console.log(respJson.stopsList);
       let stops = respJson.stops;
       let stopsList = respJson.stopsList;
 
