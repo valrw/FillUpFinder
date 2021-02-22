@@ -87,19 +87,22 @@ class VehicleInput extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.inputTitle}>Make:</Text>
+        <Text style={styles.instruction}>{this.state.instruction}</Text>
+        <Text style={styles.inputTitle}>Make</Text>
         <TextInput
+          placeholder="e.g. Honda, Acura, Nissan, etc."
           style={styles.inputBox}
           autoCapitalize="words"
           onChangeText={(make) => this.updateMake(make)}
         />
-        <Text style={styles.inputTitle}>Model:</Text>
+        <Text style={styles.inputTitle}>Model</Text>
         <TextInput
+          placeholder="e.g. Civic, NSX, Altima, etc."
           style={styles.inputBox}
           autoCapitalize="words"
           onChangeText={(model) => this.updateModel(model)}
         />
-        <Text style={styles.inputTitle}>Year:</Text>
+        <Text style={styles.inputTitle}>Year</Text>
         <TextInput
           style={styles.inputBox}
           keyboardType={
@@ -108,7 +111,6 @@ class VehicleInput extends Component {
           onChangeText={(year) => this.updateYear(year)}
           maxLength={4}
         />
-        <Text>{this.state.instruction}</Text>
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.navigateButton}
@@ -147,6 +149,7 @@ const styles = StyleSheet.create({
     width: "80%",
     height: 40,
     borderWidth: 1,
+    borderRadius: 12,
     borderColor: "#c4c4c4",
     backgroundColor: "white",
     marginBottom: 10,
@@ -164,6 +167,10 @@ const styles = StyleSheet.create({
     paddingVertical: 22,
     backgroundColor: colors.defaultGreen,
     borderRadius: 100,
+  },
+
+  instruction: {
+    marginTop: 10
   },
 
   buttonText: {

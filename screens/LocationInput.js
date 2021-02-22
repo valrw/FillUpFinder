@@ -1,6 +1,6 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, View, Button, Platform } from "react-native";
-import { TextInput, TouchableOpacity } from "react-native-gesture-handler";
+import { StyleSheet, Text, View, Platform } from "react-native";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import colors from "../constants/colors";
 import LocationInputText from "../components/LocationInputText";
 
@@ -50,7 +50,7 @@ class LocationInput extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.inputTitle}>Starting Location:</Text>
+        <Text style={styles.inputTitle}>Starting point:</Text>
         <LocationInputText
           onSelectLocation={(data, details) =>
             this.getPlaceInfo(data, details, 0)
@@ -63,7 +63,7 @@ class LocationInput extends Component {
           }
         />
 
-        <Text style={styles.inputTitle}>Ending Location:</Text>
+        <Text style={styles.inputTitle}>Destination:</Text>
         <LocationInputText
           onSelectLocation={(data, details) =>
             this.getPlaceInfo(data, details, 1)
@@ -76,11 +76,10 @@ class LocationInput extends Component {
           }
         />
 
-        <Text style={styles.inputTitle}>Vehicle:</Text>
         {this.state.vehicleSet ? (
-          <Text>Current vehicle: {this.state.vehicle}</Text>
+          <Text style={styles.inputTitle}>Current vehicle: {this.state.vehicle}</Text>
         ) : (
-          <Text>No vehicle set</Text>
+            <Text style={styles.vehicleSetText}>Vehicle not set.</Text>
         )}
         <TouchableOpacity
           style={styles.vehicleButton}
@@ -92,7 +91,7 @@ class LocationInput extends Component {
           {this.state.vehicleSet ? (
             <Text style={{ fontSize: 12, color: "white" }}>Change vehicle</Text>
           ) : (
-            <Text style={{ fontSize: 12, color: "white" }}>Add vehicle</Text>
+            <Text style={{ fontSize: 12, color: "white" }}>Add Vehicle</Text>
           )}
         </TouchableOpacity>
         <TouchableOpacity
@@ -102,7 +101,7 @@ class LocationInput extends Component {
             this.props.navigation.navigate("Options");
           }}
         >
-          <Text style={{ fontSize: 12, color: "white" }}>Go to Options</Text>
+          <Text style={{ fontSize: 12, color: "white" }}>View Options</Text>
         </TouchableOpacity>
         <View style={styles.buttonContainer}>
           <TouchableOpacity
@@ -154,6 +153,7 @@ const styles = StyleSheet.create({
     height: 40,
     marginTop: 6,
     borderWidth: 1,
+    borderRadius: 12,
     borderColor: "#c4c4c4",
     backgroundColor: "white",
     marginBottom: 4,
@@ -186,7 +186,12 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     backgroundColor: colors.defaultGreen,
     borderRadius: 100,
+    marginTop: 11,
     marginBottom: 11,
+  },
+
+  vehicleSetText: {
+    marginTop: 20,
   },
 
   buttonText: {

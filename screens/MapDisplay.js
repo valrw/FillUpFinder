@@ -100,12 +100,21 @@ class MapDisplay extends Component {
             strokeColor="blue"
           />
         </MapView>
-        <Text style={{ backgroundColor: "white" }}>
-          Total stops: {this.state.stops}
-        </Text>
+        <View style={styles.totalStops}>
+          <Text >
+            Total stops: {this.state.stops}
+          </Text>
+        </View>
       </View>
     );
   }
 }
 
 export default MapDisplay;
+
+const styles = StyleSheet.create({
+  totalStops:{
+    backgroundColor: "white",
+    padding: 20,
+  }
+})
