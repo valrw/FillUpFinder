@@ -1,173 +1,352 @@
-import React, { Component } from "react";
-import { StyleSheet, Text, View, Button, Platform } from "react-native";
-import { TextInput, TouchableOpacity } from "react-native-gesture-handler";
+import React from "react";
+import { StyleSheet, View, Platform } from "react-native";
 import axios from "axios";
 import { ROOT_URL } from "../constants/api";
+import {
+  Layout,
+  Text,
+  Divider,
+  Button,
+  Autocomplete,
+  AutocompleteItem,
+  Select,
+  SelectItem,
+  IndexPath,
+  Input,
+} from "@ui-kitten/components";
+import { useEffect, useState } from "react";
+import { useNavigation } from "@react-navigation/native";
 
-class VehicleInput extends Component {
-  constructor(props) {
-    super(props);
+const filter = (item, query) => {
+  return item.toLowerCase().startsWith(query.toLowerCase());
+};
 
-    this.state = {
-      make: "Honda",
-      model: "Civic",
-      year: "2015",
-      id: 35672,
-      instruction: "Please enter your vehicle information.",
-    };
-  }
+const VehicleInput = () => {
+  const navigation = useNavigation();
+  // Hnadle Vehicle Button
+  const handleVehicleButton = () => {
+    if (
+      mpg != null &&
+      fuelCapacity != null &&
+      mpg != "Not Found" &&
+      fuelCapacity != "Not Found"
+    ) {
+      // const finalModel = variation ? variation : model;
+      const vehicle = [year, make, finalModel].join(" ");
 
-  updateModel = (model) => {
-    this.setState({ model });
-  };
-
-  updateMake = (make) => {
-    this.setState({ make });
-  };
-
-  updateYear = (year) => {
-    this.setState({ year });
-  };
-
-  handleSearchButton = () => {
-    if (this.state.year.length < 4) {
-      this.setState({ instruction: "Please enter a valid year; e.g. 2015" });
-    } else {
-      // do the search here
-      let vehicle = [this.state.year, this.state.make, this.state.model].join(
-        " "
-      );
-      console.log(vehicle);
-
-      axios
-        .get(
-          `${ROOT_URL}/api/vehicle/${this.state.make}/${this.state.model}/${this.state.year}`
-        )
-        .then((response) => {
-          console.log(response);
-          if (response.status == 200) {
-            // OK
-            vehicle = [
-              response.data.year,
-              response.data.make,
-              response.data.model,
-            ].join(" ");
-
-            let fuelCap = response.data.fuelCap;
-            let mpg = response.data.mpg;
-
-            this.props.navigation.navigate("LocationInput", {
-              vehicleSet: true,
-              vehicle: vehicle,
-              fuelCap: fuelCap,
-              mpg: mpg
-            });
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-          if (error.response) {
-            if (error.response.status == 300) {
-              // just show what the options are for now
-              this.setState({
-                instruction:
-                  "Did you mean one of these?: " +
-                  error.response.data.join(", "),
-              });
-            } else if (error.response.status == 404) {
-              this.setState({ instruction: "Couldn't find that vehicle." });
-            } else {
-              this.setState({ instruction: "Server error" });
-            }
-          }
-        });
+      navigation.navigate("LocationInput", {
+        vehicleSet: true,
+        vehicle: vehicle,
+        fuelCap: fuelCapacity,
+        mpg: mpg,
+      });
     }
   };
+  // For the Year Autocomplete
+  const [initialYears, setInitialYears] = useState(["loading"]);
+  const [year, setYear] = useState(null);
+  const [yearList, setYearList] = useState(initialYears);
+  const onSelect = (index) => {
+    setYear(yearList[index]);
+  };
+  const onChangeText = (query) => {
+    setYear(query);
+    setYearList(initialYears.filter((item) => filter(item, query)));
+  };
+  // For the Make Autocomplete
+  const [initialMakes, setInitialMakes] = useState(["loading"]);
+  const [make, setMake] = useState(null);
+  const [makeList, setMakeList] = useState(initialMakes);
+  const onSelectMake = (index) => {
+    setMake(makeList[index]);
+  };
+  const onChangeMake = (query) => {
+    setMake(query);
+    setMakeList(initialMakes.filter((item) => filter(item, query)));
+  };
 
-  render() {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.inputTitle}>Make:</Text>
-        <TextInput
-          style={styles.inputBox}
-          autoCapitalize="words"
-          onChangeText={(make) => this.updateMake(make)}
-        />
-        <Text style={styles.inputTitle}>Model:</Text>
-        <TextInput
-          style={styles.inputBox}
-          autoCapitalize="words"
-          onChangeText={(model) => this.updateModel(model)}
-        />
-        <Text style={styles.inputTitle}>Year:</Text>
-        <TextInput
-          style={styles.inputBox}
-          keyboardType={
-            Platform.OS == "android" ? "numeric" : "numbers-and-punctuation"
-          }
-          onChangeText={(year) => this.updateYear(year)}
-          maxLength={4}
-        />
-        <Text>{this.state.instruction}</Text>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.navigateButton}
-            title="Set vehicle"
-            onPress={() => this.handleSearchButton()}
-          >
-            <Text style={styles.buttonText}>Set vehicle</Text>
-          </TouchableOpacity>
-        </View>
+  // For the Model Select
+  const [modelIndex, setModelIndex] = React.useState(new IndexPath(0));
+  const [modelList, setModelList] = useState([]);
+  const model = modelList[modelIndex.row];
+
+  // For the Variation Select
+
+  const [variationIndex, setVariationIndex] = React.useState(new IndexPath(0));
+  const [variationList, setVariationList] = useState([]);
+  const variation = variationList[variationIndex.row];
+
+  const finalModel = variation ? variation : model ? model : null;
+
+  // For MPG
+
+  const [mpg, setMPG] = useState("");
+  const [fuelCapacity, setFuelCapacity] = useState("");
+
+  // Axios Calls
+  const carAPI = axios.create({
+    baseURL: "https://www.carqueryapi.com/api/0.3",
+  });
+
+  // Fetch Available Car Years
+
+  useEffect(() => {
+    async function fetchYears() {
+      const request = await carAPI.get("/?&cmd=getYears");
+
+      const max = request.data.Years.max_year;
+      const total = max - request.data.Years.min_year + 1;
+      setInitialYears(
+        Array.from(new Array(total), (x, i) => (Number(max) - i).toString())
+        // ["4", "5", "6"]
+      );
+      setYearList(
+        Array.from(new Array(total), (x, i) => (Number(max) - i).toString())
+      );
+      return request;
+    }
+    fetchYears();
+  }, []);
+
+  // Fetch Makes for selected Year
+
+  useEffect(() => {
+    async function fetchMakes() {
+      const request = await carAPI.get(`/?&cmd=getMakes&year=${year}`);
+      if (request.data) {
+        const makes = request.data.Makes.map((obj) => obj["make_display"]);
+
+        setInitialMakes(makes);
+        setMakeList(makes);
+      }
+      return request;
+    }
+    if (year) {
+      fetchMakes();
+    }
+  }, [year]);
+
+  // Fetch Models for selected Year and Make
+
+  useEffect(() => {
+    async function fetchModels() {
+      try {
+        const formattedMake = make.split(" ").join("-");
+        const req = `/?&cmd=getModels&make=${formattedMake}&year=${year}`;
+        const response = await carAPI.get(
+          `/?&cmd=getModels&make=${formattedMake}&year=${year}`
+        );
+        // console.log("Sending Model Fetch Request: ");
+        // console.log(req);
+        // console.log(response)
+        if (response.data) {
+          // console.log("Response had Data");
+          // console.log(response.data);
+          const models = response.data.Models.map((obj) => obj["model_name"]);
+          setModelList(models);
+          setModelIndex(new IndexPath(0));
+        }
+        return response;
+      } catch (e) {
+        // console.log("Error in Models Fetch");
+        console.log(e);
+      }
+    }
+    if (year && make) {
+      fetchModels();
+    }
+  }, [year, make]);
+
+  // Fetch MPG for selected Model
+
+  useEffect(() => {
+    async function fetchMPG() {
+      if (model) {
+        const req = `${ROOT_URL}/api/vehicle/${make}/${model}/${year}`;
+        // const response = await axios.get(req);
+        axios
+          .get(req)
+          .then((response) => {
+            setVariationList([]);
+            setFuelCapacity(response.data.fuelCap.toString());
+            setMPG(response.data.mpg.toString());
+          })
+          .catch((error) => {
+            if (error.response && error.response.data.length > 0) {
+              const variationArray = error.response.data;
+
+              setVariationList(variationArray);
+              setVariationIndex(new IndexPath(0));
+            } else {
+              setFuelCapacity("Not Found");
+              setMPG("Not Found");
+            }
+          });
+      }
+    }
+    fetchMPG();
+  }, [model]);
+
+  // Fetch MPG for Model Variation
+  useEffect(() => {
+    async function fetchVariations() {
+      try {
+        const req = `${ROOT_URL}/api/vehicle/${make}/${variation}/${year}`;
+        const response = await axios.get(req);
+        if (response.data) {
+          // console.log(response.data);
+          setFuelCapacity(response.data.fuelCap.toString());
+          setMPG(response.data.mpg.toString());
+        }
+        return response;
+      } catch (e) {
+        console.log(e);
+      }
+    }
+
+    if (year && make && model && variation) {
+      fetchVariations();
+    }
+  }, [variation]);
+
+  return (
+    <Layout style={styles.container}>
+      <Autocomplete
+        style={styles.autocomplete}
+        placeholder="Enter Year"
+        value={year}
+        onSelect={onSelect}
+        onChangeText={onChangeText}
+        label="Year"
+        keyboardType={
+          Platform.OS == "android" ? "numeric" : "numbers-and-punctuation"
+        }
+      >
+        {yearList.map((year, index) => (
+          <AutocompleteItem key={index} title={year} />
+        ))}
+      </Autocomplete>
+      <Autocomplete
+        style={styles.autocomplete}
+        placeholder="Enter Make"
+        label="Make"
+        value={make}
+        onSelect={onSelectMake}
+        onChangeText={onChangeMake}
+      >
+        {makeList.map((make, index) => (
+          <AutocompleteItem key={index} title={make} />
+        ))}
+      </Autocomplete>
+      <View style={styles.viewHorizontal}>
+        <Select
+          label="Model"
+          disabled={!year || !make}
+          style={styles.select1}
+          placeholder="Select Model"
+          value={model ? model : "No Models Found"}
+          selectedIndex={modelIndex}
+          onSelect={(index) => setModelIndex(index)}
+        >
+          {modelList.map((model, idx) => (
+            <SelectItem key={idx} title={model} />
+          ))}
+        </Select>
+        <Select
+          label="Variation"
+          disabled={variationList.length == 0}
+          style={styles.select2}
+          placeholder="Variety"
+          value={variation ? variation : "N/A"}
+          selectedIndex={variationIndex}
+          onSelect={(index) => setVariationIndex(index)}
+        >
+          {variationList.map((variation, idx) => (
+            <SelectItem key={idx} title={variation} />
+          ))}
+        </Select>
       </View>
-    );
-  }
-}
 
-export default VehicleInput;
+      <Divider style={styles.divider}></Divider>
+      <View style={styles.dataView}>
+        <View>
+          <Text category="h6" style={styles.subtitle}>
+            {year && make && finalModel
+              ? `${year} ${make} ${finalModel}:`
+              : "No Vehicle Selected"}
+          </Text>
+          <Input
+            style={styles.mpgInput}
+            label="MPG"
+            size="large"
+            placeholder="MPG"
+            value={mpg}
+            disabled="true"
+          />
+          <Input
+            style={styles.mpgInput}
+            size="large"
+            label="Fuel Capacity"
+            placeholder="Fuel Capacity"
+            value={fuelCapacity}
+            disabled="true"
+          />
+        </View>
 
+        <Button style={styles.buttonBot} onPress={() => handleVehicleButton()}>
+          Set Vehicle
+        </Button>
+      </View>
+    </Layout>
+  );
+};
 const styles = StyleSheet.create({
-  container: {
-    width: "100%",
-    height: "100%",
+  viewHorizontal: {
+    width: "90%",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingBottom: 10,
+  },
+  dataView: {
+    flex: 1,
+    width: "90%",
     flexDirection: "column",
-    justifyContent: "flex-start",
+    justifyContent: "space-between",
+    paddingVertical: 5,
+  },
+  select1: {
+    // width: "40%",
+    width: "42%",
+  },
+  select2: {
+    // width: "40%",
+    width: "46%",
+  },
+  container: {
+    paddingTop: 8,
+    flex: 1,
     alignItems: "center",
   },
-
-  inputTitle: {
-    marginTop: "5%",
+  mpgInput: {
+    width: " 50 %",
+    alignSelf: "center",
+  },
+  subtitle: {
+    paddingLeft: 10,
+    alignSelf: "flex-start",
+  },
+  divider: {
+    marginVertical: 8,
+    width: "95 %",
+  },
+  autocomplete: {
     width: "80%",
-    fontSize: 18,
-    textAlign: "left",
+    paddingBottom: 20,
   },
-
-  inputBox: {
-    paddingHorizontal: 10,
-    marginTop: 8,
+  buttonBot: {
+    alignSelf: "center",
     width: "80%",
-    height: 40,
-    borderWidth: 1,
-    borderColor: "#c4c4c4",
-    backgroundColor: "white",
-    marginBottom: 10,
-  },
-
-  buttonContainer: {
-    flex: 1,
-    flexDirection: "column",
-    justifyContent: "flex-end",
-    marginBottom: "10%",
-  },
-
-  navigateButton: {
-    paddingHorizontal: 40,
-    paddingVertical: 22,
-    backgroundColor: colors.defaultGreen,
-    borderRadius: 100,
-  },
-
-  buttonText: {
-    fontSize: 18,
-    color: "white",
+    marginVertical: 10,
   },
 });
+export default VehicleInput;
