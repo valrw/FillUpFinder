@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, TouchableWithoutFeedback } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { API_KEY, ROOT_URL } from "../constants/api";
 import PolyLine from "@mapbox/polyline";
+import colors from "../constants/colors";
 
 class MapDisplay extends Component {
   state = {
@@ -100,12 +101,27 @@ class MapDisplay extends Component {
             strokeColor="blue"
           />
         </MapView>
-        <Text style={{ backgroundColor: "white" }}>
-          Total stops: {this.state.stops}
-        </Text>
+        <View style={styles.totalStops}>
+          <Text style={styles.container}>
+            Total stops: {this.state.stops}
+          </Text>
+        </View>
       </View>
     );
   }
 }
 
 export default MapDisplay;
+
+const styles = StyleSheet.create({
+  totalStops: {
+    backgroundColor: "white",
+    width: "100%",
+    padding: 10,
+  },
+
+  container: {
+    flexDirection: "column",
+    color: colors.defaultBlue,
+  }
+})

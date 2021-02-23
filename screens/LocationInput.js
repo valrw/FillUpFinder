@@ -1,8 +1,9 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, View, Button, Platform } from "react-native";
-import { TextInput, TouchableOpacity } from "react-native-gesture-handler";
+import { StyleSheet, Text, View, Platform } from "react-native";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import colors from "../constants/colors";
 import LocationInputText from "../components/LocationInputText";
+import { Layout, Divider, Button } from "@ui-kitten/components";
 
 class LocationInput extends Component {
   state = {
@@ -49,8 +50,8 @@ class LocationInput extends Component {
 
   render() {
     return (
-      <View style={styles.container}>
-        <Text style={styles.inputTitle}>Starting Location:</Text>
+      <Layout style={styles.container}>
+        <Text style={styles.inputTitle}>Starting point:</Text>
         <LocationInputText
           onSelectLocation={(data, details) =>
             this.getPlaceInfo(data, details, 0)
@@ -63,7 +64,7 @@ class LocationInput extends Component {
           }
         />
 
-        <Text style={styles.inputTitle}>Ending Location:</Text>
+        <Text style={styles.inputTitle}>Destination:</Text>
         <LocationInputText
           onSelectLocation={(data, details) =>
             this.getPlaceInfo(data, details, 1)
@@ -75,12 +76,11 @@ class LocationInput extends Component {
               : { width: "86%", height: 40, zIndex: 4 }
           }
         />
-
-        <Text style={styles.inputTitle}>Vehicle:</Text>
+        <Divider style={styles.divider}></Divider>
         {this.state.vehicleSet ? (
-          <Text>Current vehicle: {this.state.vehicle}</Text>
+          <Text style={styles.vehicleSetText}>Your vehicle: {this.state.vehicle}</Text>
         ) : (
-          <Text>No vehicle set</Text>
+          <Text style={styles.vehicleSetText}>Vehicle not set.</Text>
         )}
         <TouchableOpacity
           style={styles.vehicleButton}
@@ -92,17 +92,17 @@ class LocationInput extends Component {
           {this.state.vehicleSet ? (
             <Text style={{ fontSize: 12, color: "white" }}>Change vehicle</Text>
           ) : (
-            <Text style={{ fontSize: 12, color: "white" }}>Add vehicle</Text>
+            <Text style={{ fontSize: 12, color: "white" }}>Add Vehicle</Text>
           )}
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.vehicleButton}
-          title="Go to Options"
+          title="View Options"
           onPress={() => {
             this.props.navigation.navigate("Options");
           }}
         >
-          <Text style={{ fontSize: 12, color: "white" }}>Go to Options</Text>
+          <Text style={{ fontSize: 12, color: "white" }}>View Options</Text>
         </TouchableOpacity>
         <View style={styles.buttonContainer}>
           <TouchableOpacity
@@ -125,7 +125,7 @@ class LocationInput extends Component {
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </Layout>
     );
   }
 }
@@ -139,12 +139,14 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "flex-start",
     alignItems: "center",
+    backgroundColor: "white"
   },
 
   inputTitle: {
     marginTop: "5%",
     width: "86%",
-    fontSize: 18,
+    fontSize: 12,
+    color: "#8F9BB3",
     textAlign: "left",
     zIndex: -1,
   },
@@ -154,8 +156,9 @@ const styles = StyleSheet.create({
     height: 40,
     marginTop: 6,
     borderWidth: 1,
-    borderColor: "#c4c4c4",
-    backgroundColor: "white",
+    borderRadius: 3,
+    borderColor: "#e4e9f2",
+    backgroundColor: "#F7F9FC",
     marginBottom: 4,
     zIndex: 5,
   },
@@ -169,10 +172,10 @@ const styles = StyleSheet.create({
   },
 
   navigateButton: {
-    paddingHorizontal: 40,
-    paddingVertical: 22,
-    backgroundColor: colors.defaultGreen,
-    borderRadius: 100,
+    paddingHorizontal: 85,
+    paddingVertical: 20,
+    backgroundColor: colors.defaultBlue,
+    borderRadius: 3,
   },
 
   vehicleContainer: {
@@ -184,13 +187,24 @@ const styles = StyleSheet.create({
   vehicleButton: {
     paddingHorizontal: 20,
     paddingVertical: 11,
-    backgroundColor: colors.defaultGreen,
+    backgroundColor: colors.defaultBlue,
     borderRadius: 100,
+    marginTop: 11,
     marginBottom: 11,
+  },
+
+  vehicleSetText: {
+    marginTop: 20,
+    color: "#8F9BB3",
   },
 
   buttonText: {
     fontSize: 18,
     color: "white",
+  },
+
+  divider: {
+    marginTop: 28,
+    width: "95%",
   },
 });

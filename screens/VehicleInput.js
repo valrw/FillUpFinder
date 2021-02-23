@@ -333,7 +333,8 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     paddingLeft: 10,
-    alignSelf: "flex-start",
+    marginBottom: 10,
+    alignSelf: "center",
   },
   divider: {
     marginVertical: 8,
