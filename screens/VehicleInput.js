@@ -74,6 +74,8 @@ const VehicleInput = () => {
 
   const [variationIndex, setVariationIndex] = React.useState(new IndexPath(0));
   const [variationList, setVariationList] = useState([]);
+  const [carList, setCarList] = useState([]);
+
   const variation = variationList[variationIndex.row];
 
   const finalModel = variation ? variation : model ? model : null;
@@ -149,7 +151,7 @@ const VehicleInput = () => {
         return response;
       } catch (e) {
         // console.log("Error in Models Fetch");
-        console.log(e);
+        // console.log(e);
       }
     }
     if (year && make) {
@@ -163,51 +165,52 @@ const VehicleInput = () => {
     async function fetchMPG() {
       if (model) {
         const req = `${ROOT_URL}/api/vehicle/${make}/${model}/${year}`;
+        // console.log("Sending req");
+        // console.log(req);
         // const response = await axios.get(req);
         axios
           .get(req)
           .then((response) => {
-            setVariationList([]);
-            setFuelCapacity(response.data.fuelCap.toString());
-            setMPG(response.data.mpg.toString());
+            // console.log("Got response");
+            // console.log(response.data);
+
+            const variationArray = response.data;
+            // if (!variationArray || variationArray.length < 1) {
+            //   console.log("No Variations Found");
+            // }
+            if (variationArray.length == 1) {
+              const car = variationArray[0];
+              setFuelCapacity(car.fuelCap.toFixed(2).toString());
+              setMPG(car.mpg);
+            } else if (variationArray.length > 1) {
+              // setVariationList(variationArray);
+              setCarList(variationArray);
+              setVariationList(variationArray.map((x) => x.model));
+              setVariationIndex(new IndexPath(0));
+            }
+            // setVariationList([]);
+            // setFuelCapacity(response.data.fuelCap.toString());
+            // setMPG(response.data.mpg.toString());
           })
           .catch((error) => {
-            if (error.response && error.response.data.length > 0) {
-              const variationArray = error.response.data;
-
-              setVariationList(variationArray);
-              setVariationIndex(new IndexPath(0));
-            } else {
-              setFuelCapacity("Not Found");
-              setMPG("Not Found");
-            }
+            setMPG("Not Found");
+            setFuelCapacity("Not Found");
           });
       }
     }
     fetchMPG();
   }, [model]);
 
-  // Fetch MPG for Model Variation
-  useEffect(() => {
-    async function fetchVariations() {
-      try {
-        const req = `${ROOT_URL}/api/vehicle/${make}/${variation}/${year}`;
-        const response = await axios.get(req);
-        if (response.data) {
-          // console.log(response.data);
-          setFuelCapacity(response.data.fuelCap.toString());
-          setMPG(response.data.mpg.toString());
-        }
-        return response;
-      } catch (e) {
-        console.log(e);
-      }
-    }
+  // Set MPG for Model Variation
 
-    if (year && make && model && variation) {
-      fetchVariations();
+  useEffect(() => {
+    if (carList.length > 0) {
+      setMPG(carList[variationIndex.row].mpg);
+      setFuelCapacity(
+        carList[variationIndex.row].fuelCap.toFixed(2).toString()
+      );
     }
-  }, [variation]);
+  }, [variationIndex]);
 
   return (
     <Layout style={styles.container}>
@@ -256,7 +259,7 @@ const VehicleInput = () => {
           label="Variation"
           disabled={variationList.length == 0}
           style={styles.select2}
-          placeholder="Variety"
+          placeholder="Variation"
           value={variation ? variation : "N/A"}
           selectedIndex={variationIndex}
           onSelect={(index) => setVariationIndex(index)}
