@@ -3,7 +3,13 @@ import { StyleSheet, Text, View, Platform } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import colors from "../constants/colors";
 import LocationInputText from "../components/LocationInputText";
-import { Layout, Divider, Button } from "@ui-kitten/components";
+import {
+  Layout,
+  Divider,
+  Select,
+  SelectItem,
+  IndexPath,
+} from "@ui-kitten/components";
 
 class LocationInput extends Component {
   state = {
@@ -16,6 +22,8 @@ class LocationInput extends Component {
     fuelLeft: 17, // default values may change to be more accurate
     fuelCap: 17,
     mpg: 15,
+
+    selectedIndex: new IndexPath(0),
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -48,7 +56,50 @@ class LocationInput extends Component {
     }
   };
 
+  renderTripOptions = (selectedOption) => {
+    if (selectedOption == 0) {
+      return (
+        <View style={styles.tripOptionsView}>
+          {this.state.vehicleSet ? (
+            <Text style={styles.vehicleSetText}>
+              Your vehicle: {this.state.vehicle}
+            </Text>
+          ) : (
+            <Text style={styles.vehicleSetText}>Vehicle not set.</Text>
+          )}
+          <TouchableOpacity
+            style={styles.vehicleButton}
+            title="Set Vehicle"
+            onPress={() => {
+              this.props.navigation.navigate("VehicleInput");
+            }}
+          >
+            {this.state.vehicleSet ? (
+              <Text style={{ fontSize: 12, color: "white" }}>
+                Change vehicle
+              </Text>
+            ) : (
+              <Text style={{ fontSize: 12, color: "white" }}>Add Vehicle</Text>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.vehicleButton}
+            title="View Options"
+            onPress={() => {
+              this.props.navigation.navigate("Options");
+            }}
+          >
+            <Text style={{ fontSize: 12, color: "white" }}>View Options</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    } else {
+      return <View style={styles.tripOptionsView}></View>;
+    }
+  };
+
   render() {
+    const options = ["Get Stops Based On Gas", "Set Fixed Number of Stops"];
     return (
       <Layout style={styles.container}>
         <Text style={styles.inputTitle}>Starting point:</Text>
@@ -77,33 +128,21 @@ class LocationInput extends Component {
           }
         />
         <Divider style={styles.divider}></Divider>
-        {this.state.vehicleSet ? (
-          <Text style={styles.vehicleSetText}>Your vehicle: {this.state.vehicle}</Text>
-        ) : (
-          <Text style={styles.vehicleSetText}>Vehicle not set.</Text>
-        )}
-        <TouchableOpacity
-          style={styles.vehicleButton}
-          title="Set Vehicle"
-          onPress={() => {
-            this.props.navigation.navigate("VehicleInput");
-          }}
+
+        <Text style={styles.selectTripTypeTitle}>Stop Calculation</Text>
+        <Select
+          style={styles.selectTripType}
+          selectedIndex={this.state.selectedIndex}
+          onSelect={(index) => this.setState({ selectedIndex: index })}
+          value={options[this.state.selectedIndex.row]}
         >
-          {this.state.vehicleSet ? (
-            <Text style={{ fontSize: 12, color: "white" }}>Change vehicle</Text>
-          ) : (
-            <Text style={{ fontSize: 12, color: "white" }}>Add Vehicle</Text>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.vehicleButton}
-          title="View Options"
-          onPress={() => {
-            this.props.navigation.navigate("Options");
-          }}
-        >
-          <Text style={{ fontSize: 12, color: "white" }}>View Options</Text>
-        </TouchableOpacity>
+          {options.map((item) => (
+            <SelectItem title={item} />
+          ))}
+        </Select>
+
+        {this.renderTripOptions(this.state.selectedIndex.row)}
+
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.navigateButton}
@@ -139,7 +178,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "flex-start",
     alignItems: "center",
-    backgroundColor: "white"
+    backgroundColor: "white",
   },
 
   inputTitle: {
@@ -161,6 +200,24 @@ const styles = StyleSheet.create({
     backgroundColor: "#F7F9FC",
     marginBottom: 4,
     zIndex: 5,
+  },
+
+  selectTripTypeTitle: {
+    marginTop: "3%",
+    width: "86%",
+    fontSize: 12,
+    color: "#8F9BB3",
+    textAlign: "center",
+    zIndex: -1,
+  },
+
+  selectTripType: {
+    top: 5,
+    width: "65%",
+  },
+
+  tripOptionsView: {
+    height: "50%",
   },
 
   buttonContainer: {
