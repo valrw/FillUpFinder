@@ -1,9 +1,23 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, View, Platform } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Platform,
+  Keyboard,
+  ScrollView,
+} from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import colors from "../constants/colors";
 import LocationInputText from "../components/LocationInputText";
-import { Layout, Divider, Button } from "@ui-kitten/components";
+import {
+  Layout,
+  Divider,
+  Select,
+  SelectItem,
+  IndexPath,
+  Input,
+} from "@ui-kitten/components";
 
 class LocationInput extends Component {
   state = {
@@ -16,6 +30,9 @@ class LocationInput extends Component {
     fuelLeft: 17, // default values may change to be more accurate
     fuelCap: 17,
     mpg: 15,
+
+    selectedIndex: new IndexPath(0),
+    numberOfStops: 0,
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -48,7 +65,66 @@ class LocationInput extends Component {
     }
   };
 
+  renderTripOptions = (selectedOption) => {
+    if (selectedOption == 0) {
+      return (
+        <View style={styles.calcOnGasView}>
+          {this.state.vehicleSet ? (
+            <Text style={styles.vehicleSetText}>
+              Your vehicle: {this.state.vehicle}
+            </Text>
+          ) : (
+            <Text style={styles.vehicleSetText}>Vehicle not set.</Text>
+          )}
+          <TouchableOpacity
+            style={styles.vehicleButton}
+            title="Set Vehicle"
+            onPress={() => {
+              this.props.navigation.navigate("VehicleInput");
+            }}
+          >
+            {this.state.vehicleSet ? (
+              <Text style={{ fontSize: 12, color: "white" }}>
+                Change vehicle
+              </Text>
+            ) : (
+              <Text style={{ fontSize: 12, color: "white" }}>Add Vehicle</Text>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.vehicleButton}
+            title="View Options"
+            onPress={() => {
+              this.props.navigation.navigate("Options");
+            }}
+          >
+            <Text style={{ fontSize: 12, color: "white" }}>View Options</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    } else {
+      return (
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          style={styles.fixedStopsView}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={styles.inputTitle}>Select Number of Stops</Text>
+          <Input
+            keyboardType="number-pad"
+            placeholder="Enter number"
+            style={styles.fixedStopsInput}
+            onChangeText={(num) =>
+              this.setState({ numberOfStops: parseInt(num) })
+            }
+          />
+        </ScrollView>
+      );
+    }
+  };
+
   render() {
+    const options = ["Get Stops Based On Gas", "Set Fixed Number of Stops"];
     return (
       <Layout style={styles.container}>
         <Text style={styles.inputTitle}>Starting point:</Text>
@@ -77,33 +153,21 @@ class LocationInput extends Component {
           }
         />
         <Divider style={styles.divider}></Divider>
-        {this.state.vehicleSet ? (
-          <Text style={styles.vehicleSetText}>Your vehicle: {this.state.vehicle}</Text>
-        ) : (
-          <Text style={styles.vehicleSetText}>Vehicle not set.</Text>
-        )}
-        <TouchableOpacity
-          style={styles.vehicleButton}
-          title="Set Vehicle"
-          onPress={() => {
-            this.props.navigation.navigate("VehicleInput");
-          }}
+
+        <Text style={styles.selectTripTypeTitle}>Stop Calculation</Text>
+        <Select
+          style={styles.selectTripType}
+          selectedIndex={this.state.selectedIndex}
+          onSelect={(index) => this.setState({ selectedIndex: index })}
+          value={options[this.state.selectedIndex.row]}
         >
-          {this.state.vehicleSet ? (
-            <Text style={{ fontSize: 12, color: "white" }}>Change vehicle</Text>
-          ) : (
-            <Text style={{ fontSize: 12, color: "white" }}>Add Vehicle</Text>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.vehicleButton}
-          title="View Options"
-          onPress={() => {
-            this.props.navigation.navigate("Options");
-          }}
-        >
-          <Text style={{ fontSize: 12, color: "white" }}>View Options</Text>
-        </TouchableOpacity>
+          {options.map((item) => (
+            <SelectItem key={item} title={item} />
+          ))}
+        </Select>
+
+        {this.renderTripOptions(this.state.selectedIndex.row)}
+
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.navigateButton}
@@ -117,6 +181,8 @@ class LocationInput extends Component {
                 fuelLeft: this.state.fuelCap,
                 fuelCap: this.state.fuelCap,
                 mpg: this.state.mpg,
+                calcOnGas: this.state.selectedIndex.row,
+                numStops: this.state.numberOfStops,
               })
             }
           >
@@ -139,7 +205,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "flex-start",
     alignItems: "center",
-    backgroundColor: "white"
+    backgroundColor: "white",
   },
 
   inputTitle: {
@@ -161,6 +227,34 @@ const styles = StyleSheet.create({
     backgroundColor: "#F7F9FC",
     marginBottom: 4,
     zIndex: 5,
+  },
+
+  selectTripTypeTitle: {
+    marginTop: "3%",
+    width: "86%",
+    fontSize: 12,
+    color: "#8F9BB3",
+    textAlign: "center",
+    zIndex: -1,
+  },
+
+  selectTripType: {
+    top: 5,
+    width: "65%",
+  },
+
+  calcOnGasView: {
+    height: "50%",
+  },
+
+  fixedStopsView: {
+    top: 5,
+    height: "50%",
+    width: "86%",
+  },
+
+  fixedStopsInput: {
+    top: 5,
   },
 
   buttonContainer: {
