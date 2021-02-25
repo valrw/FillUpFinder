@@ -1,5 +1,12 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, View, Platform } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Platform,
+  Keyboard,
+  ScrollView,
+} from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import colors from "../constants/colors";
 import LocationInputText from "../components/LocationInputText";
@@ -9,6 +16,7 @@ import {
   Select,
   SelectItem,
   IndexPath,
+  Input,
 } from "@ui-kitten/components";
 
 class LocationInput extends Component {
@@ -24,6 +32,7 @@ class LocationInput extends Component {
     mpg: 15,
 
     selectedIndex: new IndexPath(0),
+    numberOfStops: 0,
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -59,7 +68,7 @@ class LocationInput extends Component {
   renderTripOptions = (selectedOption) => {
     if (selectedOption == 0) {
       return (
-        <View style={styles.tripOptionsView}>
+        <View style={styles.calcOnGasView}>
           {this.state.vehicleSet ? (
             <Text style={styles.vehicleSetText}>
               Your vehicle: {this.state.vehicle}
@@ -94,7 +103,23 @@ class LocationInput extends Component {
         </View>
       );
     } else {
-      return <View style={styles.tripOptionsView}></View>;
+      return (
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          style={styles.fixedStopsView}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={styles.inputTitle}>Select Number of Stops</Text>
+          <Input
+            keyboardType="number-pad"
+            placeholder="Enter number"
+            style={styles.fixedStopsInput}
+            onChangeText={(num) =>
+              this.setState({ numberOfStops: parseInt(num) })
+            }
+          />
+        </ScrollView>
+      );
     }
   };
 
@@ -137,7 +162,7 @@ class LocationInput extends Component {
           value={options[this.state.selectedIndex.row]}
         >
           {options.map((item) => (
-            <SelectItem title={item} />
+            <SelectItem key={item} title={item} />
           ))}
         </Select>
 
@@ -156,6 +181,8 @@ class LocationInput extends Component {
                 fuelLeft: this.state.fuelCap,
                 fuelCap: this.state.fuelCap,
                 mpg: this.state.mpg,
+                calcOnGas: this.state.selectedIndex.row,
+                numStops: this.state.numberOfStops,
               })
             }
           >
@@ -216,8 +243,18 @@ const styles = StyleSheet.create({
     width: "65%",
   },
 
-  tripOptionsView: {
+  calcOnGasView: {
     height: "50%",
+  },
+
+  fixedStopsView: {
+    top: 5,
+    height: "50%",
+    width: "86%",
+  },
+
+  fixedStopsInput: {
+    top: 5,
   },
 
   buttonContainer: {

@@ -21,14 +21,27 @@ class MapDisplay extends Component {
     var fuelLeft = params.fuelLeft;
     var fuelCap = params.fuelCap;
     var mpg = params.mpg;
-    this.getDirections(start, end, fuelLeft, fuelCap, mpg);
+    var calcOnGas = true;
+    if (params.calcOnGas == 1) calcOnGas = false;
+    var numStops = params.numStops;
+    this.getDirections(start, end, fuelLeft, fuelCap, mpg, calcOnGas, numStops);
   }
 
-  async getDirections(startId, destinationId, fuelLeft, fuelCap, mpg) {
+  async getDirections(
+    startId,
+    destinationId,
+    fuelLeft,
+    fuelCap,
+    mpg,
+    calcOnGas,
+    numStops
+  ) {
     try {
-      let resp = await fetch(
-        `${ROOT_URL}/api/directions/${startId}/${destinationId}/${fuelLeft}/${fuelCap}/${mpg}/true`
-      );
+      var url = `${ROOT_URL}/api/directions/${startId}/${destinationId}/${fuelLeft}/${fuelCap}/${mpg}/`;
+      if (calcOnGas) url = url + "true";
+      else url = url + "false/" + numStops;
+
+      let resp = await fetch(url);
       let respJson = await resp.json();
       let coords = respJson.route;
 
@@ -102,9 +115,7 @@ class MapDisplay extends Component {
           />
         </MapView>
         <View style={styles.totalStops}>
-          <Text style={styles.container}>
-            Total stops: {this.state.stops}
-          </Text>
+          <Text style={styles.container}>Total stops: {this.state.stops}</Text>
         </View>
       </View>
     );
@@ -123,5 +134,5 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "column",
     color: colors.defaultBlue,
-  }
-})
+  },
+});
