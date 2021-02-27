@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, View, TouchableWithoutFeedback } from "react-native";
+import { StyleSheet, Text, View, ActivityIndicator } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { API_KEY, ROOT_URL } from "../constants/api";
 import PolyLine from "@mapbox/polyline";
@@ -27,17 +27,9 @@ class MapDisplay extends Component {
     this.getDirections(start, end, fuelLeft, fuelCap, mpg, calcOnGas, numStops);
   }
 
-  async getDirections(
-    startId,
-    destinationId,
-    fuelLeft,
-    fuelCap,
-    mpg,
-    calcOnGas,
-    numStops
-  ) {
+  async getDirections(start, end, fuelLeft, fuelCap, mpg, calcOnGas, numStops) {
     try {
-      var url = `${ROOT_URL}/api/directions/${startId}/${destinationId}/${fuelLeft}/${fuelCap}/${mpg}/`;
+      var url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelLeft}/${fuelCap}/${mpg}/`;
       if (calcOnGas) url = url + "true";
       else url = url + "false/" + numStops;
 
@@ -56,6 +48,18 @@ class MapDisplay extends Component {
     } catch (error) {
       console.log(error);
       return error;
+    }
+  }
+
+  loadingSpinner() {
+    if (this.state.coords.length == 0) {
+      return (
+        <ActivityIndicator
+          style={styles.loadingSpinner}
+          size="large"
+          color={colors.defaultBlue}
+        />
+      );
     }
   }
 
@@ -117,6 +121,7 @@ class MapDisplay extends Component {
         <View style={styles.totalStops}>
           <Text style={styles.container}>Total stops: {this.state.stops}</Text>
         </View>
+        {this.loadingSpinner()}
       </View>
     );
   }
@@ -134,5 +139,11 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "column",
     color: colors.defaultBlue,
+  },
+
+  loadingSpinner: {
+    position: "absolute",
+    alignSelf: "center",
+    top: "40%",
   },
 });
