@@ -14,6 +14,11 @@ class MapDisplay extends Component {
     stopsList: [],
   };
 
+  constructor(props) {
+    super(props);
+    this.mapComponent = null;
+  }
+
   componentDidMount() {
     var params = this.props.route.params;
     var start = params.startingPlaceId;
@@ -37,13 +42,16 @@ class MapDisplay extends Component {
       let respJson = await resp.json();
       let coords = respJson.route;
 
-      // TODO: Display the number of stops on the screen
       let stops = respJson.stops;
       let stopsList = respJson.stopsList;
 
       var start = coords[0];
       var end = coords[coords.length - 1];
+
       this.setState({ coords, start, end, stops, stopsList });
+      // Zoom out the map
+      this.mapComponent.animateToRegion(respJson.zoomBounds);
+
       return coords;
     } catch (error) {
       console.log(error);
@@ -67,6 +75,7 @@ class MapDisplay extends Component {
     return (
       <View style={{ flex: 1 }}>
         <MapView
+          ref={(ref) => (this.mapComponent = ref)}
           style={{ flex: 1 }}
           initialRegion={{
             latitude: parseFloat(this.props.route.params.startingLat),
