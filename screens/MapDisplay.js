@@ -1,6 +1,7 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, View, ActivityIndicator } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import { StyleSheet, View, ActivityIndicator } from "react-native";
+import { Text } from "@ui-kitten/components";
+import MapView, { Marker, Callout } from "react-native-maps";
 import { API_KEY, ROOT_URL } from "../constants/api";
 import PolyLine from "@mapbox/polyline";
 import colors from "../constants/colors";
@@ -100,14 +101,32 @@ class MapDisplay extends Component {
           />
 
           {this.state.stopsList.map((station, index) => (
-            <MapView.Marker
-              title="Hey"
+            <Marker
+              title={station.name}
+              description={station.vicinity}
               key={index}
+              image={require("../assets/map_marker.png")}
               coordinate={{
                 latitude: station.latitude,
                 longitude: station.longitude,
               }}
-            />
+            >
+              <Callout tooltip>
+                <View>
+                  <View style={styles.bubble}>
+                    <Text category="h6">{station.name}</Text>
+                    <Text category="s2">{station.vicinity}</Text>
+                    {/* {station.open_now != null && (
+                      <Text category={station.open_now ? "success" : "danger"}>
+                        {station.open_now ? "Open" : "Closed"}{" "}
+                      </Text>
+                    )} */}
+                  </View>
+                  <View style={styles.arrowBorder} />
+                  <View style={styles.arrow} />
+                </View>
+              </Callout>
+            </Marker>
           ))}
 
           <MapView.Polyline
@@ -128,7 +147,7 @@ class MapDisplay extends Component {
           />
         </MapView>
         <View style={styles.totalStops}>
-          <Text style={styles.container}>Total stops: {this.state.stops}</Text>
+          <Text category="h6">Total stops: {this.state.stops}</Text>
         </View>
         {this.loadingSpinner()}
       </View>
@@ -140,6 +159,8 @@ export default MapDisplay;
 
 const styles = StyleSheet.create({
   totalStops: {
+    position: "absolute",
+    bottom: 0,
     backgroundColor: "white",
     width: "100%",
     padding: 10,
@@ -154,5 +175,32 @@ const styles = StyleSheet.create({
     position: "absolute",
     alignSelf: "center",
     top: "40%",
+  },
+  // Callout bubble
+  bubble: {
+    flexDirection: "column",
+    alignSelf: "flex-start",
+    backgroundColor: "#fff",
+    borderRadius: 6,
+    borderColor: "#ccc",
+    borderWidth: 0.5,
+    padding: 10,
+  },
+  // Arrow below the bubble
+  arrow: {
+    backgroundColor: "transparent",
+    borderColor: "transparent",
+    borderTopColor: "#fff",
+    borderWidth: 19,
+    alignSelf: "center",
+    marginTop: -32,
+  },
+  arrowBorder: {
+    backgroundColor: "transparent",
+    borderColor: "transparent",
+    borderTopColor: "#007a87",
+    borderWidth: 16,
+    alignSelf: "center",
+    marginTop: -0.5,
   },
 });
