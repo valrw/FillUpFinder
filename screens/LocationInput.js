@@ -205,7 +205,6 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "flex-start",
     alignItems: "center",
-    backgroundColor: "white",
   },
 
   inputTitle: {
@@ -244,12 +243,12 @@ const styles = StyleSheet.create({
   },
 
   calcOnGasView: {
-    height: "50%",
+    // height: "50%",
   },
 
   fixedStopsView: {
     top: 5,
-    height: "50%",
+    // height: "50%",
     width: "86%",
   },
 
@@ -261,7 +260,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "column",
     justifyContent: "flex-end",
-    marginBottom: "10%",
+    marginBottom: 23,
     zIndex: -1,
   },
 
