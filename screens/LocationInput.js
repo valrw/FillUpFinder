@@ -1,12 +1,5 @@
 import React, { Component } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  Platform,
-  Keyboard,
-  ScrollView,
-} from "react-native";
+import { StyleSheet, View, Platform, Keyboard, ScrollView } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import colors from "../constants/colors";
 import LocationInputText from "../components/LocationInputText";
@@ -17,7 +10,9 @@ import {
   SelectItem,
   IndexPath,
   Input,
+  Text,
 } from "@ui-kitten/components";
+import Slider from "@react-native-community/slider";
 
 class LocationInput extends Component {
   state = {
@@ -33,6 +28,9 @@ class LocationInput extends Component {
 
     selectedIndex: new IndexPath(0),
     numberOfStops: 0,
+
+    fuelPercent: 75,
+    fuelPercentContinuous: 75,
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -44,7 +42,6 @@ class LocationInput extends Component {
         vehicle: params.vehicle,
         fuelCap: params.fuelCap,
         mpg: params.mpg,
-        // TODO: get the fuelLeft value from Options
       });
     }
   }
@@ -91,7 +88,34 @@ class LocationInput extends Component {
               <Text style={{ fontSize: 12, color: "white" }}>Add Vehicle</Text>
             )}
           </TouchableOpacity>
-          <TouchableOpacity
+          <Text>Remaining Fuel: </Text>
+          <View flexDirection="row">
+            <Slider
+              ref={this.sliderRef}
+              style={{ width: "88%", height: 40, alignSelf: "center" }}
+              minimumValue={1}
+              maximumValue={100}
+              step={1}
+              onValueChange={(val) =>
+                this.setState({ fuelPercentContinuous: val })
+              }
+              value={this.state.fuelPercent}
+              onSlidingComplete={(val) => {
+                this.setState({ fuelPercent: val });
+                this.setState((prev) => ({
+                  fuelLeft: (prev.fuelCap * val) / 100,
+                }));
+              }}
+              minimumTrackTintColor={colors.defaultBlue}
+              thumbTintColor={colors.defaultBlue}
+              maximumTrackTintColor="#000000"
+            />
+            <Text category="p1">
+              {" "}
+              {`${this.state.fuelPercentContinuous} %`}
+            </Text>
+          </View>
+          {/* <TouchableOpacity
             style={styles.vehicleButton}
             title="View Options"
             onPress={() => {
@@ -99,7 +123,7 @@ class LocationInput extends Component {
             }}
           >
             <Text style={{ fontSize: 12, color: "white" }}>View Options</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       );
     } else {
@@ -178,7 +202,7 @@ class LocationInput extends Component {
                 startingLong: this.state.startingLong,
                 startingPlaceId: this.state.startingPlaceId,
                 endingPlaceId: this.state.endingPlaceId,
-                fuelLeft: this.state.fuelCap,
+                fuelLeft: this.state.fuelLeft,
                 fuelCap: this.state.fuelCap,
                 mpg: this.state.mpg,
                 calcOnGas: this.state.selectedIndex.row,
@@ -243,6 +267,7 @@ const styles = StyleSheet.create({
   },
 
   calcOnGasView: {
+    width: " 86%",
     // height: "50%",
   },
 
@@ -278,6 +303,9 @@ const styles = StyleSheet.create({
   },
 
   vehicleButton: {
+    width: "40%",
+    alignSelf: "center",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 11,
     backgroundColor: colors.defaultBlue,

@@ -30,7 +30,8 @@
     "react-native-screens": "^2.17.1",
     "react-native-svg": "12.1.0",
     "react-native-web": "~0.13.12",
-    "react-xml-parser": "^1.1.8"
+    "react-xml-parser": "^1.1.8",
+    "@react-native-community/slider": "3.0.3"
   },
   "devDependencies": {
     "@babel/core": "~7.9.0"
