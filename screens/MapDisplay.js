@@ -1,10 +1,17 @@
 import React, { Component } from "react";
-import { StyleSheet, View, ActivityIndicator } from "react-native";
+import {
+  StyleSheet,
+  View,
+  ActivityIndicator,
+  Image,
+  Button,
+} from "react-native";
 import { Text } from "@ui-kitten/components";
 import MapView, { Marker, Callout } from "react-native-maps";
 import { API_KEY, ROOT_URL } from "../constants/api";
 import PolyLine from "@mapbox/polyline";
 import colors from "../constants/colors";
+import { ScrollView } from "react-native-gesture-handler";
 
 class MapDisplay extends Component {
   state = {
@@ -13,6 +20,9 @@ class MapDisplay extends Component {
     end: { latitude: 0, longitude: 0 },
     stops: 0,
     stopsList: [],
+
+    isStopShown: false,
+    currentStop: 0,
   };
 
   constructor(props) {
@@ -72,17 +82,60 @@ class MapDisplay extends Component {
     }
   }
 
+  onMarkerClick = (index) => {
+    this.setState({
+      currentStop: index,
+      isStopShown: true,
+    });
+  };
+
+  showStopInfo = () => {
+    if (!this.state.isStopShown) return;
+
+    let currStop = this.state.stopsList[this.state.currentStop];
+
+    return (
+      <View style={styles.cardView}>
+        <Text style={styles.cardTitle}> {currStop.name}</Text>
+        <Text> {currStop.vicinity}</Text>
+        {this.renderStopImage(currStop.photos)}
+      </View>
+    );
+  };
+
+  renderStopImage = (photos) => {
+    if (photos == undefined || photos.length == 0) return;
+
+    let photo = photos[0];
+    if (photo.photo_reference == undefined) return;
+
+    let maxheight = 300;
+    let currUri = `https://maps.googleapis.com/maps/api/place/photo?maxheight=${maxheight}&photoreference=`;
+    currUri = currUri + photo.photo_reference;
+    currUri = currUri + "&key=" + API_KEY;
+    return <Image source={{ uri: currUri }} style={styles.cardImage} />;
+  };
+
+  getMarkerIcon = (index) => {
+    if (this.state.isStopShown && index == this.state.currentStop) {
+      return require("../assets/map_marker2.png");
+    } else return require("../assets/map_marker.png");
+  };
+
   render() {
     return (
       <View style={{ flex: 1 }}>
         <MapView
           ref={(ref) => (this.mapComponent = ref)}
-          style={{ flex: 1 }}
+          style={{ width: "100%", height: "100%", zIndex: -1 }}
           initialRegion={{
             latitude: parseFloat(this.props.route.params.startingLat),
             longitude: parseFloat(this.props.route.params.startingLong),
             latitudeDelta: 0.0922,
             longitudeDelta: 0.0421,
+          }}
+          onPress={() => {
+            if (this.state.isStopShown) this.setState({ isStopShown: false });
           }}
         >
           <MapView.Marker
@@ -102,30 +155,20 @@ class MapDisplay extends Component {
 
           {this.state.stopsList.map((station, index) => (
             <Marker
-              title={station.name}
-              description={station.vicinity}
               key={index}
-              image={require("../assets/map_marker.png")}
               coordinate={{
                 latitude: station.latitude,
                 longitude: station.longitude,
               }}
+              onPress={(e) => {
+                e.stopPropagation();
+                this.onMarkerClick(index);
+              }}
             >
-              <Callout tooltip>
-                <View>
-                  <View style={styles.bubble}>
-                    <Text category="h6">{station.name}</Text>
-                    <Text category="s2">{station.vicinity}</Text>
-                    {/* {station.open_now != null && (
-                      <Text category={station.open_now ? "success" : "danger"}>
-                        {station.open_now ? "Open" : "Closed"}{" "}
-                      </Text>
-                    )} */}
-                  </View>
-                  <View style={styles.arrowBorder} />
-                  <View style={styles.arrow} />
-                </View>
-              </Callout>
+              <Image
+                source={this.getMarkerIcon(index)}
+                style={styles.mapMarkerIcon}
+              />
             </Marker>
           ))}
 
@@ -146,10 +189,8 @@ class MapDisplay extends Component {
             strokeColor="blue"
           />
         </MapView>
-        <View style={styles.totalStops}>
-          <Text category="h6">Total stops: {this.state.stops}</Text>
-        </View>
         {this.loadingSpinner()}
+        {this.showStopInfo()}
       </View>
     );
   }
@@ -158,14 +199,6 @@ class MapDisplay extends Component {
 export default MapDisplay;
 
 const styles = StyleSheet.create({
-  totalStops: {
-    position: "absolute",
-    bottom: 0,
-    backgroundColor: "white",
-    width: "100%",
-    padding: 10,
-  },
-
   container: {
     flexDirection: "column",
     color: colors.defaultBlue,
@@ -176,31 +209,43 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     top: "40%",
   },
-  // Callout bubble
-  bubble: {
+
+  mapMarkerIcon: {
+    width: 30,
+    height: 30,
+  },
+
+  cardView: {
+    width: "90%",
+    height: "30%",
+    position: "absolute",
+    bottom: 20,
+    paddingTop: 10,
+    paddingLeft: 10,
+    paddingRight: 10,
+    paddingBottom: 10,
+    alignSelf: "center",
+    backgroundColor: "white",
+    borderRadius: 20,
     flexDirection: "column",
-    alignSelf: "flex-start",
-    backgroundColor: "#fff",
-    borderRadius: 6,
-    borderColor: "#ccc",
-    borderWidth: 0.5,
-    padding: 10,
   },
-  // Arrow below the bubble
-  arrow: {
-    backgroundColor: "transparent",
-    borderColor: "transparent",
-    borderTopColor: "#fff",
-    borderWidth: 19,
-    alignSelf: "center",
-    marginTop: -32,
+
+  cardTitle: {
+    width: "100%",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 5,
   },
-  arrowBorder: {
-    backgroundColor: "transparent",
-    borderColor: "transparent",
-    borderTopColor: "#007a87",
-    borderWidth: 16,
-    alignSelf: "center",
-    marginTop: -0.5,
+
+  cardScroll: {
+    height: "60%",
+    width: "100%",
+  },
+
+  cardImage: {
+    marginTop: 10,
+    marginRight: 8,
+    height: "70%",
+    resizeMode: "contain",
   },
 });
