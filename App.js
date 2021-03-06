@@ -28,7 +28,10 @@ export default function App() {
             <Stack.Screen
               name="LocationInput"
               component={LocationInput}
-              options={{ title: "Where are we going?", headerTitleAlign: "center" }}
+              options={{
+                title: "Where are we going?",
+                headerTitleAlign: "center",
+              }}
             />
             <Stack.Screen
               name="MapDisplay"
@@ -38,7 +41,7 @@ export default function App() {
             <Stack.Screen
               name="VehicleInput"
               component={VehicleInput}
-              options={{ title: "Search for a vehicle", headerTitleAlign: "center" }}
+              options={{ title: "Add Vehicle", headerTitleAlign: "center" }}
             />
             <Stack.Screen
               name="Options"

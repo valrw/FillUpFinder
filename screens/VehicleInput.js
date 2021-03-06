@@ -23,25 +23,58 @@ const filter = (item, query) => {
 
 const VehicleInput = () => {
   const navigation = useNavigation();
-  // Hnadle Vehicle Button
+  // For manual imput option
+  const [manualMPG, setManualMPG] = useState(false);
+
+  // Header Button
+  React.useLayoutEffect(() => {
+    const buttonText = manualMPG ? "Vehicle Search" : "Set Manually";
+    navigation.setOptions({
+      headerRight: () => (
+        <Button
+          onPress={() => setManualMPG((prev) => !prev)}
+          appearance="ghost"
+          status="info"
+        >
+          {buttonText}
+        </Button>
+      ),
+    });
+  }, [navigation, manualMPG]);
+
+  // Handle Vehicle Button
   const handleVehicleButton = () => {
+    let vehicle = null;
+    let fuel_capacity = fuelCapacity;
+    let mpg_val = mpg;
     if (
+      !manualMPG &&
       mpg != null &&
       fuelCapacity != null &&
       mpg != "Not Found" &&
       fuelCapacity != "Not Found"
     ) {
-      // const finalModel = variation ? variation : model;
-      const vehicle = [year, make, finalModel].join(" ");
-
+      vehicle = [year, make, finalModel].join(" ");
+    } else if (
+      manualMPG &&
+      manualName != null &&
+      manualMPGVal != null &&
+      manualFuelCap != null
+    ) {
+      vehicle = manualName;
+      fuel_capacity = manualFuelCap;
+      mpg_val = manualMPGVal;
+    }
+    if (vehicle != null) {
       navigation.navigate("LocationInput", {
         vehicleSet: true,
         vehicle: vehicle,
-        fuelCap: fuelCapacity,
-        mpg: mpg,
+        fuelCap: fuel_capacity,
+        mpg: mpg_val,
       });
     }
   };
+
   // For the Year Autocomplete
   const [initialYears, setInitialYears] = useState(["loading"]);
   const [year, setYear] = useState(null);
@@ -53,6 +86,7 @@ const VehicleInput = () => {
     setYear(query);
     setYearList(initialYears.filter((item) => filter(item, query)));
   };
+
   // For the Make Autocomplete
   const [initialMakes, setInitialMakes] = useState(["loading"]);
   const [make, setMake] = useState(null);
@@ -70,28 +104,25 @@ const VehicleInput = () => {
   const [modelList, setModelList] = useState([]);
   const model = modelList[modelIndex.row];
 
-  // For the Variation Select
-
-  const [variationIndex, setVariationIndex] = React.useState(new IndexPath(0));
-  const [variationList, setVariationList] = useState([]);
+  // For the Variant Select
+  const [variantIndex, setVariantIndex] = React.useState(new IndexPath(0));
+  const [variantList, setVariantList] = useState([]);
   const [carList, setCarList] = useState([]);
 
-  const variation = variationList[variationIndex.row];
+  const variant = variantList[variantIndex.row];
 
-  const finalModel = variation ? variation : model ? model : null;
+  const finalModel = variant ? variant : model ? model : null;
 
   // For MPG
-
   const [mpg, setMPG] = useState("");
   const [fuelCapacity, setFuelCapacity] = useState("");
 
-  // Axios Calls
+  // For Axios Calls
   const carAPI = axios.create({
     baseURL: "https://www.carqueryapi.com/api/0.3",
   });
 
   // Fetch Available Car Years
-
   useEffect(() => {
     async function fetchYears() {
       const request = await carAPI.get("/?&cmd=getYears");
@@ -111,7 +142,6 @@ const VehicleInput = () => {
   }, []);
 
   // Fetch Makes for selected Year
-
   useEffect(() => {
     async function fetchMakes() {
       const request = await carAPI.get(`/?&cmd=getMakes&year=${year}`);
@@ -129,7 +159,6 @@ const VehicleInput = () => {
   }, [year]);
 
   // Fetch Models for selected Year and Make
-
   useEffect(() => {
     async function fetchModels() {
       try {
@@ -138,20 +167,14 @@ const VehicleInput = () => {
         const response = await carAPI.get(
           `/?&cmd=getModels&make=${formattedMake}&year=${year}`
         );
-        // console.log("Sending Model Fetch Request: ");
-        // console.log(req);
-        // console.log(response)
         if (response.data) {
-          // console.log("Response had Data");
-          // console.log(response.data);
           const models = response.data.Models.map((obj) => obj["model_name"]);
           setModelList(models);
           setModelIndex(new IndexPath(0));
         }
         return response;
       } catch (e) {
-        // console.log("Error in Models Fetch");
-        // console.log(e);
+        console.log(e);
       }
     }
     if (year && make) {
@@ -160,37 +183,26 @@ const VehicleInput = () => {
   }, [year, make]);
 
   // Fetch MPG for selected Model
-
   useEffect(() => {
     async function fetchMPG() {
       if (model) {
         const req = `${ROOT_URL}/api/vehicle/${make}/${model}/${year}`;
-        // console.log("Sending req");
-        // console.log(req);
-        // const response = await axios.get(req);
         axios
           .get(req)
           .then((response) => {
-            // console.log("Got response");
-            // console.log(response.data);
-
-            const variationArray = response.data;
-            // if (!variationArray || variationArray.length < 1) {
-            //   console.log("No Variations Found");
-            // }
-            if (variationArray.length == 1) {
-              const car = variationArray[0];
+            const variantArray = response.data;
+            if (!variantArray || variantArray.length < 1) {
+              console.log("No Variants Found");
+            }
+            if (variantArray.length == 1) {
+              const car = variantArray[0];
               setFuelCapacity(car.fuelCap.toFixed(2).toString());
               setMPG(car.mpg);
-            } else if (variationArray.length > 1) {
-              // setVariationList(variationArray);
-              setCarList(variationArray);
-              setVariationList(variationArray.map((x) => x.model));
-              setVariationIndex(new IndexPath(0));
+            } else if (variantArray.length > 1) {
+              setCarList(variantArray);
+              setVariantList(variantArray.map((x) => x.model));
+              setVariantIndex(new IndexPath(0));
             }
-            // setVariationList([]);
-            // setFuelCapacity(response.data.fuelCap.toString());
-            // setMPG(response.data.mpg.toString());
           })
           .catch((error) => {
             setMPG("Not Found");
@@ -201,19 +213,54 @@ const VehicleInput = () => {
     fetchMPG();
   }, [model]);
 
-  // Set MPG for Model Variation
-
+  // Set MPG for Model Variant
   useEffect(() => {
     if (carList.length > 0) {
-      setMPG(carList[variationIndex.row].mpg);
-      setFuelCapacity(
-        carList[variationIndex.row].fuelCap.toFixed(2).toString()
-      );
+      setMPG(carList[variantIndex.row].mpg);
+      setFuelCapacity(carList[variantIndex.row].fuelCap.toFixed(2).toString());
     }
-  }, [variationIndex]);
+  }, [variantIndex]);
 
-  return (
-    <Layout style={styles.container}>
+  // Manual Input View
+  const [manualName, setManualName] = useState();
+  const [manualMPGVal, setManualMPGVal] = useState();
+  const [manualFuelCap, setManualFuelCap] = useState();
+
+  const manualInputView = () => (
+    <>
+      <Input
+        style={styles.input}
+        label="Car Name"
+        value={manualName}
+        onChangeText={setManualName}
+        placeholder="Enter Car Name"
+      />
+      <Input
+        style={styles.input}
+        label="MPG"
+        placeholder="Enter MPG"
+        value={manualMPGVal}
+        onChangeText={setManualMPGVal}
+        keyboardType={
+          Platform.OS == "android" ? "numeric" : "numbers-and-punctuation"
+        }
+      />
+      <Input
+        style={styles.input}
+        label="Fuel Capacity"
+        placeholder="Enter Fuel Capacity"
+        value={manualFuelCap}
+        onChangeText={setManualFuelCap}
+        keyboardType={
+          Platform.OS == "android" ? "numeric" : "numbers-and-punctuation"
+        }
+      />
+    </>
+  );
+
+  // Car Search View
+  const carSearchView = () => (
+    <>
       <Autocomplete
         style={styles.autocomplete}
         placeholder="Enter Year"
@@ -241,7 +288,7 @@ const VehicleInput = () => {
           <AutocompleteItem key={index} title={make} />
         ))}
       </Autocomplete>
-      <View style={styles.viewHorizontal}>
+      <View style={styles.selects}>
         <Select
           label="Model"
           disabled={!year || !make}
@@ -256,46 +303,67 @@ const VehicleInput = () => {
           ))}
         </Select>
         <Select
-          label="Variation"
-          disabled={variationList.length == 0}
+          label="Variant"
+          disabled={variantList.length == 0}
           style={styles.select2}
-          placeholder="Variation"
-          value={variation ? variation : "N/A"}
-          selectedIndex={variationIndex}
-          onSelect={(index) => setVariationIndex(index)}
+          placeholder="Variant"
+          value={variant ? variant : "N/A"}
+          selectedIndex={variantIndex}
+          onSelect={(index) => setVariantIndex(index)}
         >
-          {variationList.map((variation, idx) => (
-            <SelectItem key={idx} title={variation} />
+          {variantList.map((variant, idx) => (
+            <SelectItem key={idx} title={variant} />
           ))}
         </Select>
       </View>
 
       <Divider style={styles.divider}></Divider>
-      <View style={styles.dataView}>
-        <View>
-          <Text category="h6" style={styles.subtitle}>
-            {year && make && finalModel
-              ? `${year} ${make} ${finalModel}:`
-              : "No Vehicle Selected"}
-          </Text>
-          <Input
-            style={styles.mpgInput}
-            label="MPG"
-            size="large"
-            placeholder="MPG"
-            value={mpg}
-            disabled="true"
-          />
-          <Input
-            style={styles.mpgInput}
-            size="large"
-            label="Fuel Capacity"
-            placeholder="Fuel Capacity"
-            value={fuelCapacity}
-            disabled="true"
-          />
-        </View>
 
+      <Text category="h6" style={styles.subtitle}>
+        {year && make && finalModel
+          ? `${year} ${make} ${finalModel}:`
+          : "No Vehicle Selected"}
+      </Text>
+      <View style={{ flexDirection: "row", justifyContent: "space-evenly" }}>
+        <Input
+          style={styles.mpgInput}
+          label="MPG"
+          size="large"
+          placeholder="MPG"
+          value={mpg}
+          disabled="true"
+        />
+        <Input
+          style={styles.mpgInput}
+          size="large"
+          label="Fuel Capacity"
+          placeholder="Fuel Capacity"
+          value={fuelCapacity}
+          disabled="true"
+        />
+      </View>
+    </>
+  );
+
+  return (
+    <Layout style={styles.container}>
+      <View
+        style={{
+          width: "100%",
+          flexDirection: "row-reverse",
+          // justifyContent: "space-between",
+          alignItems: "center",
+          paddingTop: 15,
+        }}
+      ></View>
+      {manualMPG ? manualInputView() : carSearchView()}
+      <View
+        style={{
+          flexDirection: "column-reverse",
+          flexGrow: 1,
+          alignItems: "center",
+        }}
+      >
         <Button style={styles.buttonBot} onPress={() => handleVehicleButton()}>
           Set Vehicle
         </Button>
@@ -304,34 +372,31 @@ const VehicleInput = () => {
   );
 };
 const styles = StyleSheet.create({
-  viewHorizontal: {
-    width: "90%",
+  container: {
+    paddingHorizontal: 18,
+    paddingVertical: 3,
+    flex: 1,
+  },
+  selects: {
+    width: "100%",
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent: "space-between",
     paddingBottom: 10,
   },
   dataView: {
-    flex: 1,
-    width: "90%",
+    width: "100%",
     flexDirection: "column",
     justifyContent: "space-between",
     paddingVertical: 5,
   },
   select1: {
-    // width: "40%",
-    width: "42%",
+    width: "44%",
   },
   select2: {
-    // width: "40%",
-    width: "46%",
-  },
-  container: {
-    paddingTop: 8,
-    flex: 1,
-    alignItems: "center",
+    width: "50%",
   },
   mpgInput: {
-    width: " 50 %",
+    width: " 44 %",
     alignSelf: "center",
   },
   subtitle: {
@@ -341,16 +406,19 @@ const styles = StyleSheet.create({
   },
   divider: {
     marginVertical: 8,
-    width: "95 %",
+    width: "100%",
   },
   autocomplete: {
-    width: "80%",
+    width: "100%",
     paddingBottom: 20,
   },
   buttonBot: {
-    alignSelf: "center",
+    marginBottom: 14,
     width: "80%",
-    marginVertical: 10,
+  },
+  input: {
+    width: "100%",
+    paddingBottom: 5,
   },
 });
 export default VehicleInput;
