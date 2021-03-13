@@ -7,7 +7,8 @@ import VehicleInput from "./screens/VehicleInput";
 import Options from "./screens/Options";
 import { ThemeContext } from "./contexts/theme-context";
 import * as eva from "@eva-design/eva";
-import { ApplicationProvider } from "@ui-kitten/components";
+import { ApplicationProvider, IconRegistry } from "@ui-kitten/components";
+import { EvaIconsPack } from "@ui-kitten/eva-icons";
 
 export default function App() {
   const Stack = createStackNavigator();
@@ -22,6 +23,7 @@ export default function App() {
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      <IconRegistry icons={EvaIconsPack} />
       <ApplicationProvider {...eva} theme={eva[theme]}>
         <NavigationContainer>
           <Stack.Navigator>
@@ -29,8 +31,7 @@ export default function App() {
               name="LocationInput"
               component={LocationInput}
               options={{
-                title: "Where are we going?",
-                headerTitleAlign: "center",
+                headerShown: false,
               }}
             />
             <Stack.Screen
