@@ -1,5 +1,12 @@
 import React, { Component } from "react";
-import { StyleSheet, View, Platform, Keyboard, ScrollView } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Platform,
+  Keyboard,
+  ScrollView,
+  ImageBackground,
+} from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import colors from "../constants/colors";
 import LocationInputText from "../components/LocationInputText";
@@ -25,8 +32,6 @@ class LocationInput extends Component {
     startingLong: -117.919,
     startingPlaceId: "",
     endingPlaceId: "",
-    // vehicle: null,
-    // vehicleSet: false,
     fuelLeft: 17, // default values may change to be more accurate
     fuelCap: 17,
     mpg: 15,
@@ -37,7 +42,6 @@ class LocationInput extends Component {
     fuelPercent: 75,
     fuelPercentContinuous: 75,
 
-    // carIndex: new IndexPath(0),
     cars: [
       { name: "Car1", mpg: "33", fuelCap: "14" },
       { name: "Car2", mpg: "40", fuelCap: "10" },
@@ -97,34 +101,22 @@ class LocationInput extends Component {
   };
 
   saveCars = () => {
-    console.log("Heeey");
     const { cars } = this.state;
-    console.log(cars);
-    console.log("Saving this");
     AsyncStorage.removeItem("@cars").then(() => {
       AsyncStorage.setItem("@cars", JSON.stringify(cars));
     });
   };
 
   addCar = (car) => {
-    console.log("Adding Car!!");
     const { cars } = this.state;
     const newCars = [...cars, car];
-    // console.log(newCars);
     this.setState({ cars: newCars }, this.saveCars);
   };
 
   deleteCar = () => {
-    console.log("DELETING CAR");
     const { cars } = this.state; // Assuming you set state as previously mentioned
     let newCars = cars;
     newCars.splice(this._carousel._activeItem, 1);
-    console.log("NEW CARS: ");
-    console.log(newCars);
-    // this.setState({ cars: newCars }, () => {
-    //   // this._carousel.snapToNext();
-    //   this.saveCars();
-    // });
 
     this.setState({ cars: newCars }, this.saveCars);
   };
@@ -149,29 +141,6 @@ class LocationInput extends Component {
     if (selectedOption == 0) {
       return (
         <>
-          {/* <View style={styles.calcOnGasView}> */}
-          {/* {this.state.vehicleSet ? (
-            <Text style={styles.vehicleSetText}>
-              Your vehicle: {this.state.vehicle}
-            </Text>
-          ) : (
-            <Text style={styles.vehicleSetText}>Vehicle not set.</Text>
-          )} */}
-          {/* <TouchableOpacity
-            style={styles.vehicleButton}
-            title="Set Vehicle"
-            onPress={() => {
-              this.props.navigation.navigate("VehicleInput");
-            }}
-          >
-            {this.state.vehicleSet ? (
-              <Text style={{ fontSize: 12, color: "white" }}>
-                Change vehicle
-              </Text>
-            ) : (
-              <Text style={{ fontSize: 12, color: "white" }}>Add Vehicle</Text>
-            )}
-          </TouchableOpacity> */}
           <Button
             appearance="outline"
             size="small"
@@ -182,16 +151,6 @@ class LocationInput extends Component {
           >
             Add Vehicle
           </Button>
-          {/* <Text
-            category="h5"
-            style={{
-              paddingVertical: 9,
-              alignSelf: "flex-start",
-              paddingLeft: 20,
-            }}
-          >
-            Vehicle:
-          </Text> */}
           {this.state.cars.length > 0 && (
             <>
               <Carousel
@@ -203,7 +162,6 @@ class LocationInput extends Component {
                 sliderWidth={900}
                 itemWidth={200}
                 containerCustomStyle={{ flexGrow: 0 }}
-                // style={styles.carousel}
               />
               <Text style={{ marginBottom: 5 }}>Remaining Fuel: </Text>
               <View
@@ -222,9 +180,6 @@ class LocationInput extends Component {
                   value={this.state.fuelPercent}
                   onSlidingComplete={(val) => {
                     this.setState({ fuelPercent: val });
-                    // this.setState((prev) => ({
-                    //   fuelLeft: (prev.fuelCap * val) / 100,
-                    // }));
                   }}
                   minimumTrackTintColor={colors.defaultBlue}
                   thumbTintColor={colors.defaultBlue}
@@ -237,17 +192,6 @@ class LocationInput extends Component {
               </View>
             </>
           )}
-
-          {/* <TouchableOpacity
-            style={styles.vehicleButton}
-            title="View Options"
-            onPress={() => {
-              this.props.navigation.navigate("Options");
-            }}
-          >
-            <Text style={{ fontSize: 12, color: "white" }}>View Options</Text>
-          </TouchableOpacity> */}
-          {/* </View> */}
         </>
       );
     } else {
@@ -331,12 +275,9 @@ class LocationInput extends Component {
             title="Go to Map"
             onPress={() => {
               const selectedCar = this.state.cars[this._carousel._activeItem];
-              console.log(selectedCar);
               const fuelLeft =
                 (parseFloat(selectedCar.fuelCap) * this.state.fuelPercent) /
                 100;
-              console.log("Fuel Left: ");
-              console.log(fuelLeft);
               this.props.navigation.navigate("MapDisplay", {
                 startingLat: this.state.startingLat,
                 startingLong: this.state.startingLong,
@@ -511,5 +452,15 @@ const styles = StyleSheet.create({
     alignSelf: "flex-end",
     marginTop: 6,
     marginHorizontal: 6,
+  },
+
+  image_bg: {
+    width: "100%",
+    height: "100%",
+    flexDirection: "column",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    resizeMode: "cover",
+    justifyContent: "center",
   },
 });
