@@ -1,13 +1,6 @@
 import React, { Component } from "react";
-import {
-  StyleSheet,
-  View,
-  Platform,
-  Keyboard,
-  ScrollView,
-  ImageBackground,
-} from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { StyleSheet, View, Platform, Keyboard, ScrollView } from "react-native";
+// import { TouchableOpacity } from "react-native-gesture-handler";
 import colors from "../constants/colors";
 import LocationInputText from "../components/LocationInputText";
 import {
@@ -19,12 +12,12 @@ import {
   Input,
   Text,
   Button,
-  Icon,
 } from "@ui-kitten/components";
 
 import Slider from "@react-native-community/slider";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Carousel from "react-native-snap-carousel";
+import VehicleCard from "../components/VehicleCard";
 
 class LocationInput extends Component {
   state = {
@@ -43,23 +36,21 @@ class LocationInput extends Component {
     fuelPercentContinuous: 75,
 
     cars: [
-      { name: "Car1", mpg: "33", fuelCap: "14" },
-      { name: "Car2", mpg: "40", fuelCap: "10" },
-      { name: "Car3", mpg: "40", fuelCap: "10" },
-      { name: "Car4", mpg: "40", fuelCap: "10" },
-      { name: "Car5", mpg: "40", fuelCap: "10" },
-      { name: "Car6", mpg: "40", fuelCap: "10" },
+      // { name: "Vehicle 1", mpg: "37", fuelCap: "13" },
+      // { name: "Vehicle 2", mpg: "12", fuelCap: "18" },
+      // { name: "Vehicle 3", mpg: "26", fuelCap: "9" },
     ],
+    carsLoaded: false,
   };
 
   componentDidMount() {
     // AsyncStorage.setItem("@cars", JSON.stringify(this.state.cars));
+
     AsyncStorage.getItem("@cars").then((stored_cars) => {
-      let cars = [];
       if (stored_cars !== null) {
-        cars = JSON.parse(stored_cars);
+        const cars = JSON.parse(stored_cars);
+        this.setState({ cars: cars, carsLoaded: true });
       }
-      this.setState({ cars: cars });
     });
   }
 
@@ -75,31 +66,7 @@ class LocationInput extends Component {
     }
   }
 
-  renderSlide = ({ item, index }) => {
-    return (
-      <View style={styles.card}>
-        <Icon
-          style={styles.cardIcon}
-          fill="#222B45"
-          name="trash-2-outline"
-          onPress={this.deleteCar}
-        />
-        <Text category="h5" style={styles.cardTitle}>
-          {" "}
-          {item.name}
-        </Text>
-        <View>
-          <Text category="s1" style={styles.cardInfo}>
-            MPG: {item.mpg}
-          </Text>
-          <Text category="s1" style={styles.cardInfo}>
-            Fuel Capacity: {item.fuelCap}
-          </Text>
-        </View>
-      </View>
-    );
-  };
-
+  // Save current car list to async storage
   saveCars = () => {
     const { cars } = this.state;
     AsyncStorage.removeItem("@cars").then(() => {
@@ -107,14 +74,16 @@ class LocationInput extends Component {
     });
   };
 
+  // Add a car and then update the car list in async storage
   addCar = (car) => {
     const { cars } = this.state;
     const newCars = [...cars, car];
     this.setState({ cars: newCars }, this.saveCars);
   };
 
+  // Delete car and then update the car list in async storage
   deleteCar = () => {
-    const { cars } = this.state; // Assuming you set state as previously mentioned
+    const { cars } = this.state;
     let newCars = cars;
     newCars.splice(this._carousel._activeItem, 1);
 
@@ -141,29 +110,66 @@ class LocationInput extends Component {
     if (selectedOption == 0) {
       return (
         <>
-          <Button
-            appearance="outline"
-            size="small"
-            style={{ marginTop: 16 }}
-            onPress={() => {
-              this.props.navigation.navigate("VehicleInput");
-            }}
-          >
-            Add Vehicle
-          </Button>
+          {this.state.carsLoaded && this.state.cars.length == 0 && (
+            <Button
+              appearance="outline"
+              size="large"
+              style={{ marginTop: 25 }}
+              onPress={() => {
+                this.props.navigation.navigate("VehicleInput");
+              }}
+            >
+              Add Vehicle
+            </Button>
+          )}
+
           {this.state.cars.length > 0 && (
             <>
+              <Divider style={styles.divider}></Divider>
+              <View
+                style={{
+                  flexDirection: "row",
+                  width: "100%",
+                  alignItems: "center",
+                  justifyContent: "space-around",
+                  marginTop: 8,
+                }}
+              >
+                <Text category="h6"> Select Vehicle: </Text>
+                <Button
+                  appearance="outline"
+                  size="small"
+                  onPress={() => {
+                    this.props.navigation.navigate("VehicleInput");
+                  }}
+                >
+                  Add Vehicle
+                </Button>
+              </View>
+
               <Carousel
                 ref={(c) => {
                   this._carousel = c;
                 }}
                 data={this.state.cars}
-                renderItem={this.renderSlide}
+                renderItem={({ item, index }) => (
+                  <VehicleCard
+                    car={item}
+                    index={index}
+                    deleteCar={this.deleteCar}
+                  />
+                )}
                 sliderWidth={900}
                 itemWidth={200}
                 containerCustomStyle={{ flexGrow: 0 }}
               />
-              <Text style={{ marginBottom: 5 }}>Remaining Fuel: </Text>
+              <Text
+                appearance="hint"
+                category="s2"
+                style={{ alignSelf: "flex-start", marginLeft: 38 }}
+              >
+                Remaining Fuel:
+              </Text>
               <View
                 flexDirection="row"
                 style={{ width: "86%", alignItems: "center" }}
@@ -259,45 +265,17 @@ class LocationInput extends Component {
         </Select>
 
         {this.renderTripOptions(this.state.selectedIndex.row)}
-        {/* <View style={{ flexGrow: 1 }}> */}
 
-        {/* </View> */}
-
-        {/* <View>
-          {this.state.cars.map((c, idx) => (
-            <Text key={idx}>{c.name}</Text>
-          ))}
-        </View> */}
-
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.navigateButton}
-            title="Go to Map"
-            onPress={() => {
-              const selectedCar = this.state.cars[this._carousel._activeItem];
-              const fuelLeft =
-                (parseFloat(selectedCar.fuelCap) * this.state.fuelPercent) /
-                100;
-              this.props.navigation.navigate("MapDisplay", {
-                startingLat: this.state.startingLat,
-                startingLong: this.state.startingLong,
-                startingPlaceId: this.state.startingPlaceId,
-                endingPlaceId: this.state.endingPlaceId,
-                fuelLeft: fuelLeft,
-                fuelCap: selectedCar.fuelCap,
-                mpg: selectedCar.mpg,
-                calcOnGas: this.state.selectedIndex.row,
-                numStops: this.state.numberOfStops,
-              });
-            }}
-          >
-            <Text
-              style={styles.buttonText}
-              disabled={this.state.cars.length == 0}
-            >
-              Get Directions
-            </Text>
-          </TouchableOpacity>
+        <View
+          style={{
+            flex: 1,
+            width: "100%",
+            flexDirection: "column-reverse",
+          }}
+        >
+          <Button style={styles.navigateButton} size="giant">
+            Get Directions
+          </Button>
         </View>
       </Layout>
     );
@@ -353,13 +331,10 @@ const styles = StyleSheet.create({
 
   calcOnGasView: {
     width: " 86%",
-    backgroundColor: "pink",
-    // height: "50%",
   },
 
   fixedStopsView: {
     top: 5,
-    // height: "50%",
     width: "86%",
   },
 
@@ -367,19 +342,11 @@ const styles = StyleSheet.create({
     top: 5,
   },
 
-  buttonContainer: {
-    flex: 1,
-    flexDirection: "column",
-    justifyContent: "flex-end",
-    marginBottom: 23,
-    zIndex: -1,
-  },
-
   navigateButton: {
-    paddingHorizontal: 85,
-    paddingVertical: 20,
-    backgroundColor: colors.defaultBlue,
-    borderRadius: 3,
+    marginBottom: 22,
+    alignSelf: "center",
+    height: 55,
+    width: "75%",
   },
 
   vehicleContainer: {
@@ -388,79 +355,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
 
-  // vehicleButton: {
-  //   width: "40%",
-  //   alignSelf: "center",
-  //   alignItems: "center",
-  //   paddingHorizontal: 20,
-  //   paddingVertical: 11,
-  //   backgroundColor: colors.defaultBlue,
-  //   borderRadius: 100,
-  //   marginTop: 11,
-  //   marginBottom: 11,
-  // },
-
-  vehicleSetText: {
-    marginTop: 20,
-    color: "#8F9BB3",
-  },
-
-  buttonText: {
-    fontSize: 18,
-    color: "white",
-  },
-
   divider: {
-    marginTop: 28,
-    width: "95%",
+    marginTop: 24,
+    width: "90%",
   },
 
   carousel: {
     flexGrow: 0,
-  },
-
-  card: {
-    // marginVertical: 20,
-    width: "95%",
-    justifyContent: "space-evenly",
-    // marginHorizontal: 10,
-    marginVertical: 10,
-    backgroundColor: "#fdfdff",
-    height: 150,
-    borderRadius: 8,
-    elevation: 3,
-    shadowColor: "#333",
-    shadowOffset: { width: 1, height: 1 },
-    shadowRadius: 3,
-    shadowOpacity: 0.3,
-  },
-
-  cardInfo: {
-    marginHorizontal: 8,
-    marginBottom: 2,
-  },
-
-  cardTitle: {
-    marginVertical: 4,
-    alignSelf: "center",
-    textAlign: "center",
-  },
-
-  cardIcon: {
-    width: 26,
-    height: 26,
-    alignSelf: "flex-end",
-    marginTop: 6,
-    marginHorizontal: 6,
-  },
-
-  image_bg: {
-    width: "100%",
-    height: "100%",
-    flexDirection: "column",
-    justifyContent: "flex-start",
-    alignItems: "center",
-    resizeMode: "cover",
-    justifyContent: "center",
   },
 });
