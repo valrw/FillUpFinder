@@ -4,7 +4,7 @@ import {
   View,
   ActivityIndicator,
   Image,
-  Button,
+  Animated,
 } from "react-native";
 import { Text } from "@ui-kitten/components";
 import MapView, { Marker, Callout } from "react-native-maps";
@@ -12,6 +12,7 @@ import { API_KEY, ROOT_URL } from "../constants/api";
 import PolyLine from "@mapbox/polyline";
 import colors from "../constants/colors";
 import { ScrollView } from "react-native-gesture-handler";
+import { useEffect } from "react";
 
 class MapDisplay extends Component {
   state = {
@@ -22,7 +23,8 @@ class MapDisplay extends Component {
     stopsList: [],
 
     isStopShown: false,
-    currentStop: 0,
+    currStopIndex: 0,
+    slideAnimate: new Animated.Value(260),
   };
 
   constructor(props) {
@@ -40,9 +42,11 @@ class MapDisplay extends Component {
     var calcOnGas = true;
     if (params.calcOnGas == 1) calcOnGas = false;
     var numStops = params.numStops;
+
     this.getDirections(start, end, fuelLeft, fuelCap, mpg, calcOnGas, numStops);
   }
 
+  // Call the back end api to get the route
   async getDirections(start, end, fuelLeft, fuelCap, mpg, calcOnGas, numStops) {
     try {
       var url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelLeft}/${fuelCap}/${mpg}/`;
@@ -70,6 +74,7 @@ class MapDisplay extends Component {
     }
   }
 
+  // load in the loading spinner when the route is loading
   loadingSpinner() {
     if (this.state.coords.length == 0) {
       return (
@@ -82,27 +87,21 @@ class MapDisplay extends Component {
     }
   }
 
+  // Show the stop information view
   onMarkerClick = (index) => {
-    this.setState({
-      currentStop: index,
-      isStopShown: true,
+    let slideInAnimation = Animated.timing(this.state.slideAnimate, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
     });
+
+    this.setState({ currStopIndex: index, isStopShown: true });
+
+    // Animate the slide in entrance of the stop information view
+    if (!this.state.isStopShown) slideInAnimation.start();
   };
 
-  showStopInfo = () => {
-    if (!this.state.isStopShown) return;
-
-    let currStop = this.state.stopsList[this.state.currentStop];
-
-    return (
-      <View style={styles.cardView}>
-        <Text style={styles.cardTitle}> {currStop.name}</Text>
-        <Text> {currStop.vicinity}</Text>
-        {this.renderStopImage(currStop.photos)}
-      </View>
-    );
-  };
-
+  // Render the overview image for each stop
   renderStopImage = (photos) => {
     if (photos == undefined || photos.length == 0) return;
 
@@ -116,13 +115,35 @@ class MapDisplay extends Component {
     return <Image source={{ uri: currUri }} style={styles.cardImage} />;
   };
 
+  // Get blue icons for all icons, light blue for the selected icon
   getMarkerIcon = (index) => {
-    if (this.state.isStopShown && index == this.state.currentStop) {
+    if (this.state.isStopShown && index == this.state.currStopIndex) {
       return require("../assets/map_marker2.png");
     } else return require("../assets/map_marker.png");
   };
 
+  // When randomly pressing on the map, dismiss the stop information view
+  onMapPress = () => {
+    if (this.state.isStopShown) {
+      this.setState({ isStopShown: false });
+    }
+    Animated.timing(this.state.slideAnimate, {
+      toValue: 260,
+      duration: 150,
+      useNativeDriver: true,
+    }).start();
+  };
+
   render() {
+    const slideAnimation = {
+      transform: [{ translateY: this.state.slideAnimate }],
+    };
+
+    let currStop = { name: "", vicinity: "" };
+
+    if (this.state.isStopShown)
+      currStop = this.state.stopsList[this.state.currStopIndex];
+
     return (
       <View style={{ flex: 1 }}>
         <MapView
@@ -134,19 +155,17 @@ class MapDisplay extends Component {
             latitudeDelta: 0.0922,
             longitudeDelta: 0.0421,
           }}
-          onPress={() => {
-            if (this.state.isStopShown) this.setState({ isStopShown: false });
-          }}
+          onPress={this.onMapPress}
         >
           <MapView.Marker
-            title="start"
+            title="Start"
             coordinate={{
               latitude: this.state.start.latitude,
               longitude: this.state.start.longitude,
             }}
           />
           <MapView.Marker
-            title="end"
+            title="End"
             coordinate={{
               latitude: this.state.end.latitude,
               longitude: this.state.end.longitude,
@@ -190,7 +209,12 @@ class MapDisplay extends Component {
           />
         </MapView>
         {this.loadingSpinner()}
-        {this.showStopInfo()}
+
+        <Animated.View style={[styles.cardView, slideAnimation]}>
+          <Text style={styles.cardTitle}> {currStop.name}</Text>
+          <Text> {currStop.vicinity}</Text>
+          {this.renderStopImage(currStop.photos)}
+        </Animated.View>
       </View>
     );
   }
