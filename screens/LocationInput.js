@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { StyleSheet, View, Platform, Keyboard, ScrollView } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
+// import { TouchableOpacity } from "react-native-gesture-handler";
 import colors from "../constants/colors";
 import LocationInputText from "../components/LocationInputText";
 import {
@@ -11,8 +11,13 @@ import {
   IndexPath,
   Input,
   Text,
+  Button,
 } from "@ui-kitten/components";
+
 import Slider from "@react-native-community/slider";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Carousel from "react-native-snap-carousel";
+import VehicleCard from "../components/VehicleCard";
 
 class LocationInput extends Component {
   state = {
@@ -20,8 +25,6 @@ class LocationInput extends Component {
     startingLong: -117.919,
     startingPlaceId: "",
     endingPlaceId: "",
-    vehicle: null,
-    vehicleSet: false,
     fuelLeft: 17, // default values may change to be more accurate
     fuelCap: 17,
     mpg: 15,
@@ -31,20 +34,61 @@ class LocationInput extends Component {
 
     fuelPercent: 75,
     fuelPercentContinuous: 75,
+
+    cars: [
+      // { name: "Vehicle 1", mpg: "37", fuelCap: "13" },
+      // { name: "Vehicle 2", mpg: "12", fuelCap: "18" },
+      // { name: "Vehicle 3", mpg: "26", fuelCap: "9" },
+    ],
+    carsLoaded: false,
   };
+
+  componentDidMount() {
+    // AsyncStorage.setItem("@cars", JSON.stringify(this.state.cars));
+
+    AsyncStorage.getItem("@cars").then((stored_cars) => {
+      if (stored_cars !== null) {
+        const cars = JSON.parse(stored_cars);
+        this.setState({ cars: cars, carsLoaded: true });
+      }
+    });
+  }
 
   componentDidUpdate(prevProps, prevState) {
     if (this.props.route.params == null) return;
-    if (this.props.route.params?.vehicle !== prevState.vehicle) {
-      var params = this.props.route.params;
-      this.setState({
-        vehicleSet: true,
-        vehicle: params.vehicle,
-        fuelCap: params.fuelCap,
+    if (this.props.route.params != prevProps.route.params) {
+      const params = this.props.route.params;
+      this.addCar({
+        name: params.vehicle,
         mpg: params.mpg,
+        fuelCap: params.fuelCap,
       });
     }
   }
+
+  // Save current car list to async storage
+  saveCars = () => {
+    const { cars } = this.state;
+    AsyncStorage.removeItem("@cars").then(() => {
+      AsyncStorage.setItem("@cars", JSON.stringify(cars));
+    });
+  };
+
+  // Add a car and then update the car list in async storage
+  addCar = (car) => {
+    const { cars } = this.state;
+    const newCars = [...cars, car];
+    this.setState({ cars: newCars }, this.saveCars);
+  };
+
+  // Delete car and then update the car list in async storage
+  deleteCar = () => {
+    const { cars } = this.state;
+    let newCars = cars;
+    newCars.splice(this._carousel._activeItem, 1);
+
+    this.setState({ cars: newCars }, this.saveCars);
+  };
 
   getPlaceInfo = (place, details, index) => {
     if (index == 0) {
@@ -65,66 +109,96 @@ class LocationInput extends Component {
   renderTripOptions = (selectedOption) => {
     if (selectedOption == 0) {
       return (
-        <View style={styles.calcOnGasView}>
-          {this.state.vehicleSet ? (
-            <Text style={styles.vehicleSetText}>
-              Your vehicle: {this.state.vehicle}
-            </Text>
-          ) : (
-            <Text style={styles.vehicleSetText}>Vehicle not set.</Text>
-          )}
-          <TouchableOpacity
-            style={styles.vehicleButton}
-            title="Set Vehicle"
-            onPress={() => {
-              this.props.navigation.navigate("VehicleInput");
-            }}
-          >
-            {this.state.vehicleSet ? (
-              <Text style={{ fontSize: 12, color: "white" }}>
-                Change vehicle
-              </Text>
-            ) : (
-              <Text style={{ fontSize: 12, color: "white" }}>Add Vehicle</Text>
-            )}
-          </TouchableOpacity>
-          <Text>Remaining Fuel: </Text>
-          <View flexDirection="row">
-            <Slider
-              ref={this.sliderRef}
-              style={{ width: "88%", height: 40, alignSelf: "center" }}
-              minimumValue={1}
-              maximumValue={100}
-              step={1}
-              onValueChange={(val) =>
-                this.setState({ fuelPercentContinuous: val })
-              }
-              value={this.state.fuelPercent}
-              onSlidingComplete={(val) => {
-                this.setState({ fuelPercent: val });
-                this.setState((prev) => ({
-                  fuelLeft: (prev.fuelCap * val) / 100,
-                }));
+        <>
+          {this.state.carsLoaded && this.state.cars.length == 0 && (
+            <Button
+              appearance="outline"
+              size="large"
+              style={{ marginTop: 25 }}
+              onPress={() => {
+                this.props.navigation.navigate("VehicleInput");
               }}
-              minimumTrackTintColor={colors.defaultBlue}
-              thumbTintColor={colors.defaultBlue}
-              maximumTrackTintColor="#000000"
-            />
-            <Text category="p1">
-              {" "}
-              {`${this.state.fuelPercentContinuous} %`}
-            </Text>
-          </View>
-          {/* <TouchableOpacity
-            style={styles.vehicleButton}
-            title="View Options"
-            onPress={() => {
-              this.props.navigation.navigate("Options");
-            }}
-          >
-            <Text style={{ fontSize: 12, color: "white" }}>View Options</Text>
-          </TouchableOpacity> */}
-        </View>
+            >
+              Add Vehicle
+            </Button>
+          )}
+
+          {this.state.cars.length > 0 && (
+            <>
+              <Divider style={styles.divider}></Divider>
+              <View
+                style={{
+                  flexDirection: "row",
+                  width: "100%",
+                  alignItems: "center",
+                  justifyContent: "space-around",
+                  marginTop: 8,
+                }}
+              >
+                <Text category="h6"> Select Vehicle: </Text>
+                <Button
+                  appearance="outline"
+                  size="small"
+                  onPress={() => {
+                    this.props.navigation.navigate("VehicleInput");
+                  }}
+                >
+                  Add Vehicle
+                </Button>
+              </View>
+
+              <Carousel
+                ref={(c) => {
+                  this._carousel = c;
+                }}
+                data={this.state.cars}
+                renderItem={({ item, index }) => (
+                  <VehicleCard
+                    car={item}
+                    index={index}
+                    deleteCar={this.deleteCar}
+                  />
+                )}
+                sliderWidth={900}
+                itemWidth={200}
+                containerCustomStyle={{ flexGrow: 0 }}
+              />
+              <Text
+                appearance="hint"
+                category="s2"
+                style={{ alignSelf: "flex-start", marginLeft: 38 }}
+              >
+                Remaining Fuel:
+              </Text>
+              <View
+                flexDirection="row"
+                style={{ width: "86%", alignItems: "center" }}
+              >
+                <Slider
+                  ref={this.sliderRef}
+                  style={{ width: "88%", height: 40, alignSelf: "center" }}
+                  minimumValue={1}
+                  maximumValue={100}
+                  step={1}
+                  onValueChange={(val) =>
+                    this.setState({ fuelPercentContinuous: val })
+                  }
+                  value={this.state.fuelPercent}
+                  onSlidingComplete={(val) => {
+                    this.setState({ fuelPercent: val });
+                  }}
+                  minimumTrackTintColor={colors.defaultBlue}
+                  thumbTintColor={colors.defaultBlue}
+                  maximumTrackTintColor="#8F9BB3"
+                />
+                <Text category="p1">
+                  {" "}
+                  {`${this.state.fuelPercentContinuous} %`}
+                </Text>
+              </View>
+            </>
+          )}
+        </>
       );
     } else {
       return (
@@ -192,28 +266,16 @@ class LocationInput extends Component {
 
         {this.renderTripOptions(this.state.selectedIndex.row)}
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.navigateButton}
-            title="Go to Map"
-            onPress={() =>
-              this.props.navigation.navigate("MapDisplay", {
-                startingLat: this.state.startingLat,
-                startingLong: this.state.startingLong,
-                startingPlaceId: this.state.startingPlaceId,
-                endingPlaceId: this.state.endingPlaceId,
-                fuelLeft: this.state.fuelLeft,
-                fuelCap: this.state.fuelCap,
-                mpg: this.state.mpg,
-                calcOnGas: this.state.selectedIndex.row,
-                numStops: this.state.numberOfStops,
-              })
-            }
-          >
-            <Text style={styles.buttonText} disabled={!this.state.vehicleSet}>
-              Get Directions
-            </Text>
-          </TouchableOpacity>
+        <View
+          style={{
+            flex: 1,
+            width: "100%",
+            flexDirection: "column-reverse",
+          }}
+        >
+          <Button style={styles.navigateButton} size="giant">
+            Get Directions
+          </Button>
         </View>
       </Layout>
     );
@@ -226,6 +288,7 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     height: "100%",
+    paddingTop: 10,
     flexDirection: "column",
     justifyContent: "flex-start",
     alignItems: "center",
@@ -263,17 +326,15 @@ const styles = StyleSheet.create({
 
   selectTripType: {
     top: 5,
-    width: "65%",
+    width: "86%",
   },
 
   calcOnGasView: {
     width: " 86%",
-    // height: "50%",
   },
 
   fixedStopsView: {
     top: 5,
-    // height: "50%",
     width: "86%",
   },
 
@@ -281,19 +342,11 @@ const styles = StyleSheet.create({
     top: 5,
   },
 
-  buttonContainer: {
-    flex: 1,
-    flexDirection: "column",
-    justifyContent: "flex-end",
-    marginBottom: 23,
-    zIndex: -1,
-  },
-
   navigateButton: {
-    paddingHorizontal: 85,
-    paddingVertical: 20,
-    backgroundColor: colors.defaultBlue,
-    borderRadius: 3,
+    marginBottom: 22,
+    alignSelf: "center",
+    height: 55,
+    width: "75%",
   },
 
   vehicleContainer: {
@@ -302,30 +355,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
 
-  vehicleButton: {
-    width: "40%",
-    alignSelf: "center",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 11,
-    backgroundColor: colors.defaultBlue,
-    borderRadius: 100,
-    marginTop: 11,
-    marginBottom: 11,
-  },
-
-  vehicleSetText: {
-    marginTop: 20,
-    color: "#8F9BB3",
-  },
-
-  buttonText: {
-    fontSize: 18,
-    color: "white",
-  },
-
   divider: {
-    marginTop: 28,
-    width: "95%",
+    marginTop: 24,
+    width: "90%",
+  },
+
+  carousel: {
+    flexGrow: 0,
   },
 });
