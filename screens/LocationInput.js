@@ -110,7 +110,7 @@ class LocationInput extends Component {
     if (selectedOption == 0) {
       return (
         <>
-          {this.state.carsLoaded && this.state.cars.length == 0 && (
+          {!this.state.carsLoaded && this.state.cars.length == 0 && (
             <Button
               appearance="outline"
               size="large"
@@ -273,7 +273,22 @@ class LocationInput extends Component {
             flexDirection: "column-reverse",
           }}
         >
-          <Button style={styles.navigateButton} size="giant">
+          <Button
+            style={styles.navigateButton}
+            size="giant"
+            onPress={() =>
+              this.props.navigation.navigate("MapDisplay", {
+                startingLat: this.state.startingLat,
+                startingLong: this.state.startingLong,
+                startingPlaceId: this.state.startingPlaceId,
+                endingPlaceId: this.state.endingPlaceId,
+                fuelLeft: this.state.fuelLeft,
+                fuelCap: this.state.fuelCap,
+                mpg: this.state.mpg,
+                calcOnGas: this.state.selectedIndex.row,
+                numStops: this.state.numberOfStops,
+              })
+            }>
             Get Directions
           </Button>
         </View>
