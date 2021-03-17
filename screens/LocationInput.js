@@ -25,7 +25,6 @@ class LocationInput extends Component {
     startingLong: -117.919,
     startingPlaceId: "",
     endingPlaceId: "",
-    fuelLeft: 17, // default values may change to be more accurate
     fuelCap: 17,
     mpg: 15,
 
@@ -185,6 +184,7 @@ class LocationInput extends Component {
                   }
                   value={this.state.fuelPercent}
                   onSlidingComplete={(val) => {
+                    console.log(val);
                     this.setState({ fuelPercent: val });
                   }}
                   minimumTrackTintColor={colors.defaultBlue}
@@ -276,19 +276,20 @@ class LocationInput extends Component {
           <Button
             style={styles.navigateButton}
             size="giant"
-            onPress={() =>
+            onPress={() => {
               this.props.navigation.navigate("MapDisplay", {
                 startingLat: this.state.startingLat,
                 startingLong: this.state.startingLong,
                 startingPlaceId: this.state.startingPlaceId,
                 endingPlaceId: this.state.endingPlaceId,
-                fuelLeft: this.state.fuelLeft,
+                fuelLeft: this.state.fuelPercent * 0.01 * this.state.fuelCap,
                 fuelCap: this.state.fuelCap,
                 mpg: this.state.mpg,
                 calcOnGas: this.state.selectedIndex.row,
                 numStops: this.state.numberOfStops,
-              })
-            }>
+              });
+            }}
+          >
             Get Directions
           </Button>
         </View>
@@ -303,7 +304,7 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     height: "100%",
-    paddingTop: 10,
+    paddingTop: 0,
     flexDirection: "column",
     justifyContent: "flex-start",
     alignItems: "center",
