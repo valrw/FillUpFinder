@@ -31,7 +31,8 @@ export default function App() {
               name="LocationInput"
               component={LocationInput}
               options={{
-                headerShown: false,
+                title: "Where are we going?",
+                headerTitleAlign: "center",
               }}
             />
             <Stack.Screen
