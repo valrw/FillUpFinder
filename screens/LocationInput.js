@@ -35,7 +35,7 @@ class LocationInput extends Component {
     fuelPercentContinuous: 75,
 
     cars: [
-      // { name: "Vehicle 1", mpg: "37", fuelCap: "13" },
+      // { name: "2012 Honda Accord", mpg: "37", fuelCap: "13" },
       // { name: "Vehicle 2", mpg: "12", fuelCap: "18" },
       // { name: "Vehicle 3", mpg: "26", fuelCap: "9" },
     ],
@@ -109,7 +109,7 @@ class LocationInput extends Component {
     if (selectedOption == 0) {
       return (
         <>
-          {!this.state.carsLoaded && this.state.cars.length == 0 && (
+          {this.state.cars.length == 0 && (
             <Button
               appearance="outline"
               size="large"
@@ -184,7 +184,6 @@ class LocationInput extends Component {
                   }
                   value={this.state.fuelPercent}
                   onSlidingComplete={(val) => {
-                    console.log(val);
                     this.setState({ fuelPercent: val });
                   }}
                   minimumTrackTintColor={colors.defaultBlue}
