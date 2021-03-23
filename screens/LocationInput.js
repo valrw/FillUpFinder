@@ -76,7 +76,7 @@ class LocationInput extends Component {
   // Add a car and then update the car list in async storage
   addCar = (car) => {
     const { cars } = this.state;
-    const newCars = [...cars, car];
+    const newCars = [car, ...cars];
     this.setState({ cars: newCars }, this.saveCars);
   };
 

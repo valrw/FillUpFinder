@@ -13,6 +13,8 @@ import {
   SelectItem,
   IndexPath,
   Input,
+  Icon,
+  Spinner,
 } from "@ui-kitten/components";
 import { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
@@ -20,6 +22,14 @@ import { useNavigation } from "@react-navigation/native";
 const filter = (item, query) => {
   return item.toLowerCase().startsWith(query.toLowerCase());
 };
+
+const StarIcon = (props) => <Icon {...props} name="star" />;
+
+const LoadingIndicator = (props) => (
+  <View style={[props.style, styles.indicator]}>
+    <Spinner size="small" />
+  </View>
+);
 
 const VehicleInput = () => {
   const navigation = useNavigation();
@@ -43,34 +53,30 @@ const VehicleInput = () => {
   }, [navigation, manualMPG]);
 
   // Handle Vehicle Button
-  const handleVehicleButton = () => {
-    let vehicle = null;
-    let fuel_capacity = fuelCapacity;
-    let mpg_val = mpg;
-    if (
-      !manualMPG &&
-      mpg != null &&
-      fuelCapacity != null &&
-      mpg != "Not Found" &&
-      fuelCapacity != "Not Found"
-    ) {
-      vehicle = [year, make, finalModel].join(" ");
-    } else if (
-      manualMPG &&
-      manualName != null &&
-      manualMPGVal != null &&
-      manualFuelCap != null
-    ) {
-      vehicle = manualName;
-      fuel_capacity = manualFuelCap;
-      mpg_val = manualMPGVal;
+  const isButtonDisabled = () => {
+    if (!manualMPG) {
+      return (
+        !mpg ||
+        !fuelCapacity ||
+        mpg == "Not Found" ||
+        fuelCapacity == "Not Found"
+      );
+    } else {
+      return !manualName || !manualMPGVal || !manualFuelCap;
     }
+  };
+
+  const handleVehicleButton = () => {
+    const vehicle = manualMPG
+      ? manualName
+      : [(year, make, finalModel)].join(" ");
+
     if (vehicle != null) {
       navigation.navigate("LocationInput", {
         vehicleSet: true,
         vehicle: vehicle,
-        fuelCap: fuel_capacity,
-        mpg: mpg_val,
+        fuelCap: manualMPG ? manualFuelCap : fuelCapacity,
+        mpg: manualMPG ? manualMPGVal : mpg,
       });
     }
   };
@@ -103,6 +109,7 @@ const VehicleInput = () => {
   const [modelIndex, setModelIndex] = React.useState(new IndexPath(0));
   const [modelList, setModelList] = useState([]);
   const model = modelList[modelIndex.row];
+  const [modelIsLoading, setModelIsLoading] = React.useState(false);
 
   // For the Variant Select
   const [variantIndex, setVariantIndex] = React.useState(new IndexPath(0));
@@ -112,6 +119,7 @@ const VehicleInput = () => {
   const variant = variantList[variantIndex.row];
 
   const finalModel = variant ? variant : model ? model : null;
+  const [variantIsLoading, setVariantIsLoading] = React.useState(false);
 
   // For MPG
   const [mpg, setMPG] = useState("");
@@ -131,7 +139,6 @@ const VehicleInput = () => {
       const total = max - request.data.Years.min_year + 1;
       setInitialYears(
         Array.from(new Array(total), (x, i) => (Number(max) - i).toString())
-        // ["4", "5", "6"]
       );
       setYearList(
         Array.from(new Array(total), (x, i) => (Number(max) - i).toString())
@@ -153,7 +160,7 @@ const VehicleInput = () => {
       }
       return request;
     }
-    if (year) {
+    if (year && initialYears.includes(year)) {
       fetchMakes();
     }
   }, [year]);
@@ -167,6 +174,7 @@ const VehicleInput = () => {
         const response = await carAPI.get(
           `/?&cmd=getModels&make=${formattedMake}&year=${year}`
         );
+        setModelIsLoading(false);
         if (response.data) {
           const models = response.data.Models.map((obj) => obj["model_name"]);
           setModelList(models);
@@ -177,7 +185,10 @@ const VehicleInput = () => {
         console.log(e);
       }
     }
-    if (year && make) {
+    if (year && make && initialMakes.includes(make)) {
+      setModelList([]);
+      setVariantList([]);
+      setModelIsLoading(true);
       fetchModels();
     }
   }, [year, make]);
@@ -190,9 +201,9 @@ const VehicleInput = () => {
         axios
           .get(req)
           .then((response) => {
+            setVariantIsLoading(false);
             const variantArray = response.data;
             if (!variantArray || variantArray.length < 1) {
-              console.log("No Variants Found");
             }
             if (variantArray.length == 1) {
               const car = variantArray[0];
@@ -205,12 +216,17 @@ const VehicleInput = () => {
             }
           })
           .catch((error) => {
+            setVariantIsLoading(false);
             setMPG("Not Found");
             setFuelCapacity("Not Found");
           });
       }
     }
-    fetchMPG();
+    if (model) {
+      setVariantList([]);
+      setVariantIsLoading(true);
+      fetchMPG();
+    }
   }, [model]);
 
   // Set MPG for Model Variant
@@ -291,10 +307,11 @@ const VehicleInput = () => {
       <View style={styles.selects}>
         <Select
           label="Model"
-          disabled={!year || !make}
+          disabled={modelList.length == 0}
           style={styles.select1}
+          accessoryLeft={modelIsLoading ? LoadingIndicator : null}
           placeholder="Select Model"
-          value={model ? model : "No Models Found"}
+          value={model ? model : "N/A"}
           selectedIndex={modelIndex}
           onSelect={(index) => setModelIndex(index)}
         >
@@ -305,6 +322,7 @@ const VehicleInput = () => {
         <Select
           label="Variant"
           disabled={variantList.length == 0}
+          accessoryLeft={variantIsLoading ? LoadingIndicator : null}
           style={styles.select2}
           placeholder="Variant"
           value={variant ? variant : "N/A"}
@@ -330,15 +348,17 @@ const VehicleInput = () => {
           label="MPG"
           size="large"
           placeholder="MPG"
-          value={mpg}
+          accessoryLeft={variantIsLoading ? LoadingIndicator : null}
+          value={variantIsLoading ? "loading..." : mpg}
           disabled="true"
         />
         <Input
           style={styles.mpgInput}
           size="large"
           label="Fuel Capacity"
+          accessoryLeft={variantIsLoading ? LoadingIndicator : null}
           placeholder="Fuel Capacity"
-          value={fuelCapacity}
+          value={variantIsLoading ? "loading..." : fuelCapacity}
           disabled="true"
         />
       </View>
@@ -364,7 +384,11 @@ const VehicleInput = () => {
           alignItems: "center",
         }}
       >
-        <Button style={styles.buttonBot} onPress={() => handleVehicleButton()}>
+        <Button
+          style={styles.buttonBot}
+          onPress={() => handleVehicleButton()}
+          disabled={isButtonDisabled()}
+        >
           Set Vehicle
         </Button>
       </View>
@@ -419,6 +443,10 @@ const styles = StyleSheet.create({
   input: {
     width: "100%",
     paddingBottom: 5,
+  },
+  indicator: {
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 export default VehicleInput;
