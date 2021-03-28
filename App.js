@@ -1,4 +1,5 @@
 import React from "react";
+import { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import MapDisplay from "./screens/MapDisplay";
@@ -7,12 +8,44 @@ import VehicleInput from "./screens/VehicleInput";
 import Options from "./screens/Options";
 import { ThemeContext } from "./contexts/theme-context";
 import * as eva from "@eva-design/eva";
-import { ApplicationProvider, IconRegistry } from "@ui-kitten/components";
+import { ApplicationProvider, IconRegistry, Text } from "@ui-kitten/components";
 import { EvaIconsPack } from "@ui-kitten/eva-icons";
+import AppLoading from "expo-app-loading";
+
+import { default as mapping } from "./mapping.json";
+
+// import { useFonts, Inter_900Black } from "@expo-google-fonts/inter";
+import {
+  OpenSans_300Light,
+  OpenSans_300Light_Italic,
+  OpenSans_400Regular,
+  OpenSans_400Regular_Italic,
+  OpenSans_600SemiBold,
+  OpenSans_600SemiBold_Italic,
+  OpenSans_700Bold,
+  OpenSans_700Bold_Italic,
+  OpenSans_800ExtraBold,
+  OpenSans_800ExtraBold_Italic,
+  useFonts,
+} from "@expo-google-fonts/open-sans";
 
 export default function App() {
   const Stack = createStackNavigator();
-  const [theme, setTheme] = React.useState("light");
+  const [theme, setTheme] = useState("light");
+  // const [fontLoaded, setFontLoaded] = useState(false);
+
+  let [fontsLoaded] = useFonts({
+    OpenSans_300Light,
+    OpenSans_300Light_Italic,
+    OpenSans_400Regular,
+    OpenSans_400Regular_Italic,
+    OpenSans_600SemiBold,
+    OpenSans_600SemiBold_Italic,
+    OpenSans_700Bold,
+    OpenSans_700Bold_Italic,
+    OpenSans_800ExtraBold,
+    OpenSans_800ExtraBold_Italic,
+  });
 
   const toggleTheme = () => {
     const nextTheme = theme === "light" ? "dark" : "light";
@@ -21,10 +54,10 @@ export default function App() {
   const headerColor = theme === "light" ? "color-basic-100" : "color-basic-800";
   const tintColor = theme === "light" ? "color-basic-800" : "color-basic-100";
 
-  return (
+  return fontsLoaded ? (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       <IconRegistry icons={EvaIconsPack} />
-      <ApplicationProvider {...eva} theme={eva[theme]}>
+      <ApplicationProvider {...eva} theme={eva[theme]} customMapping={mapping}>
         <NavigationContainer>
           <Stack.Navigator>
             <Stack.Screen
@@ -61,5 +94,7 @@ export default function App() {
         </NavigationContainer>
       </ApplicationProvider>
     </ThemeContext.Provider>
+  ) : (
+    <AppLoading />
   );
 }

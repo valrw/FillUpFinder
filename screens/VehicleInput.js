@@ -23,13 +23,17 @@ const filter = (item, query) => {
   return item.toLowerCase().startsWith(query.toLowerCase());
 };
 
-const StarIcon = (props) => <Icon {...props} name="star" />;
-
 const LoadingIndicator = (props) => (
   <View style={[props.style, styles.indicator]}>
     <Spinner size="small" />
   </View>
 );
+
+// const TextElement = (string, category = "p1", style = {}) => (
+//   <Text category={category} style={style}>
+//     {string}
+//   </Text>
+// );
 
 const VehicleInput = () => {
   const navigation = useNavigation();
@@ -67,10 +71,7 @@ const VehicleInput = () => {
   };
 
   const handleVehicleButton = () => {
-    const vehicle = manualMPG
-      ? manualName
-      : [(year, make, finalModel)].join(" ");
-
+    const vehicle = manualMPG ? manualName : [year, make, finalModel].join(" ");
     if (vehicle != null) {
       navigation.navigate("LocationInput", {
         vehicleSet: true,
@@ -124,6 +125,16 @@ const VehicleInput = () => {
   // For MPG
   const [mpg, setMPG] = useState("");
   const [fuelCapacity, setFuelCapacity] = useState("");
+
+  const setNotFound = () => {
+    setMPG("Not Found");
+    setFuelCapacity("Not Found");
+  };
+
+  const setEmpty = () => {
+    setMPG("");
+    setFuelCapacity("");
+  };
 
   // For Axios Calls
   const carAPI = axios.create({
@@ -185,9 +196,10 @@ const VehicleInput = () => {
         console.log(e);
       }
     }
+    setModelList([]);
+    setVariantList([]);
+    setEmpty();
     if (year && make && initialMakes.includes(make)) {
-      setModelList([]);
-      setVariantList([]);
       setModelIsLoading(true);
       fetchModels();
     }
@@ -217,8 +229,7 @@ const VehicleInput = () => {
           })
           .catch((error) => {
             setVariantIsLoading(false);
-            setMPG("Not Found");
-            setFuelCapacity("Not Found");
+            setNotFound();
           });
       }
     }
@@ -311,6 +322,7 @@ const VehicleInput = () => {
           style={styles.select1}
           accessoryLeft={modelIsLoading ? LoadingIndicator : null}
           placeholder="Select Model"
+          // value={TextElement(model ? model : "N/A", "p1", styles.normalText)}
           value={model ? model : "N/A"}
           selectedIndex={modelIndex}
           onSelect={(index) => setModelIndex(index)}
@@ -330,6 +342,7 @@ const VehicleInput = () => {
           onSelect={(index) => setVariantIndex(index)}
         >
           {variantList.map((variant, idx) => (
+            // <SelectItem key={idx} title={TextElement(variant, "h1")} />
             <SelectItem key={idx} title={variant} />
           ))}
         </Select>
@@ -337,7 +350,7 @@ const VehicleInput = () => {
 
       <Divider style={styles.divider}></Divider>
 
-      <Text category="h6" style={styles.subtitle}>
+      <Text style={styles.subtitle}>
         {year && make && finalModel
           ? `${year} ${make} ${finalModel}:`
           : "No Vehicle Selected"}
@@ -371,7 +384,6 @@ const VehicleInput = () => {
         style={{
           width: "100%",
           flexDirection: "row-reverse",
-          // justifyContent: "space-between",
           alignItems: "center",
           paddingTop: 15,
         }}
@@ -389,7 +401,7 @@ const VehicleInput = () => {
           onPress={() => handleVehicleButton()}
           disabled={isButtonDisabled()}
         >
-          Set Vehicle
+          Add Vehicle
         </Button>
       </View>
     </Layout>
@@ -426,6 +438,8 @@ const styles = StyleSheet.create({
   subtitle: {
     paddingLeft: 10,
     marginBottom: 10,
+    fontSize: 18,
+    fontFamily: "OpenSans_600SemiBold",
     alignSelf: "center",
   },
   divider: {
