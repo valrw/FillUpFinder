@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { StyleSheet, View, Platform, Keyboard, ScrollView } from "react-native";
-// import { TouchableOpacity } from "react-native-gesture-handler";
 import colors from "../constants/colors";
 import LocationInputText from "../components/LocationInputText";
 import {
@@ -25,8 +24,6 @@ class LocationInput extends Component {
     startingLong: -117.919,
     startingPlaceId: "",
     endingPlaceId: "",
-    fuelCap: 17,
-    mpg: 15,
 
     selectedIndex: new IndexPath(0),
     numberOfStops: 0,
@@ -34,12 +31,8 @@ class LocationInput extends Component {
     fuelPercent: 75,
     fuelPercentContinuous: 75,
 
-    cars: [
-      // { name: "2012 Honda Accord", mpg: "37", fuelCap: "13" },
-      // { name: "Vehicle 2", mpg: "12", fuelCap: "18" },
-      // { name: "Vehicle 3", mpg: "26", fuelCap: "9" },
-    ],
-    carsLoaded: false,
+    cars: [],
+    finishedLoading: false,
   };
 
   componentDidMount() {
@@ -48,7 +41,9 @@ class LocationInput extends Component {
     AsyncStorage.getItem("@cars").then((stored_cars) => {
       if (stored_cars !== null) {
         const cars = JSON.parse(stored_cars);
-        this.setState({ cars: cars, carsLoaded: true });
+        this.setState({ cars: cars, finishedLoading: true });
+      } else {
+        this.setState({ finishedLoading: true });
       }
     });
   }
@@ -76,8 +71,11 @@ class LocationInput extends Component {
   // Add a car and then update the car list in async storage
   addCar = (car) => {
     const { cars } = this.state;
-    const newCars = [...cars, car];
-    this.setState({ cars: newCars }, this.saveCars);
+    const newCars = [car, ...cars];
+    this.setState({ cars: newCars }, () => {
+      this.saveCars();
+      this._carousel.snapToItem(0);
+    });
   };
 
   // Delete car and then update the car list in async storage
@@ -109,7 +107,7 @@ class LocationInput extends Component {
     if (selectedOption == 0) {
       return (
         <>
-          {this.state.cars.length == 0 && (
+          {this.state.cars.length == 0 && this.state.finishedLoading && (
             <Button
               appearance="outline"
               size="large"
@@ -276,14 +274,15 @@ class LocationInput extends Component {
             style={styles.navigateButton}
             size="giant"
             onPress={() => {
+              const currentCar = this.state.cars[this._carousel._activeItem];
               this.props.navigation.navigate("MapDisplay", {
                 startingLat: this.state.startingLat,
                 startingLong: this.state.startingLong,
                 startingPlaceId: this.state.startingPlaceId,
                 endingPlaceId: this.state.endingPlaceId,
-                fuelLeft: this.state.fuelPercent * 0.01 * this.state.fuelCap,
-                fuelCap: this.state.fuelCap,
-                mpg: this.state.mpg,
+                fuelLeft: this.state.fuelPercent * 0.01 * currentCar.fuelCap,
+                fuelCap: currentCar.fuelCap,
+                mpg: currentCar.mpg,
                 calcOnGas: this.state.selectedIndex.row,
                 numStops: this.state.numberOfStops,
               });
