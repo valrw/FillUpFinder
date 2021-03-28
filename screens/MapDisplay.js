@@ -134,6 +134,20 @@ class MapDisplay extends Component {
     }).start();
   };
 
+  renderRatingsInfo = (rating) => {
+    if (rating == undefined) return;
+    return (
+      <View style={styles.ratingView}>
+        <Image
+          style={styles.starIcon}
+          resizeMode="contain"
+          source={require("../assets/star.png")}
+        />
+        <Text>{rating + "/5"}</Text>
+      </View>
+    );
+  };
+
   render() {
     const slideAnimation = {
       transform: [{ translateY: this.state.slideAnimate }],
@@ -211,7 +225,10 @@ class MapDisplay extends Component {
         {this.loadingSpinner()}
 
         <Animated.View style={[styles.cardView, slideAnimation]}>
-          <Text style={styles.cardTitle}> {currStop.name}</Text>
+          <View style={styles.titleAndRating}>
+            <Text style={styles.cardTitle}> {currStop.name}</Text>
+            {this.renderRatingsInfo(currStop.rating)}
+          </View>
           <Text> {currStop.vicinity}</Text>
           {this.renderStopImage(currStop.photos)}
         </Animated.View>
@@ -254,11 +271,29 @@ const styles = StyleSheet.create({
     flexDirection: "column",
   },
 
-  cardTitle: {
+  titleAndRating: {
     width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  cardTitle: {
+    width: "80%",
     fontSize: 20,
     fontWeight: "bold",
-    marginBottom: 5,
+    marginBottom: 2,
+  },
+
+  ratingView: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
+
+  starIcon: {
+    height: 15,
+    width: 15,
+    right: 3,
   },
 
   cardScroll: {

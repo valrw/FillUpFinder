@@ -274,15 +274,22 @@ class LocationInput extends Component {
             style={styles.navigateButton}
             size="giant"
             onPress={() => {
-              const currentCar = this.state.cars[this._carousel._activeItem];
+              var fuelCap = 0,
+                mpg = 0;
+              var calcOnGas = this.state.selectedIndex.row;
+              if (calcOnGas == 0) {
+                const currentCar = this.state.cars[this._carousel._activeItem];
+                fuelCap = currentCar.fuelCap;
+                mpg = currentCar.mpg;
+              }
               this.props.navigation.navigate("MapDisplay", {
                 startingLat: this.state.startingLat,
                 startingLong: this.state.startingLong,
                 startingPlaceId: this.state.startingPlaceId,
                 endingPlaceId: this.state.endingPlaceId,
-                fuelLeft: this.state.fuelPercent * 0.01 * currentCar.fuelCap,
-                fuelCap: currentCar.fuelCap,
-                mpg: currentCar.mpg,
+                fuelLeft: this.state.fuelPercent * 0.01 * fuelCap,
+                fuelCap: fuelCap,
+                mpg: mpg,
                 calcOnGas: this.state.selectedIndex.row,
                 numStops: this.state.numberOfStops,
               });
