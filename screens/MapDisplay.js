@@ -16,7 +16,7 @@ import { useEffect } from "react";
 
 class MapDisplay extends Component {
   state = {
-    coords: [],
+    segments: [],
     start: { latitude: 0, longitude: 0 },
     end: { latitude: 0, longitude: 0 },
     stops: 0,
@@ -55,19 +55,20 @@ class MapDisplay extends Component {
 
       let resp = await fetch(url);
       let respJson = await resp.json();
-      let coords = respJson.route;
+      let segments = respJson.route;
 
       let stops = respJson.stops;
       let stopsList = respJson.stopsList;
 
-      var start = coords[0];
-      var end = coords[coords.length - 1];
+      var start = segments[0].coords[0];
+      var lastSeg = segments[segments.length - 1];
+      var end = lastSeg.coords[lastSeg.coords.length - 1];
 
-      this.setState({ coords, start, end, stops, stopsList });
+      this.setState({ segments, start, end, stops, stopsList });
       // Zoom out the map
       this.mapComponent.animateToRegion(respJson.zoomBounds);
 
-      return coords;
+      return segments;
     } catch (error) {
       console.log(error);
       return error;
@@ -76,7 +77,7 @@ class MapDisplay extends Component {
 
   // load in the loading spinner when the route is loading
   loadingSpinner() {
-    if (this.state.coords.length == 0) {
+    if (this.state.segments.length == 0) {
       return (
         <ActivityIndicator
           style={styles.loadingSpinner}
@@ -205,22 +206,14 @@ class MapDisplay extends Component {
             </Marker>
           ))}
 
-          <MapView.Polyline
-            coordinates={this.state.coords.slice(
-              0,
-              Math.floor(this.state.coords.length / 2) + 1
-            )}
-            strokeWidth={4}
-            strokeColor="blue"
-          />
-          <MapView.Polyline
-            coordinates={this.state.coords.slice(
-              Math.floor(this.state.coords.length / 2),
-              this.state.coords.length
-            )}
-            strokeWidth={4}
-            strokeColor="blue"
-          />
+          {this.state.segments.map((seg, index) => (
+            <MapView.Polyline
+              key={index}
+              coordinates={seg.coords}
+              strokeWidth={4}
+              strokeColor="blue"
+            />
+          ))}
         </MapView>
         {this.loadingSpinner()}
 
