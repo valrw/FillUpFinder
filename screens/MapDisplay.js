@@ -5,18 +5,20 @@ import {
   ActivityIndicator,
   Image,
   Animated,
+  TouchableOpacity,
 } from "react-native";
 import { Text } from "@ui-kitten/components";
-import MapView, { Marker, Callout } from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 import { API_KEY, ROOT_URL } from "../constants/api";
-import PolyLine from "@mapbox/polyline";
 import colors from "../constants/colors";
-import { ScrollView } from "react-native-gesture-handler";
-import { useEffect } from "react";
+import StopInfo from "../components/StopInfo";
+import ConfirmModal from "../components/ConfirmModal";
+
+const ANIMATED_VAL = 310;
 
 class MapDisplay extends Component {
   state = {
-    coords: [],
+    segments: [],
     start: { latitude: 0, longitude: 0 },
     end: { latitude: 0, longitude: 0 },
     stops: 0,
@@ -24,7 +26,10 @@ class MapDisplay extends Component {
 
     isStopShown: false,
     currStopIndex: 0,
-    slideAnimate: new Animated.Value(260),
+    slideAnimate: new Animated.Value(ANIMATED_VAL),
+
+    showingModal: false,
+    replacingStop: false,
   };
 
   constructor(props) {
@@ -55,28 +60,74 @@ class MapDisplay extends Component {
 
       let resp = await fetch(url);
       let respJson = await resp.json();
-      let coords = respJson.route;
+      let segments = respJson.route;
 
       let stops = respJson.stops;
       let stopsList = respJson.stopsList;
 
-      var start = coords[0];
-      var end = coords[coords.length - 1];
+      var start = segments[0].coords[0];
+      var lastSeg = segments[segments.length - 1];
+      var end = lastSeg.coords[lastSeg.coords.length - 1];
 
-      this.setState({ coords, start, end, stops, stopsList });
+      this.setState({ segments, start, end, stops, stopsList });
       // Zoom out the map
       this.mapComponent.animateToRegion(respJson.zoomBounds);
 
-      return coords;
+      return segments;
     } catch (error) {
       console.log(error);
       return error;
     }
   }
 
+  onDeletePress = () => {
+    this.setState({ showingModal: true });
+  };
+
+  deleteStop = async (removedStopIndex) => {
+    this.onMapPress();
+    try {
+      this.setState({ replacingStop: true });
+      const stopToReplace = this.state.stopsList[removedStopIndex].placeId;
+
+      // the start will be either the previous gas station or the route start
+      let start = this.props.route.params.startingPlaceId;
+      if (removedStopIndex > 0)
+        start = this.state.stopsList[removedStopIndex - 1].placeId;
+
+      // the end will be either the next gas station of the route destination
+      let end = this.props.route.params.endingPlaceId;
+      if (removedStopIndex < this.state.stopsList.length - 1)
+        end = this.state.stopsList[removedStopIndex + 1].placeId;
+
+      var fuelCap = this.props.route.params.fuelCap * 1.1;
+      var mpg = this.props.route.params.mpg;
+
+      let url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelCap}/${fuelCap}/${mpg}/true/0/${stopToReplace}`;
+      let resp = await fetch(url);
+      let respJson = await resp.json();
+
+      this.setState({ replacingStop: false });
+      if (respJson.route == undefined) return;
+      let newSegments = respJson.route;
+      let newRoute = [...this.state.segments];
+      newRoute.splice(removedStopIndex, 2, ...newSegments);
+
+      let newStops = respJson.stopsList;
+      let newStopsList = [...this.state.stopsList];
+      newStopsList.splice(removedStopIndex, 1, ...newStops);
+
+      this.setState({ segments: newRoute, stopsList: newStopsList });
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
+    this.onMarkerClick(removedStopIndex);
+  };
+
   // load in the loading spinner when the route is loading
   loadingSpinner() {
-    if (this.state.coords.length == 0) {
+    if (this.state.segments.length == 0 || this.state.replacingStop) {
       return (
         <ActivityIndicator
           style={styles.loadingSpinner}
@@ -95,24 +146,10 @@ class MapDisplay extends Component {
       useNativeDriver: true,
     });
 
-    this.setState({ currStopIndex: index, isStopShown: true });
-
     // Animate the slide in entrance of the stop information view
     if (!this.state.isStopShown) slideInAnimation.start();
-  };
 
-  // Render the overview image for each stop
-  renderStopImage = (photos) => {
-    if (photos == undefined || photos.length == 0) return;
-
-    let photo = photos[0];
-    if (photo.photo_reference == undefined) return;
-
-    let maxheight = 300;
-    let currUri = `https://maps.googleapis.com/maps/api/place/photo?maxheight=${maxheight}&photoreference=`;
-    currUri = currUri + photo.photo_reference;
-    currUri = currUri + "&key=" + API_KEY;
-    return <Image source={{ uri: currUri }} style={styles.cardImage} />;
+    this.setState({ currStopIndex: index, isStopShown: true });
   };
 
   // Get blue icons for all icons, light blue for the selected icon
@@ -128,24 +165,10 @@ class MapDisplay extends Component {
       this.setState({ isStopShown: false });
     }
     Animated.timing(this.state.slideAnimate, {
-      toValue: 260,
+      toValue: ANIMATED_VAL,
       duration: 150,
       useNativeDriver: true,
     }).start();
-  };
-
-  renderRatingsInfo = (rating) => {
-    if (rating == undefined) return;
-    return (
-      <View style={styles.ratingView}>
-        <Image
-          style={styles.starIcon}
-          resizeMode="contain"
-          source={require("../assets/star.png")}
-        />
-        <Text>{rating + "/5"}</Text>
-      </View>
-    );
   };
 
   render() {
@@ -205,33 +228,37 @@ class MapDisplay extends Component {
             </Marker>
           ))}
 
-          <MapView.Polyline
-            coordinates={this.state.coords.slice(
-              0,
-              Math.floor(this.state.coords.length / 2) + 1
-            )}
-            strokeWidth={4}
-            strokeColor="blue"
-          />
-          <MapView.Polyline
-            coordinates={this.state.coords.slice(
-              Math.floor(this.state.coords.length / 2),
-              this.state.coords.length
-            )}
-            strokeWidth={4}
-            strokeColor="blue"
-          />
+          {this.state.segments.map((seg, index) => (
+            <MapView.Polyline
+              key={index}
+              coordinates={seg.coords}
+              strokeWidth={4}
+              strokeColor="blue"
+            />
+          ))}
         </MapView>
         {this.loadingSpinner()}
 
-        <Animated.View style={[styles.cardView, slideAnimation]}>
-          <View style={styles.titleAndRating}>
-            <Text style={styles.cardTitle}> {currStop.name}</Text>
-            {this.renderRatingsInfo(currStop.rating)}
-          </View>
-          <Text> {currStop.vicinity}</Text>
-          {this.renderStopImage(currStop.photos)}
-        </Animated.View>
+        <ConfirmModal
+          visible={this.state.showingModal}
+          title={"Delete Stop"}
+          subtitle={
+            "Are you sure you want to remove this stop from your route?"
+          }
+          onConfirm={() => {
+            this.setState({ showingModal: false });
+            this.deleteStop(this.state.currStopIndex);
+          }}
+          onCancel={() => {
+            this.setState({ showingModal: false });
+          }}
+        />
+
+        <StopInfo
+          anim={slideAnimation}
+          currStop={currStop}
+          onDeleteStop={this.onDeletePress}
+        />
       </View>
     );
   }
@@ -254,57 +281,5 @@ const styles = StyleSheet.create({
   mapMarkerIcon: {
     width: 30,
     height: 30,
-  },
-
-  cardView: {
-    width: "90%",
-    height: "30%",
-    position: "absolute",
-    bottom: 20,
-    paddingTop: 10,
-    paddingLeft: 10,
-    paddingRight: 10,
-    paddingBottom: 10,
-    alignSelf: "center",
-    backgroundColor: "white",
-    borderRadius: 20,
-    flexDirection: "column",
-  },
-
-  titleAndRating: {
-    width: "100%",
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  cardTitle: {
-    width: "80%",
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 2,
-  },
-
-  ratingView: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-  },
-
-  starIcon: {
-    height: 15,
-    width: 15,
-    right: 3,
-  },
-
-  cardScroll: {
-    height: "60%",
-    width: "100%",
-  },
-
-  cardImage: {
-    marginTop: 10,
-    marginRight: 8,
-    height: "70%",
-    resizeMode: "contain",
   },
 });
