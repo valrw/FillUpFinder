@@ -10,6 +10,7 @@ import {
 import { Text } from "@ui-kitten/components";
 
 function StopInfo(props) {
+  if (props.currStop == undefined) return <View />;
   return (
     <Animated.View style={[styles.cardView, props.anim]}>
       <View style={styles.titleAndRating}>
@@ -58,7 +59,7 @@ const renderStopImage = (photos) => {
 const styles = StyleSheet.create({
   cardView: {
     width: "90%",
-    height: "30%",
+    height: "35%",
     position: "absolute",
     bottom: 20,
     paddingTop: 10,
