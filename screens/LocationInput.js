@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { StyleSheet, View, Platform, Keyboard, ScrollView } from "react-native";
+import { StyleSheet, View, Platform, ScrollView } from "react-native";
 import colors from "../constants/colors";
 import LocationInputText from "../components/LocationInputText";
 import {
@@ -11,6 +11,7 @@ import {
   Input,
   Text,
   Button,
+  Icon,
 } from "@ui-kitten/components";
 
 import Slider from "@react-native-community/slider";
@@ -122,7 +123,7 @@ class LocationInput extends Component {
 
           {this.state.cars.length > 0 && (
             <>
-              <Divider style={styles.divider}></Divider>
+              <Divider style={styles.divider2}></Divider>
               <View
                 style={{
                   flexDirection: "row",
@@ -173,7 +174,7 @@ class LocationInput extends Component {
               >
                 <Slider
                   ref={this.sliderRef}
-                  style={{ width: "88%", height: 40, alignSelf: "center" }}
+                  style={{ width: "88%", height: 30, alignSelf: "center" }}
                   minimumValue={1}
                   maximumValue={100}
                   step={1}
@@ -221,7 +222,7 @@ class LocationInput extends Component {
   render() {
     const options = ["Get Stops Based On Gas", "Set Fixed Number of Stops"];
     return (
-      <Layout style={styles.container}>
+      <Layout style={styles.container1}>
         <Text style={styles.inputTitle}>Starting point:</Text>
         <LocationInputText
           onSelectLocation={(data, details) =>
@@ -247,19 +248,35 @@ class LocationInput extends Component {
               : { width: "86%", height: 40, zIndex: 4 }
           }
         />
-        <Divider style={styles.divider}></Divider>
-
-        <Text style={styles.selectTripTypeTitle}>Stop Calculation</Text>
-        <Select
-          style={styles.selectTripType}
-          selectedIndex={this.state.selectedIndex}
-          onSelect={(index) => this.setState({ selectedIndex: index })}
-          value={options[this.state.selectedIndex.row]}
-        >
-          {options.map((item) => (
-            <SelectItem key={item} title={item} />
-          ))}
-        </Select>
+      
+        <Divider style={styles.divider1}></Divider>
+        
+        <View style={styles.container2}>
+          <View style={{ flex: 2 }}>
+            <Text style={styles.selectTripTypeTitle}>Stop Calculation</Text>
+            <Select
+              style={styles.selectTripType}
+              selectedIndex={this.state.selectedIndex}
+              onSelect={(index) => this.setState({ selectedIndex: index })}
+              value={options[this.state.selectedIndex.row]}
+            >
+              {options.map((item) => (
+                <SelectItem key={item} title={item} />
+              ))}
+            </Select>
+          </View>
+          <View style={{ flex: 1 }}>
+          <Text style={styles.customStopsButtonTitle}>Customize Stops</Text>
+            <Button style={styles.customStopsButton}>
+              <Icon
+                style={styles.customStopsIcon}
+                fill="#ffffff"
+                name="brush-outline"
+                // onPress={}
+              />
+            </Button>
+          </View>
+        </View>
 
         {this.renderTripOptions(this.state.selectedIndex.row)}
 
@@ -306,12 +323,20 @@ class LocationInput extends Component {
 export default LocationInput;
 
 const styles = StyleSheet.create({
-  container: {
+  container1: {
     width: "100%",
     height: "100%",
     paddingTop: 0,
     flexDirection: "column",
     justifyContent: "flex-start",
+    alignItems: "center",
+  },
+
+  container2: {
+    width: "100%",
+    paddingTop: 0,
+    flexDirection: "row",
+    justifyContent: "space-around",
     alignItems: "center",
   },
 
@@ -337,17 +362,36 @@ const styles = StyleSheet.create({
   },
 
   selectTripTypeTitle: {
-    marginTop: "3%",
     width: "86%",
     fontSize: 12,
     color: "#8F9BB3",
-    textAlign: "center",
+    alignSelf: "center",
     zIndex: -1,
+  },
+
+  customStopsButtonTitle:{
+    marginTop: "3%",
+    marginBottom: "3%",
+    width: "86%",
+    fontSize: 12,
+    color: "#8F9BB3",
+    zIndex: -1,
+  },
+
+  customStopsButton:{
+    width: "70%",
+    height: "10%",
+  },
+
+  customStopsIcon:{
+    width: 24, 
+    height: 24,
   },
 
   selectTripType: {
     top: 5,
     width: "86%",
+    alignSelf: "center",
   },
 
   calcOnGasView: {
@@ -364,7 +408,7 @@ const styles = StyleSheet.create({
   },
 
   navigateButton: {
-    marginBottom: 22,
+    marginBottom: 18,
     alignSelf: "center",
     height: 55,
     width: "75%",
@@ -376,8 +420,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
 
-  divider: {
+  divider1: {
     marginTop: 24,
+    width: "90%",
+  },
+
+  divider2: {
+    marginTop: "2%",
     width: "90%",
   },
 
