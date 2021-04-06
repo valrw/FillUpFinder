@@ -40,31 +40,34 @@ class MapDisplay extends Component {
     this.mapComponent = null;
   }
 
-  // getLocation = async () => {
-  //   let { status } = await Location.requestPermissionsAsync();
-  //   if (status !== "granted") {
-  //     // setErrorMsg('Permission to access location was denied');
-  //     console.log("Location Permission not Granted");
-  //     return;
-  //   }
-
-  //   let location = await Location.getCurrentPositionAsync({});
-  //   console.log("Location is: ");
-  //   console.log(location);
-  // };
-
   getLocation = async () => {
     let { status } = await Location.requestPermissionsAsync();
     if (status !== "granted") {
-      // setErrorMsg('Permission to access location was denied');
-      console.log("Location Permission not Granted");
+      console.log("Location Permission Denied");
       return;
     }
 
     let location = await Location.getCurrentPositionAsync({});
-    console.log("Location is: ");
-    console.log(location);
     this.setState({ location: location });
+  };
+
+  zoomToUserLocation = () => {
+    if (this.state.location === null) return;
+    const camera = {
+      center: {
+        latitude: this.state.location.coords.latitude,
+        longitude: this.state.location.coords.longitude,
+      },
+      // pitch: number,
+      // heading: number,
+
+      // Only on iOS MapKit, in meters. The property is ignored by Google Maps.
+      altitude: 14,
+
+      // Only when using Google Maps.
+      zoom: 14,
+    };
+    this.mapComponent.animateCamera(camera, 5);
   };
 
   componentDidMount() {
@@ -284,7 +287,7 @@ class MapDisplay extends Component {
           ))}
         </MapView>
 
-        <TouchableOpacity style={styles.fab}>
+        <TouchableOpacity style={styles.fab} onPress={this.zoomToUserLocation}>
           <Image
             source={require("../assets/target.png")}
             style={styles.fabIcon}
@@ -340,8 +343,6 @@ const styles = StyleSheet.create({
   locationMarker: {
     width: 60,
     height: 60,
-    // zIndex: 3,
-    // elevation: 3,
   },
 
   fab: {
