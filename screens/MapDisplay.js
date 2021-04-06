@@ -13,6 +13,7 @@ import { API_KEY, ROOT_URL } from "../constants/api";
 import colors from "../constants/colors";
 import StopInfo from "../components/StopInfo";
 import ConfirmModal from "../components/ConfirmModal";
+import * as Location from "expo-location";
 
 const ANIMATED_VAL = 310;
 
@@ -30,12 +31,41 @@ class MapDisplay extends Component {
 
     showingModal: false,
     replacingStop: false,
+
+    location: null,
   };
 
   constructor(props) {
     super(props);
     this.mapComponent = null;
   }
+
+  // getLocation = async () => {
+  //   let { status } = await Location.requestPermissionsAsync();
+  //   if (status !== "granted") {
+  //     // setErrorMsg('Permission to access location was denied');
+  //     console.log("Location Permission not Granted");
+  //     return;
+  //   }
+
+  //   let location = await Location.getCurrentPositionAsync({});
+  //   console.log("Location is: ");
+  //   console.log(location);
+  // };
+
+  getLocation = async () => {
+    let { status } = await Location.requestPermissionsAsync();
+    if (status !== "granted") {
+      // setErrorMsg('Permission to access location was denied');
+      console.log("Location Permission not Granted");
+      return;
+    }
+
+    let location = await Location.getCurrentPositionAsync({});
+    console.log("Location is: ");
+    console.log(location);
+    this.setState({ location: location });
+  };
 
   componentDidMount() {
     var params = this.props.route.params;
@@ -48,6 +78,7 @@ class MapDisplay extends Component {
     if (params.calcOnGas == 1) calcOnGas = false;
     var numStops = params.numStops;
 
+    this.getLocation();
     this.getDirections(start, end, fuelLeft, fuelCap, mpg, calcOnGas, numStops);
   }
 
@@ -209,6 +240,21 @@ class MapDisplay extends Component {
             }}
           />
 
+          {this.state.location != null && (
+            <MapView.Marker
+              title="Your Location"
+              coordinate={{
+                latitude: this.state.location.coords.latitude,
+                longitude: this.state.location.coords.longitude,
+              }}
+            >
+              <Image
+                source={require("../assets/current-location.png")}
+                style={styles.locationMarker}
+              />
+            </MapView.Marker>
+          )}
+
           {this.state.stopsList.map((station, index) => (
             <Marker
               key={index}
@@ -237,6 +283,14 @@ class MapDisplay extends Component {
             />
           ))}
         </MapView>
+
+        <TouchableOpacity style={styles.fab}>
+          <Image
+            source={require("../assets/target.png")}
+            style={styles.fabIcon}
+          ></Image>
+        </TouchableOpacity>
+
         {this.loadingSpinner()}
 
         <ConfirmModal
@@ -279,6 +333,32 @@ const styles = StyleSheet.create({
   },
 
   mapMarkerIcon: {
+    width: 30,
+    height: 30,
+  },
+
+  locationMarker: {
+    width: 60,
+    height: 60,
+    // zIndex: 3,
+    // elevation: 3,
+  },
+
+  fab: {
+    position: "absolute",
+    backgroundColor: "white",
+    borderRadius: 99,
+    width: 65,
+    height: 65,
+    alignItems: "center",
+    justifyContent: "center",
+    right: 30,
+    bottom: 35,
+    elevation: 3,
+    zIndex: 3,
+  },
+
+  fabIcon: {
     width: 30,
     height: 30,
   },
