@@ -120,6 +120,7 @@ class MapDisplay extends Component {
 
   deleteStop = async (removedStopIndex) => {
     this.onMapPress();
+    let newStops = [];
     try {
       this.setState({ replacingStop: true });
       const stopToReplace = this.state.stopsList[removedStopIndex].placeId;
@@ -134,7 +135,7 @@ class MapDisplay extends Component {
       if (removedStopIndex < this.state.stopsList.length - 1)
         end = this.state.stopsList[removedStopIndex + 1].placeId;
 
-      var fuelCap = this.props.route.params.fuelCap * 1.1;
+      var fuelCap = this.props.route.params.fuelCap * 1.05;
       var mpg = this.props.route.params.mpg;
 
       let url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelCap}/${fuelCap}/${mpg}/true/0/${stopToReplace}`;
@@ -147,7 +148,7 @@ class MapDisplay extends Component {
       let newRoute = [...this.state.segments];
       newRoute.splice(removedStopIndex, 2, ...newSegments);
 
-      let newStops = respJson.stopsList;
+      newStops = respJson.stopsList;
       let newStopsList = [...this.state.stopsList];
       newStopsList.splice(removedStopIndex, 1, ...newStops);
 
@@ -156,7 +157,7 @@ class MapDisplay extends Component {
       console.log(error);
       return error;
     }
-    this.onMarkerClick(removedStopIndex);
+    if (newStops.length > 0) this.onMarkerClick(removedStopIndex);
   };
 
   // load in the loading spinner when the route is loading
