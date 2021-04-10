@@ -13,7 +13,8 @@ import { API_KEY, ROOT_URL } from "../constants/api";
 import colors from "../constants/colors";
 import StopInfo from "../components/StopInfo";
 import ConfirmModal from "../components/ConfirmModal";
-import * as Location from "expo-location";
+// import * as Location from "expo-location";
+import { getLocation } from "../services/LocationService.js";
 
 const ANIMATED_VAL = 310;
 
@@ -39,17 +40,6 @@ class MapDisplay extends Component {
     super(props);
     this.mapComponent = null;
   }
-
-  getLocation = async () => {
-    let { status } = await Location.requestPermissionsAsync();
-    if (status !== "granted") {
-      console.log("Location Permission Denied");
-      return;
-    }
-
-    let location = await Location.getCurrentPositionAsync({});
-    this.setState({ location: location });
-  };
 
   zoomToUserLocation = () => {
     if (this.state.location === null) return;
@@ -81,7 +71,10 @@ class MapDisplay extends Component {
     if (params.calcOnGas == 1) calcOnGas = false;
     var numStops = params.numStops;
 
-    this.getLocation();
+    getLocation().then((loc) => {
+      this.setState({ location: loc });
+    });
+
     this.getDirections(start, end, fuelLeft, fuelCap, mpg, calcOnGas, numStops);
   }
 

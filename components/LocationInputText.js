@@ -25,6 +25,7 @@ class LocationInputText extends Component {
             this.updateSessionId();
             this.props.onSelectLocation(data, details);
           }}
+          ref={this.props.input_ref}
           query={{
             key: API_KEY,
             language: "en",
