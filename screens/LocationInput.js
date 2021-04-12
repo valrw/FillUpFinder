@@ -34,6 +34,8 @@ class LocationInput extends Component {
 
     cars: [],
     finishedLoading: false,
+
+    placesEntered: false,
   };
 
   componentDidMount() {
@@ -49,6 +51,7 @@ class LocationInput extends Component {
     });
   }
 
+
   componentDidUpdate(prevProps, prevState) {
     if (this.props.route.params == null) return;
     if (this.props.route.params != prevProps.route.params) {
@@ -61,6 +64,7 @@ class LocationInput extends Component {
     }
   }
 
+
   // Save current car list to async storage
   saveCars = () => {
     const { cars } = this.state;
@@ -68,6 +72,7 @@ class LocationInput extends Component {
       AsyncStorage.setItem("@cars", JSON.stringify(cars));
     });
   };
+
 
   // Add a car and then update the car list in async storage
   addCar = (car) => {
@@ -79,6 +84,7 @@ class LocationInput extends Component {
     });
   };
 
+
   // Delete car and then update the car list in async storage
   deleteCar = () => {
     const { cars } = this.state;
@@ -87,6 +93,30 @@ class LocationInput extends Component {
 
     this.setState({ cars: newCars }, this.saveCars);
   };
+
+
+  getDirections = () => {
+    var fuelCap = 0,
+      mpg = 0;
+    var calcOnGas = this.state.selectedIndex.row;
+    if (calcOnGas == 0) {
+      const currentCar = this.state.cars[this._carousel._activeItem];
+      fuelCap = currentCar.fuelCap;
+      mpg = currentCar.mpg;
+    }
+    this.props.navigation.navigate("MapDisplay", {
+      startingLat: this.state.startingLat,
+      startingLong: this.state.startingLong,
+      startingPlaceId: this.state.startingPlaceId,
+      endingPlaceId: this.state.endingPlaceId,
+      fuelLeft: this.state.fuelPercent * 0.01 * fuelCap,
+      fuelCap: fuelCap,
+      mpg: mpg,
+      calcOnGas: this.state.selectedIndex.row,
+      numStops: this.state.numberOfStops,
+    });
+  };
+
 
   getPlaceInfo = (place, details, index) => {
     if (index == 0) {
@@ -102,7 +132,12 @@ class LocationInput extends Component {
       // Ending Location
       this.setState({ endingPlaceId: place.place_id });
     }
+
+    if (this.state.startingPlaceId !== "" && this.state.endingPlaceId !== "") {
+      this.setState({ placesEntered: true })
+    }
   };
+
 
   renderTripOptions = (selectedOption) => {
     if (selectedOption == 0) {
@@ -219,6 +254,39 @@ class LocationInput extends Component {
     }
   };
 
+  renderCustomStopsButton = () => {
+    if (this.state.placesEntered) {
+      return (
+        <Button 
+          style={styles.customStopsButtonEnabled} 
+          onPress={this.customizeStops}>
+          <Icon
+            style={styles.customStopsIcon}
+            fill="#ffffff"
+            name="brush-outline"
+          />
+        </Button>
+      );
+    } else {
+      return (
+        <Button 
+          style={styles.customStopsButtonEnabled}
+          appearance={"outline"}
+        >
+          <Icon
+            style={styles.customStopsIcon}
+            fill="#ffffff"
+            name="brush-outline"
+          />
+        </Button>
+      );
+    }
+  };
+
+  customizeStops = () => {
+    this.props.navigation.navigate("CustomizeStops");
+  };
+
   render() {
     const options = ["Get Stops Based On Gas", "Set Fixed Number of Stops"];
     return (
@@ -267,14 +335,7 @@ class LocationInput extends Component {
           </View>
           <View style={{ flex: 1 }}>
           <Text style={styles.customStopsButtonTitle}>Customize Stops</Text>
-            <Button style={styles.customStopsButton}>
-              <Icon
-                style={styles.customStopsIcon}
-                fill="#ffffff"
-                name="brush-outline"
-                // onPress={}
-              />
-            </Button>
+            {this.renderCustomStopsButton()}
           </View>
         </View>
 
@@ -290,27 +351,7 @@ class LocationInput extends Component {
           <Button
             style={styles.navigateButton}
             size="giant"
-            onPress={() => {
-              var fuelCap = 0,
-                mpg = 0;
-              var calcOnGas = this.state.selectedIndex.row;
-              if (calcOnGas == 0) {
-                const currentCar = this.state.cars[this._carousel._activeItem];
-                fuelCap = currentCar.fuelCap;
-                mpg = currentCar.mpg;
-              }
-              this.props.navigation.navigate("MapDisplay", {
-                startingLat: this.state.startingLat,
-                startingLong: this.state.startingLong,
-                startingPlaceId: this.state.startingPlaceId,
-                endingPlaceId: this.state.endingPlaceId,
-                fuelLeft: this.state.fuelPercent * 0.01 * fuelCap,
-                fuelCap: fuelCap,
-                mpg: mpg,
-                calcOnGas: this.state.selectedIndex.row,
-                numStops: this.state.numberOfStops,
-              });
-            }}
+            onPress={this.getDirections}
           >
             Get Directions
           </Button>
@@ -378,10 +419,15 @@ const styles = StyleSheet.create({
     zIndex: -1,
   },
 
-  customStopsButton:{
+  customStopsButtonEnabled:{
     width: "70%",
     height: "10%",
   },
+
+  // customStopsButtonDisabled:{
+  //   width: "70%",
+  //   height: "10%",
+  // },
 
   customStopsIcon:{
     width: 24, 

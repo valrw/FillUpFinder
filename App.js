@@ -5,6 +5,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import MapDisplay from "./screens/MapDisplay";
 import LocationInput from "./screens/LocationInput";
 import VehicleInput from "./screens/VehicleInput";
+import CustomizeStops from "./screens/CustomizeStops";
 import Options from "./screens/Options";
 import { ThemeContext } from "./contexts/theme-context";
 import * as eva from "@eva-design/eva";
@@ -77,6 +78,11 @@ export default function App() {
               name="VehicleInput"
               component={VehicleInput}
               options={{ title: "Add Vehicle", headerTitleAlign: "center" }}
+            />
+            <Stack.Screen
+              name="CustomizeStops"
+              component={CustomizeStops}
+              options={{ title: "Customize your stops", headerTitleAlign: "center" }}
             />
             <Stack.Screen
               name="Options"
