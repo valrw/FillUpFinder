@@ -240,12 +240,11 @@ class LocationInput extends Component {
       <Layout style={styles.container1}>
         <Text style={styles.inputTitle}>Starting point:</Text>
         <View
-          style={{
-            width: "86%",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
+          style={
+            Platform.OS == "android"
+              ? styles.startingInputContainer
+              : [styles.startingInputContainer, { zIndex: 5 }]
+          }
         >
           <LocationInputText
             onSelectLocation={(data, details) =>
@@ -254,11 +253,8 @@ class LocationInput extends Component {
             input_ref={this.startingInputRef}
             // onFocus={() => console.log("AAAAFF")}
             stylesInput={styles.inputBox}
-            stylesContainer={
-              Platform.OS == "android"
-                ? { width: "85%", height: 40 }
-                : { width: "85%", height: 40, zIndex: 5 }
-            }
+            listViewStyle={{ width: "120%" }}
+            stylesContainer={{ width: "85%", height: 40 }}
           />
           <Button
             size="small"
@@ -386,6 +382,13 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     flexDirection: "row",
     justifyContent: "space-around",
+    alignItems: "center",
+  },
+
+  startingInputContainer: {
+    width: "86%",
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
   },
 
