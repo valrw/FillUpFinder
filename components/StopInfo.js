@@ -19,7 +19,10 @@ function StopInfo(props) {
       </View>
       <Text> {props.currStop.vicinity}</Text>
       {renderStopImage(props.currStop.photos)}
-      <TouchableOpacity onPress={props.onDeleteStop}>
+      <TouchableOpacity
+        onPress={props.onDeleteStop}
+        style={styles.deleteButton}
+      >
         <Image source={require("../assets/delete_icon.png")} />
       </TouchableOpacity>
     </Animated.View>
@@ -105,7 +108,12 @@ const styles = StyleSheet.create({
   cardImage: {
     marginTop: 10,
     marginRight: 8,
-    height: "70%",
+    height: "65%",
     resizeMode: "contain",
+  },
+
+  deleteButton: {
+    marginTop: 5,
+    marginLeft: 8,
   },
 });

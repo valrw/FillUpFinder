@@ -1,5 +1,12 @@
 import React, { Component } from "react";
-import { StyleSheet, View, Platform, ScrollView } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Platform,
+  ScrollView,
+  Image,
+  TouchableWithoutFeedbackBase,
+} from "react-native";
 import colors from "../constants/colors";
 import LocationInputText from "../components/LocationInputText";
 import {
@@ -19,7 +26,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Carousel from "react-native-snap-carousel";
 import VehicleCard from "../components/VehicleCard";
 
+import { getLocation, getPlace } from "../services/LocationService.js";
+
 class LocationInput extends Component {
+  constructor(props) {
+    super(props);
+    this.startingInputRef = React.createRef();
+  }
+
   state = {
     startingLat: 33.8121,
     startingLong: -117.919,
@@ -36,6 +50,7 @@ class LocationInput extends Component {
     finishedLoading: false,
 
     placesEntered: false,
+    startAtUserLocation: false,
   };
 
   componentDidMount() {
@@ -292,17 +307,47 @@ class LocationInput extends Component {
     return (
       <Layout style={styles.container1}>
         <Text style={styles.inputTitle}>Starting point:</Text>
-        <LocationInputText
-          onSelectLocation={(data, details) =>
-            this.getPlaceInfo(data, details, 0)
-          }
-          stylesInput={styles.inputBox}
-          stylesContainer={
+        <View
+          style={
             Platform.OS == "android"
-              ? { width: "86%", height: 40 }
-              : { width: "86%", height: 40, zIndex: 5 }
+              ? styles.startingInputContainer
+              : [styles.startingInputContainer, { zIndex: 5 }]
           }
-        />
+        >
+          <LocationInputText
+            onSelectLocation={(data, details) =>
+              this.getPlaceInfo(data, details, 0)
+            }
+            input_ref={this.startingInputRef}
+            // onFocus={() => console.log("AAAAFF")}
+            stylesInput={styles.inputBox}
+            listViewStyle={{ width: "120%" }}
+            stylesContainer={{ width: "85%", height: 40 }}
+          />
+          <Button
+            size="small"
+            accessoryLeft={() => (
+              <Image
+                source={require("../assets/target_white.png")}
+                style={{ width: 25, height: 25 }}
+              ></Image>
+            )}
+            onPress={async () => {
+              const loc = await getLocation();
+              const lat = loc.coords.latitude;
+              const lng = loc.coords.longitude;
+              const place = await getPlace(lat, lng);
+
+              this.setState({
+                startingPlaceId: place.place_id,
+                startingLat: lat,
+                startingLong: lng,
+              });
+
+              this.startingInputRef.current?.setAddressText(place.address);
+            }}
+          ></Button>
+        </View>
 
         <Text style={styles.inputTitle}>Destination:</Text>
         <LocationInputText
@@ -316,9 +361,9 @@ class LocationInput extends Component {
               : { width: "86%", height: 40, zIndex: 4 }
           }
         />
-      
+
         <Divider style={styles.divider1}></Divider>
-        
+
         <View style={styles.container2}>
           <View style={{ flex: 2 }}>
             <Text style={styles.selectTripTypeTitle}>Stop Calculation</Text>
@@ -381,6 +426,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
+  startingInputContainer: {
+    width: "86%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
   inputTitle: {
     marginTop: "5%",
     width: "86%",
@@ -393,7 +445,7 @@ const styles = StyleSheet.create({
   inputBox: {
     paddingHorizontal: 10,
     height: 40,
-    marginTop: 6,
+    // marginTop: 6,
     borderWidth: 1,
     borderRadius: 3,
     borderColor: "#e4e9f2",
@@ -410,7 +462,7 @@ const styles = StyleSheet.create({
     zIndex: -1,
   },
 
-  customStopsButtonTitle:{
+  customStopsButtonTitle: {
     marginTop: "3%",
     marginBottom: "3%",
     width: "86%",
@@ -419,13 +471,13 @@ const styles = StyleSheet.create({
     zIndex: -1,
   },
 
-  customStopsButton:{
+  customStopsButton: {
     width: "70%",
     height: "10%",
   },
 
-  customStopsIcon:{
-    width: 24, 
+  customStopsIcon: {
+    width: 24,
     height: 24,
   },
 

@@ -25,6 +25,7 @@ class LocationInputText extends Component {
             this.updateSessionId();
             this.props.onSelectLocation(data, details);
           }}
+          ref={this.props.input_ref}
           query={{
             key: API_KEY,
             language: "en",
@@ -32,12 +33,15 @@ class LocationInputText extends Component {
           nearbyPlacesAPI="GooglePlacesSearch"
           styles={{
             textInput: this.props.stylesInput,
-            listView: {
-              top: 40,
-              color: "black",
-              zIndex: 15,
-              position: "absolute",
-            },
+            listView: [
+              {
+                top: 40,
+                color: "black",
+                zIndex: 15,
+                position: "absolute",
+              },
+              this.props.listViewStyle,
+            ],
           }}
           onFail={(error) => console.error(error)}
           onNotFound={() => console.log("Not found")}

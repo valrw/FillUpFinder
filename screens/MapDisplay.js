@@ -13,6 +13,8 @@ import { API_KEY, ROOT_URL } from "../constants/api";
 import colors from "../constants/colors";
 import StopInfo from "../components/StopInfo";
 import ConfirmModal from "../components/ConfirmModal";
+// import * as Location from "expo-location";
+import { getLocation } from "../services/LocationService.js";
 
 const ANIMATED_VAL = 310;
 
@@ -30,12 +32,33 @@ class MapDisplay extends Component {
 
     showingModal: false,
     replacingStop: false,
+
+    location: null,
   };
 
   constructor(props) {
     super(props);
     this.mapComponent = null;
   }
+
+  zoomToUserLocation = () => {
+    if (this.state.location === null) return;
+    const camera = {
+      center: {
+        latitude: this.state.location.coords.latitude,
+        longitude: this.state.location.coords.longitude,
+      },
+      // pitch: number,
+      // heading: number,
+
+      // Only on iOS MapKit, in meters. The property is ignored by Google Maps.
+      altitude: 14,
+
+      // Only when using Google Maps.
+      zoom: 14,
+    };
+    this.mapComponent.animateCamera(camera, 5);
+  };
 
   componentDidMount() {
     var params = this.props.route.params;
@@ -47,6 +70,10 @@ class MapDisplay extends Component {
     var calcOnGas = true;
     if (params.calcOnGas == 1) calcOnGas = false;
     var numStops = params.numStops;
+
+    getLocation().then((loc) => {
+      this.setState({ location: loc });
+    });
 
     this.getDirections(start, end, fuelLeft, fuelCap, mpg, calcOnGas, numStops);
   }
@@ -86,6 +113,7 @@ class MapDisplay extends Component {
 
   deleteStop = async (removedStopIndex) => {
     this.onMapPress();
+    let newStops = [];
     try {
       this.setState({ replacingStop: true });
       const stopToReplace = this.state.stopsList[removedStopIndex].placeId;
@@ -100,10 +128,14 @@ class MapDisplay extends Component {
       if (removedStopIndex < this.state.stopsList.length - 1)
         end = this.state.stopsList[removedStopIndex + 1].placeId;
 
-      var fuelCap = this.props.route.params.fuelCap * 1.1;
-      var mpg = this.props.route.params.mpg;
+      let fuelCap = this.props.route.params.fuelCap * 1.1;
+      let mpg = this.props.route.params.mpg;
 
-      let url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelCap}/${fuelCap}/${mpg}/true/0/${stopToReplace}`;
+      // if you are going from start to first stop, start with less gas
+      let fuelLeft = fuelCap;
+      if (removedStopIndex == 0) fuelLeft = this.props.route.params.fuelLeft;
+
+      let url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelLeft}/${fuelCap}/${mpg}/true/0/${stopToReplace}`;
       let resp = await fetch(url);
       let respJson = await resp.json();
 
@@ -111,10 +143,24 @@ class MapDisplay extends Component {
       if (respJson.route == undefined) return;
       let newSegments = respJson.route;
       let newRoute = [...this.state.segments];
+
       newRoute.splice(removedStopIndex, 2, ...newSegments);
 
-      let newStops = respJson.stopsList;
+      newStops = respJson.stopsList;
       let newStopsList = [...this.state.stopsList];
+
+      // If we added an existing stop, delete the stop
+      let lastStop = newStops[newStops.length - 1];
+      if (
+        removedStopIndex < this.state.stopsList.length - 1 &&
+        lastStop != undefined
+      ) {
+        let nextStopInRoute = this.state.stopsList[removedStopIndex + 1];
+        if (nextStopInRoute.placeId == lastStop.placeId) {
+          newStops.pop();
+        }
+      }
+
       newStopsList.splice(removedStopIndex, 1, ...newStops);
 
       this.setState({ segments: newRoute, stopsList: newStopsList });
@@ -122,7 +168,7 @@ class MapDisplay extends Component {
       console.log(error);
       return error;
     }
-    this.onMarkerClick(removedStopIndex);
+    if (newStops.length > 0) this.onMarkerClick(removedStopIndex);
   };
 
   // load in the loading spinner when the route is loading
@@ -209,6 +255,21 @@ class MapDisplay extends Component {
             }}
           />
 
+          {this.state.location != null && (
+            <MapView.Marker
+              title="Your Location"
+              coordinate={{
+                latitude: this.state.location.coords.latitude,
+                longitude: this.state.location.coords.longitude,
+              }}
+            >
+              <Image
+                source={require("../assets/current-location.png")}
+                style={styles.locationMarker}
+              />
+            </MapView.Marker>
+          )}
+
           {this.state.stopsList.map((station, index) => (
             <Marker
               key={index}
@@ -237,6 +298,14 @@ class MapDisplay extends Component {
             />
           ))}
         </MapView>
+
+        <TouchableOpacity style={styles.fab} onPress={this.zoomToUserLocation}>
+          <Image
+            source={require("../assets/target.png")}
+            style={styles.fabIcon}
+          ></Image>
+        </TouchableOpacity>
+
         {this.loadingSpinner()}
 
         <ConfirmModal
@@ -279,6 +348,30 @@ const styles = StyleSheet.create({
   },
 
   mapMarkerIcon: {
+    width: 30,
+    height: 30,
+  },
+
+  locationMarker: {
+    width: 60,
+    height: 60,
+  },
+
+  fab: {
+    position: "absolute",
+    backgroundColor: "white",
+    borderRadius: 99,
+    width: 65,
+    height: 65,
+    alignItems: "center",
+    justifyContent: "center",
+    right: 30,
+    bottom: 35,
+    elevation: 3,
+    zIndex: 3,
+  },
+
+  fabIcon: {
     width: 30,
     height: 30,
   },
