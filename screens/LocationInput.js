@@ -258,7 +258,7 @@ class LocationInput extends Component {
     if (this.state.placesEntered) {
       return (
         <Button 
-          style={styles.customStopsButtonEnabled} 
+          style={styles.customStopsButton} 
           onPress={this.customizeStops}>
           <Icon
             style={styles.customStopsIcon}
@@ -270,7 +270,7 @@ class LocationInput extends Component {
     } else {
       return (
         <Button 
-          style={styles.customStopsButtonEnabled}
+          style={styles.customStopsButton}
           appearance={"outline"}
         >
           <Icon
@@ -419,15 +419,10 @@ const styles = StyleSheet.create({
     zIndex: -1,
   },
 
-  customStopsButtonEnabled:{
+  customStopsButton:{
     width: "70%",
     height: "10%",
   },
-
-  // customStopsButtonDisabled:{
-  //   width: "70%",
-  //   height: "10%",
-  // },
 
   customStopsIcon:{
     width: 24, 
