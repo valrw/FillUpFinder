@@ -132,6 +132,8 @@ class MapDisplay extends Component {
 
       let fuelCap = this.props.route.params.fuelCap * 1.1;
       let mpg = this.props.route.params.mpg;
+      let mpgCity = this.props.route.params.mpgCity ? this.props.route.params.mpgCity : mpg;
+      let mpgHighway = this.props.route.params.mpgHighway ? this.props.route.params.mpgHighway : mpg;
 
       // if you are going from start to first stop, start with less gas
       let fuelLeft = fuelCap;
