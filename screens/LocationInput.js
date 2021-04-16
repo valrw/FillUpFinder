@@ -71,6 +71,8 @@ class LocationInput extends Component {
       this.addCar({
         name: params.vehicle,
         mpg: params.mpg,
+        mpgCity: params.mpgCity,
+        mpgHighway: params.mpgHighway,
         fuelCap: params.fuelCap,
       });
     }
@@ -343,6 +345,8 @@ class LocationInput extends Component {
                 const currentCar = this.state.cars[this._carousel._activeItem];
                 fuelCap = currentCar.fuelCap;
                 mpg = currentCar.mpg;
+                var mpgCity = currentCar.mpgCity;
+                var mpgHighway = currentCar.mpgHighway;
               }
               this.props.navigation.navigate("MapDisplay", {
                 startingLat: this.state.startingLat,
@@ -352,6 +356,8 @@ class LocationInput extends Component {
                 fuelLeft: this.state.fuelPercent * 0.01 * fuelCap,
                 fuelCap: fuelCap,
                 mpg: mpg,
+                mpgCity: mpgCity,
+                mpgHighway: mpgHighway,
                 calcOnGas: this.state.selectedIndex.row,
                 numStops: this.state.numberOfStops,
               });

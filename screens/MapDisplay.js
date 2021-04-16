@@ -68,6 +68,8 @@ class MapDisplay extends Component {
     var fuelLeft = params.fuelLeft;
     var fuelCap = params.fuelCap;
     var mpg = params.mpg;
+    var mpgCity = params.mpgCity ? params.mpgCity : mpg;
+    var mpgHighway = params.mpgHighway ? params.mpgHighway : mpg;
     var calcOnGas = true;
     if (params.calcOnGas == 1) calcOnGas = false;
     var numStops = params.numStops;
@@ -78,15 +80,15 @@ class MapDisplay extends Component {
       this.setState({ location: loc });
     });
 
-    this.getDirections(start, end, fuelLeft, fuelCap, mpg, calcOnGas, numStops);
+    this.getDirections(start, end, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity, mpgHighway);
   }
 
   // Call the back end api to get the route
-  async getDirections(start, end, fuelLeft, fuelCap, mpg, calcOnGas, numStops) {
+  async getDirections(start, end, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg) {
     try {
-      var url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelLeft}/${fuelCap}/${mpg}/`;
-      if (calcOnGas) url = url + "true";
-      else url = url + "false/" + numStops;
+      var url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelLeft}/${fuelCap}/${mpg}/${calcOnGas}`;
+      if (calcOnGas) url = url + `/${numStops}`;
+      url = url + `?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
 
       let resp = await fetch(url);
       let respJson = await resp.json();
@@ -133,12 +135,14 @@ class MapDisplay extends Component {
 
       let fuelCap = this.props.route.params.fuelCap;
       let mpg = this.props.route.params.mpg;
+      let mpgCity = this.props.route.params.mpgCity ? this.props.route.params.mpgCity : mpg;
+      let mpgHighway = this.props.route.params.mpgHighway ? this.props.route.params.mpgHighway : mpg;
 
       // if you are going from start to first stop, start with less gas
       let fuelLeft = fuelCap;
       if (removedStopIndex == 0) fuelLeft = this.props.route.params.fuelLeft;
 
-      let url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelLeft}/${fuelCap}/${mpg}/true/0/${stopToReplace}`;
+      let url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelLeft}/${fuelCap}/${mpg}/true/0/${stopToReplace}?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
       if (!this.state.calcOnGas)
         url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelLeft}/${fuelCap}/${mpg}/false/1/${stopToReplace}`;
 
