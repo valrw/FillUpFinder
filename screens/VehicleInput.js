@@ -78,6 +78,8 @@ const VehicleInput = () => {
         vehicle: vehicle,
         fuelCap: manualMPG ? manualFuelCap : fuelCapacity,
         mpg: manualMPG ? manualMPGVal : mpg,
+        mpgCity: manualMPG ? manualMPGVal : mpgCity,
+        mpgHighway: manualMPG ? manualMPGVal : mpgHighway,
       });
     }
   };
@@ -124,15 +126,21 @@ const VehicleInput = () => {
 
   // For MPG
   const [mpg, setMPG] = useState("");
+  const [mpgCity, setMPGCity] = useState("");
+  const [mpgHighway, setMPGHighway] = useState("");
   const [fuelCapacity, setFuelCapacity] = useState("");
 
   const setNotFound = () => {
     setMPG("Not Found");
+    setMPGCity("Not Found");
+    setMPGHighway("Not Found");
     setFuelCapacity("Not Found");
   };
 
   const setEmpty = () => {
     setMPG("");
+    setMPGCity("");
+    setMPGHighway("");
     setFuelCapacity("");
   };
 
@@ -221,6 +229,8 @@ const VehicleInput = () => {
               const car = variantArray[0];
               setFuelCapacity(car.fuelCap.toFixed(2).toString());
               setMPG(car.mpg);
+              setMPGCity(car.mpgCity);
+              setMPGHighway(car.mpgHighway);
             } else if (variantArray.length > 1) {
               setCarList(variantArray);
               setVariantList(variantArray.map((x) => x.model));
@@ -358,7 +368,7 @@ const VehicleInput = () => {
       <View style={{ flexDirection: "row", justifyContent: "space-evenly" }}>
         <Input
           style={styles.mpgInput}
-          label="MPG"
+          label="Average MPG"
           size="large"
           placeholder="MPG"
           accessoryLeft={variantIsLoading ? LoadingIndicator : null}

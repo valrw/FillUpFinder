@@ -74,6 +74,8 @@ class LocationInput extends Component {
       this.addCar({
         name: params.vehicle,
         mpg: params.mpg,
+        mpgCity: params.mpgCity,
+        mpgHighway: params.mpgHighway,
         fuelCap: params.fuelCap,
       });
     }
