@@ -319,7 +319,6 @@ class LocationInput extends Component {
               this.getPlaceInfo(data, details, 0)
             }
             input_ref={this.startingInputRef}
-            // onFocus={() => console.log("AAAAFF")}
             stylesInput={styles.inputBox}
             listViewStyle={{ width: "120%" }}
             stylesContainer={{ width: "85%", height: 40 }}
@@ -445,7 +444,6 @@ const styles = StyleSheet.create({
   inputBox: {
     paddingHorizontal: 10,
     height: 40,
-    // marginTop: 6,
     borderWidth: 1,
     borderRadius: 3,
     borderColor: "#e4e9f2",

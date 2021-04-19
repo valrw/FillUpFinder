@@ -7,7 +7,7 @@ import {
   Animated,
   TouchableOpacity,
 } from "react-native";
-import { Text } from "@ui-kitten/components";
+import { Text, Icon, Button } from "@ui-kitten/components";
 import MapView, { Marker } from "react-native-maps";
 import { API_KEY, ROOT_URL } from "../constants/api";
 import colors from "../constants/colors";
@@ -217,6 +217,10 @@ class MapDisplay extends Component {
     }).start();
   };
 
+  customizeStops = () => {
+    this.props.navigation.navigate("CustomizeStops");
+  };
+
   render() {
     const slideAnimation = {
       transform: [{ translateY: this.state.slideAnimate }],
@@ -298,6 +302,18 @@ class MapDisplay extends Component {
             />
           ))}
         </MapView>
+        
+        <View style={styles.customStopsButton}>
+          {/* <Text style={styles.customStopsButtonTitle}>Customize Stops</Text> */}
+          <TouchableOpacity
+            onPress={this.customizeStops}>
+            <Icon
+              style={styles.customStopsIcon}
+              fill={colors.defaultBlue}
+              name="brush-outline"
+            />
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity style={styles.fab} onPress={this.zoomToUserLocation}>
           <Image
@@ -375,4 +391,33 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
   },
+
+  customStopsButtonTitle: {
+    marginTop: "3%",
+    marginBottom: "3%",
+    width: "86%",
+    fontSize: 12,
+    color: "#8F9BB3",
+    zIndex: -1,
+  },
+
+  customStopsButton: {
+    position: "absolute",
+    backgroundColor: "white",
+    borderRadius: 99,
+    width: 65,
+    height: 65,
+    alignItems: "center",
+    justifyContent: "center",
+    right: 30,
+    top: 35,
+    elevation: 4,
+    zIndex: 4,
+  },
+
+  customStopsIcon: {
+    width: 30,
+    height: 30,
+  },
+
 });
