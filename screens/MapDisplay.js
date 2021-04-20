@@ -86,9 +86,9 @@ class MapDisplay extends Component {
   // Call the back end api to get the route
   async getDirections(start, end, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg) {
     try {
-      var url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelLeft}/${fuelCap}/${mpg}/${calcOnGas}`;
-      if (calcOnGas) url = url + `/${numStops}`;
-      url = url + `?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
+      var url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelLeft}/${fuelCap}/${mpg}/${calcOnGas}/`;
+      if (!calcOnGas) url = url + `${numStops}/`;
+      else url = url + `?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
 
       let resp = await fetch(url);
       let respJson = await resp.json();
