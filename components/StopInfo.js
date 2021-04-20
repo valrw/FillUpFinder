@@ -7,7 +7,7 @@ import {
   Animated,
   TouchableOpacity,
 } from "react-native";
-import { Text } from "@ui-kitten/components";
+import { Text, Icon } from "@ui-kitten/components";
 
 function StopInfo(props) {
   if (props.currStop == undefined) return <View />;
@@ -23,7 +23,11 @@ function StopInfo(props) {
         onPress={props.onDeleteStop}
         style={styles.deleteButton}
       >
-        <Image source={require("../assets/delete_icon.png")} />
+        <Icon
+          style={styles.trashIcon}
+          fill="#222B45"
+          name="trash-2-outline"
+        />
       </TouchableOpacity>
     </Animated.View>
   );
@@ -113,7 +117,13 @@ const styles = StyleSheet.create({
   },
 
   deleteButton: {
-    marginTop: 5,
-    marginLeft: 8,
+    position: "absolute",
+    bottom: 10,
+    left: 10,
   },
+
+  trashIcon: {
+    height: 24,
+    width: 24
+  }
 });

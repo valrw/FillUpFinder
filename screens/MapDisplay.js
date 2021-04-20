@@ -25,6 +25,7 @@ class MapDisplay extends Component {
     end: { latitude: 0, longitude: 0 },
     stops: 0,
     stopsList: [],
+    calcOnGas: true,
 
     isStopShown: false,
     currStopIndex: 0,
@@ -72,6 +73,8 @@ class MapDisplay extends Component {
     var calcOnGas = true;
     if (params.calcOnGas == 1) calcOnGas = false;
     var numStops = params.numStops;
+
+    this.setState({ calcOnGas });
 
     getLocation().then((loc) => {
       this.setState({ location: loc });
@@ -130,7 +133,7 @@ class MapDisplay extends Component {
       if (removedStopIndex < this.state.stopsList.length - 1)
         end = this.state.stopsList[removedStopIndex + 1].placeId;
 
-      let fuelCap = this.props.route.params.fuelCap * 1.1;
+      let fuelCap = this.props.route.params.fuelCap;
       let mpg = this.props.route.params.mpg;
       let mpgCity = this.props.route.params.mpgCity ? this.props.route.params.mpgCity : mpg;
       let mpgHighway = this.props.route.params.mpgHighway ? this.props.route.params.mpgHighway : mpg;
@@ -140,6 +143,9 @@ class MapDisplay extends Component {
       if (removedStopIndex == 0) fuelLeft = this.props.route.params.fuelLeft;
 
       let url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelLeft}/${fuelCap}/${mpg}/true/0/${stopToReplace}?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
+      if (!this.state.calcOnGas)
+        url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelLeft}/${fuelCap}/${mpg}/false/1/${stopToReplace}`;
+
       let resp = await fetch(url);
       let respJson = await resp.json();
 
