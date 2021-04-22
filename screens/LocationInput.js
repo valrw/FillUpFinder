@@ -49,7 +49,6 @@ class LocationInput extends Component {
     cars: [],
     finishedLoading: false,
 
-    placesEntered: false,
     startAtUserLocation: false,
   };
 
@@ -148,10 +147,6 @@ class LocationInput extends Component {
     } else if (index == 1) {
       // Ending Location
       this.setState({ endingPlaceId: place.place_id });
-    }
-
-    if (this.state.startingPlaceId !== "" && this.state.endingPlaceId !== "") {
-      this.setState({ placesEntered: true })
     }
   };
 
@@ -271,37 +266,14 @@ class LocationInput extends Component {
     }
   };
 
-  renderCustomStopsButton = () => {
-    if (this.state.placesEntered) {
-      return (
-        <Button 
-          style={styles.customStopsButton} 
-          onPress={this.customizeStops}>
-          <Icon
-            style={styles.customStopsIcon}
-            fill="#ffffff"
-            name="brush-outline"
-          />
-        </Button>
-      );
-    } else {
-      return (
-        <Button 
-          style={styles.customStopsButton}
-          appearance={"outline"}
-        >
-          <Icon
-            style={styles.customStopsIcon}
-            fill="#ffffff"
-            name="brush-outline"
-          />
-        </Button>
-      );
-    }
-  };
 
   customizeStops = () => {
-    this.props.navigation.navigate("CustomizeStops");
+    this.props.navigation.navigate("CustomizeStops", {
+      startingLat: this.state.startingLat,
+      startingLong: this.state.startingLong,
+      startingPlaceId: this.state.startingPlaceId,
+      endingPlaceId: this.state.endingPlaceId,
+    });
   };
 
   render() {
@@ -381,7 +353,15 @@ class LocationInput extends Component {
           </View>
           <View style={{ flex: 1 }}>
           <Text style={styles.customStopsButtonTitle}>Customize Stops</Text>
-            {this.renderCustomStopsButton()}
+          <Button 
+          style={styles.customStopsButton} 
+          onPress={this.customizeStops}>
+          <Icon
+            style={styles.customStopsIcon}
+            fill="#ffffff"
+            name="brush-outline"
+          />
+          </Button>
           </View>
         </View>
 

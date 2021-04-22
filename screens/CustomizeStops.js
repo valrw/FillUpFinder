@@ -1,11 +1,12 @@
 import React, { Component } from "react";
-import { StyleSheet, Platform, View, FlatList } from "react-native";
+import { StyleSheet, Image, View, FlatList, ScrollView } from "react-native";
 import LocationInputText from "../components/LocationInputText";
 import {
   Text,
   Button,
   Icon,
 } from "@ui-kitten/components";
+import { getLocation, getPlace } from "../services/LocationService.js";
 
 class CustomizeStops extends Component {
     constructor(props) {
@@ -18,17 +19,19 @@ class CustomizeStops extends Component {
         startingLong: -117.919,
         startingPlaceId: "",
         endingPlaceId: "",
+        placeIdsList: [],
 
         stops: [],
-        stopCount: 1,
-        stopAdded: false,
+        stopCount: 0,
       };
 
     
     componentDidMount() {
-        if (this.state.stopAdded) {
-            this.setState({ stopAdded: false });
-        }
+        var params = this.props.route.params;
+        var start = params.startingPlaceId;
+        var end = params.endingPlaceId;
+        var latitude = params.startingLat;
+        var longitude = params.startingLong;
     }
 
 
@@ -42,9 +45,12 @@ class CustomizeStops extends Component {
             startingLong: location.lng,
           });
           return;
-        } else if (index == 1) {
+        } else if (index == 100) {
           // Ending Location
           this.setState({ endingPlaceId: place.place_id });
+        } else {
+            this.setState({ placeIdsList: [...placeIdsList, place.place_id] })
+            console.log('LIST: ', this.state.placeIdsList)
         }
       };
 
@@ -52,76 +58,93 @@ class CustomizeStops extends Component {
     addStop = () => {
         this.setState({
             stopCount: this.state.stopCount + 1,
-            stopAdded: true,
-            stops: this.state.stops.concat(this.state.stopCount)
+            stops: this.state.stops.concat(this.state.stopCount),
         });
     };
 
 
     renderStops = (item, index) => {
-        let stopNumber = item.item
-
-        if (this.state.stopAdded) {            
-            return (
-                <View style={styles.scrollContainer}>
-                    <Text style={styles.inputTitle}>Stop {stopNumber}:</Text>
-                    <LocationInputText
-                    onSelectLocation={(data, details) =>
-                        this.getPlaceInfo(data, details, stopNumber)
-                    }
-                    input_ref={this.startingInputRef}
-                    stylesInput={styles.inputBox}
-                    listViewStyle={{ width: "120%" }}
-                    stylesContainer={{ width: "85%", height: 40 }}
-                    />
-                </View>
-            )
-        }
-    }
+        let stopNumber = item + 1
+        return (
+            <View key={stopNumber} style={{ width: "100%", alignItems: "center" }}>
+                <Text style={styles.inputTitle}>Stop {stopNumber}:</Text>
+                <LocationInputText
+                onSelectLocation={(data, details) =>
+                    this.getPlaceInfo(data, details, stopNumber)
+                }
+                stylesInput={styles.inputBox}
+                listViewStyle={{ width: "120%"}}
+                stylesContainer={{ width: "85%", height: 40, zIndex: index}}
+                />
+            </View>
+        );
+    };
 
 
     render() {
+        let currZIndex = 100;
         return (
-            <FlatList 
-                ListHeaderComponentStyle={styles.scrollContainer}
-                ListHeaderComponent={
-                <>
-                    <Text style={styles.inputTitle}>Starting point:</Text>
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <Text style={styles.inputTitle}>Starting point:</Text>
+                <View style={
+                    Platform.OS == "android"
+                    ? styles.startingInputContainer
+                    : [styles.startingInputContainer, { zIndex: 5 }]
+                }>
                     <LocationInputText
                     onSelectLocation={(data, details) =>
                         this.getPlaceInfo(data, details, 0)
                     }
+                    input_ref={this.startingInputRef}
                     stylesInput={styles.inputBox}
-                    stylesContainer={{ width: "85%", height: 40 }}
+                    stylesContainer={{ width: "85%", height: 40, zIndex: currZIndex }}
                     />
-                </>}
-                data={this.state.stops}
-                renderItem={this.renderStops}
-                keyExtractor={(item, index) => index.toString()}
-                ListFooterComponentStyle={styles.scrollContainer}
-                ListFooterComponent={
-                <>
-                    <Text style={styles.inputTitle}>Destination:</Text>
-                    <LocationInputText
-                    onSelectLocation={(data, details) =>
-                        this.getPlaceInfo(data, details, 100)
-                    }
-                    stylesInput={styles.inputBox}
-                    stylesContainer={{ width: "85%", height: 40 }}
-                    />
+                    <Button
+                        size="small"
+                        accessoryLeft={() => (
+                        <Image
+                            source={require("../assets/target_white.png")}
+                            style={{ width: 25, height: 25 }}
+                        ></Image>
+                        )}
+                        onPress={async () => {
+                        const loc = await getLocation();
+                        const lat = loc.coords.latitude;
+                        const lng = loc.coords.longitude;
+                        const place = await getPlace(lat, lng);
 
-                    <Button 
-                    style={styles.addStopsButton} 
-                    onPress={this.addStop}>
-                    <Icon
-                        style={styles.addStopsIcon}
-                        fill="#ffffff"
-                        name="plus-square-outline"
-                    />
-                    </Button>
-                </>
+                        this.setState({
+                            startingPlaceId: place.place_id,
+                            startingLat: lat,
+                            startingLong: lng,
+                        });
+
+                        this.startingInputRef.current?.setAddressText(place.address);
+                        }}
+                    ></Button>
+                </View>
+
+                {this.state.stops.map((stop, index) => {
+                    return this.renderStops(stop, currZIndex - 1 - index);
+                })}
+
+                <Text style={styles.inputTitle}>Destination:</Text>
+                <LocationInputText
+                onSelectLocation={(data, details) =>
+                    this.getPlaceInfo(data, details, 100)
                 }
-            />
+                stylesInput={styles.inputBox}
+                stylesContainer={{ width: "85%", height: 40, zIndex: currZIndex - 1 - this.state.stops.length }}
+                />
+
+                <Button style={styles.addStopsButton} onPress={this.addStop}>
+                <Icon
+                    style={styles.addStopsIcon}
+                    fill="#ffffff"
+                    name="plus-square-outline"
+                />
+                </Button>
+            </ScrollView>
         );
     }
 }
@@ -130,8 +153,6 @@ export default CustomizeStops;
 
 const styles = StyleSheet.create({
     scrollContainer: {
-      flexDirection: "column",
-      justifyContent: "flex-start",
       alignItems: "center",
     },
   
@@ -165,4 +186,11 @@ const styles = StyleSheet.create({
         width: 35, 
         height: 35,
     },
+
+    startingInputContainer: {
+        width: "86%",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+      },
   });
