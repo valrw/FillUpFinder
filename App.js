@@ -2,6 +2,7 @@ import React from "react";
 import { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
+import WelcomeScreen from "./screens/WelcomeScreen";
 import MapDisplay from "./screens/MapDisplay";
 import LocationInput from "./screens/LocationInput";
 import VehicleInput from "./screens/VehicleInput";
@@ -61,6 +62,14 @@ export default function App() {
       <ApplicationProvider {...eva} theme={eva[theme]} customMapping={mapping}>
         <NavigationContainer>
           <Stack.Navigator>
+            <Stack.Screen
+              name="WelcomeScreen"
+              component={WelcomeScreen}
+              options={{
+                title: "Welcome",
+                headerTitleAlign: "center",
+              }}
+            />
             <Stack.Screen
               name="LocationInput"
               component={LocationInput}

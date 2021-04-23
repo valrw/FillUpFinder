@@ -19,24 +19,21 @@ function WelcomeScreen({ navigation }) {
       source={require("../assets/images/map-bg.jpg")}
     >
       <View style={styles.welcomeTextContainer}>
-        <Text style={styles.welcomeText}>Hack-A-Thing 2</Text>
-        <Text style={styles.authorText}>
-          Rodrigo Cavero Blades, Luis Chamorro, Daniel Diaz, Val Werner
-        </Text>
+        <Text style={styles.welcomeText}>FillUpFinder</Text>
       </View>
 
       <TouchableOpacity
         style={styles.mapButton}
         onPress={() => onMapButtonPress(navigation)}
       >
-        <Text style={styles.mapButtonText}>Go To Map</Text>
+        <Text style={styles.mapButtonText}>Get started</Text>
       </TouchableOpacity>
     </ImageBackground>
   );
 }
 
 function onMapButtonPress(navigation) {
-  navigation.navigate("Map");
+  navigation.navigate("LocationInput");
 }
 
 export default WelcomeScreen;
@@ -77,7 +74,7 @@ const styles = StyleSheet.create({
   },
 
   mapButton: {
-    backgroundColor: colors.defaultGreen,
+    backgroundColor: colors.defaultBlue,
     paddingHorizontal: "15%",
     paddingVertical: "5%",
     borderRadius: 15,
