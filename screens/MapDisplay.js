@@ -15,8 +15,10 @@ import StopInfo from "../components/StopInfo";
 import ConfirmModal from "../components/ConfirmModal";
 // import * as Location from "expo-location";
 import { getLocation } from "../services/LocationService.js";
+import haversine from "haversine-distance";
 
 const ANIMATED_VAL = 310;
+const LOCATION_LIMIT = 20;
 
 class MapDisplay extends Component {
   state = {
@@ -26,10 +28,12 @@ class MapDisplay extends Component {
     stops: 0,
     stopsList: [],
     calcOnGas: true,
+    currentLocation: false,
 
     isStopShown: false,
     currStopIndex: 0,
     slideAnimate: new Animated.Value(ANIMATED_VAL),
+    timeLeft: 0,
 
     showingModal: false,
     replacingStop: false,
@@ -40,6 +44,8 @@ class MapDisplay extends Component {
   constructor(props) {
     super(props);
     this.mapComponent = null;
+
+    this.locations = [];
   }
 
   zoomToUserLocation = () => {
@@ -80,11 +86,69 @@ class MapDisplay extends Component {
       this.setState({ location: loc });
     });
 
-    this.getDirections(start, end, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity, mpgHighway);
+    this.getDirections(
+      start,
+      end,
+      fuelLeft,
+      fuelCap,
+      mpg,
+      calcOnGas,
+      numStops,
+      mpgCity,
+      mpgHighway
+    );
+
+    if (params.currentLocation) {
+      this.setState({ currentLocation: true });
+
+      this.watchId = navigator.geolocation.watchPosition((position) => {
+        this.locations.push(position.coords);
+
+        let pos = { latitude: 0, longitude: 0 };
+        if (this.state.timeLeft == 0) {
+          pos = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          };
+        }
+        if (this.locations.length >= LOCATION_LIMIT) {
+          let latSum = 0,
+            lngSum = 0;
+          this.locations.forEach((item) => {
+            latSum += item.latitude;
+            lngSum += item.longitude;
+          });
+
+          pos = {
+            latitude: latSum / this.locations.length,
+            longitude: lngSum / this.locations.length,
+          };
+
+          this.locations = [];
+        }
+        let closest = this.getClosestPoint(pos);
+        if (!closest) return;
+        this.updateTimeLeft(closest);
+      });
+    }
+  }
+
+  componentWillUnmount() {
+    navigator.geolocation.clearWatch(this.watchId);
   }
 
   // Call the back end api to get the route
-  async getDirections(start, end, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg) {
+  async getDirections(
+    start,
+    end,
+    fuelLeft,
+    fuelCap,
+    mpg,
+    calcOnGas,
+    numStops,
+    mpgCity = mpg,
+    mpgHighway = mpg
+  ) {
     try {
       var url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelLeft}/${fuelCap}/${mpg}/${calcOnGas}/`;
       if (!calcOnGas) url = url + `${numStops}/`;
@@ -112,6 +176,49 @@ class MapDisplay extends Component {
     }
   }
 
+  getClosestPoint = (pos) => {
+    if (this.state.segments.length == 0) return;
+
+    let minDist = haversine(pos, this.state.segments[0].coords[0]);
+    let minPoint = [0, 0];
+    this.state.segments.forEach((segment, sIndex) => {
+      segment.coords.forEach((point, pIndex) => {
+        let newDist = haversine(pos, point);
+        if (newDist < minDist) {
+          minDist = newDist;
+          minPoint = [sIndex, pIndex];
+        }
+      });
+    });
+    return minPoint;
+  };
+
+  updateTimeLeft = (point) => {
+    if (!this.state.segments) return;
+
+    let timeLeft = 0;
+
+    let totalDist = 0;
+    const currSegment = this.state.segments[point[0]].coords;
+    for (let i = 0; i < currSegment.length - 1; i++) {
+      totalDist += haversine(currSegment[i], currSegment[i + 1]);
+    }
+
+    let k = point[1];
+    let currDist = 0;
+    for (let i = 0; i < k; i++) {
+      currDist += haversine(currSegment[i], currSegment[i + 1]);
+    }
+    timeLeft +=
+      (1 - currDist / totalDist) * this.state.segments[point[0]].duration;
+
+    for (let i = point[0] + 1; i < this.state.segments.length; i++) {
+      timeLeft += this.state.segments[i].duration;
+    }
+
+    this.setState({ timeLeft });
+  };
+
   onDeletePress = () => {
     this.setState({ showingModal: true });
   };
@@ -135,8 +242,12 @@ class MapDisplay extends Component {
 
       let fuelCap = this.props.route.params.fuelCap;
       let mpg = this.props.route.params.mpg;
-      let mpgCity = this.props.route.params.mpgCity ? this.props.route.params.mpgCity : mpg;
-      let mpgHighway = this.props.route.params.mpgHighway ? this.props.route.params.mpgHighway : mpg;
+      let mpgCity = this.props.route.params.mpgCity
+        ? this.props.route.params.mpgCity
+        : mpg;
+      let mpgHighway = this.props.route.params.mpgHighway
+        ? this.props.route.params.mpgHighway
+        : mpg;
 
       // if you are going from start to first stop, start with less gas
       let fuelLeft = fuelCap;
@@ -225,6 +336,16 @@ class MapDisplay extends Component {
       duration: 150,
       useNativeDriver: true,
     }).start();
+  };
+
+  renderTimeLeft = () => {
+    if (this.state.segments.length == 0 || !this.state.currentLocation)
+      return null;
+
+    const minutesLeft = Math.floor(this.state.timeLeft / 60);
+    return (
+      <Text style={styles.timeLeft}>Time Left: {minutesLeft} minutes</Text>
+    );
   };
 
   render() {
@@ -338,6 +459,8 @@ class MapDisplay extends Component {
           currStop={currStop}
           onDeleteStop={this.onDeletePress}
         />
+
+        {this.renderTimeLeft()}
       </View>
     );
   }
@@ -384,5 +507,12 @@ const styles = StyleSheet.create({
   fabIcon: {
     width: 30,
     height: 30,
+  },
+
+  timeLeft: {
+    position: "absolute",
+    fontSize: 12,
+    right: 10,
+    top: 10,
   },
 });

@@ -39,6 +39,7 @@ class LocationInput extends Component {
     startingLong: -117.919,
     startingPlaceId: "",
     endingPlaceId: "",
+    currentLocation: false,
 
     selectedIndex: new IndexPath(0),
     numberOfStops: 0,
@@ -113,6 +114,7 @@ class LocationInput extends Component {
         startingPlaceId: place.place_id,
         startingLat: location.lat,
         startingLong: location.lng,
+        currentLocation: false,
       });
       return;
     } else if (index == 1) {
@@ -276,6 +278,7 @@ class LocationInput extends Component {
                 startingPlaceId: place.place_id,
                 startingLat: lat,
                 startingLong: lng,
+                currentLocation: true,
               });
 
               this.startingInputRef.current?.setAddressText(place.address);
@@ -360,6 +363,7 @@ class LocationInput extends Component {
                 mpgHighway: mpgHighway,
                 calcOnGas: this.state.selectedIndex.row,
                 numStops: this.state.numberOfStops,
+                currentLocation: this.state.currentLocation,
               });
             }}
           >
