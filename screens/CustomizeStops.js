@@ -49,8 +49,9 @@ class CustomizeStops extends Component {
           // Ending Location
           this.setState({ endingPlaceId: place.place_id });
         } else {
-            this.setState({ placeIdsList: [...placeIdsList, place.place_id] })
-            console.log('LIST: ', this.state.placeIdsList)
+          currPlaceIds = this.state.placeIdsList
+          currPlaceIds[index] = place.place_id
+          this.setState({ placeIdsList: currPlaceIds })
         }
       };
 
