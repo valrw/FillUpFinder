@@ -19,6 +19,7 @@ import {
   Text,
   Button,
   Icon,
+  TopNavigationAction,
 } from "@ui-kitten/components";
 
 import Slider from "@react-native-community/slider";
@@ -27,6 +28,11 @@ import Carousel from "react-native-snap-carousel";
 import VehicleCard from "../components/VehicleCard";
 
 import { getLocation, getPlace } from "../services/LocationService.js";
+import { TouchableOpacity } from "react-native-gesture-handler";
+
+// import { createDrawerNavigator } from "@react-navigation/drawer";
+
+// const { Navigator, Screen } = createDrawerNavigator();
 
 class LocationInput extends Component {
   constructor(props) {
@@ -52,6 +58,7 @@ class LocationInput extends Component {
   };
 
   componentDidMount() {
+    const MenuIcon = (props) => <Icon {...props} name="menu-outline" />;
     // AsyncStorage.setItem("@cars", JSON.stringify(this.state.cars));
 
     AsyncStorage.getItem("@cars").then((stored_cars) => {
@@ -61,6 +68,18 @@ class LocationInput extends Component {
       } else {
         this.setState({ finishedLoading: true });
       }
+    });
+
+    this.props.navigation.setOptions({
+      headerLeft: () => (
+        <TopNavigationAction
+          style={{ padding: 8 }}
+          icon={MenuIcon}
+          onPress={() => {
+            this.props.navigation.toggleDrawer();
+          }}
+        />
+      ),
     });
   }
 
@@ -156,6 +175,7 @@ class LocationInput extends Component {
                   size="small"
                   onPress={() => {
                     this.props.navigation.navigate("VehicleInput");
+                    // this.props.navigation.toggleDrawer();
                   }}
                 >
                   Add Vehicle

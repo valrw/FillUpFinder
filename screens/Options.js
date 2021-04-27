@@ -9,32 +9,43 @@ import {
   IndexPath,
   Select,
   SelectItem,
+  Button,
+  useTheme,
 } from "@ui-kitten/components";
-import { ThemeContext } from "../contexts/theme-context";
+import { HeaderBackButton } from "@react-navigation/stack";
+import { StoreContext } from "../contexts/storeContext";
 
-const Options = () => {
-  const themeContext = React.useContext(ThemeContext);
+const Options = ({ navigation }) => {
+  const storeContext = React.useContext(StoreContext);
 
-  const units = ["Miles, Gallons", "Meters, Litres"];
-  const [value, setValue] = React.useState("");
-  const [selectedIndex, setSelectedIndex] = React.useState(new IndexPath(0));
+  const units = ["US", "Metric"];
 
-  const selectedUnit = units[selectedIndex.row];
+  const theme = useTheme();
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <HeaderBackButton
+          onPress={() => navigation.navigate("LocationInput")}
+          tintColor={theme["text-basic-color"]}
+        />
+      ),
+    });
+  }, [navigation, theme]);
 
   return (
     <Layout style={styles.container}>
       <TouchableOpacity
-        onPress={themeContext.toggleTheme}
+        onPress={storeContext.toggleTheme}
         style={styles.segment}
       >
         <Text style={styles.text}> Night Mode</Text>
         <Toggle
-          checked={themeContext.theme === "light" ? false : true}
-          onChange={themeContext.toggleTheme}
+          checked={storeContext.theme === "light" ? false : true}
+          onChange={storeContext.toggleTheme}
           style={styles.toggle}
         ></Toggle>
       </TouchableOpacity>
-      <Divider style={styles.divider}></Divider>
+      {/* <Divider style={styles.divider}></Divider>
       <Text style={styles.text} category="h2">
         Gas
       </Text>
@@ -46,16 +57,21 @@ const Options = () => {
           Platform.OS == "android" ? "numeric" : "numbers-and-punctuation"
         }
         style={styles.input}
-      />
+      /> */}
       <Divider style={styles.divider}></Divider>
-      <Text style={styles.text} category="h2">
+      <Text style={styles.text} category="h6">
         Units
       </Text>
       <Select
-        selectedIndex={selectedIndex}
-        onSelect={(index) => setSelectedIndex(index)}
+        selectedIndex={new IndexPath(storeContext.unitIndex)}
+        onSelect={(index) => {
+          // storeContext.toggleUnit();
+          // console.log(storeContext.unitIndex);
+          storeContext.setUnitIndex(index.row);
+          // setSelectedIndex(index);
+        }}
         style={styles.input}
-        value={selectedUnit}
+        value={units[storeContext.unitIndex]}
       >
         <SelectItem title={units[0]} />
         <SelectItem title={units[1]} />
@@ -81,6 +97,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    paddingTop: 10,
   },
   section: {
     paddingTop: 32,
