@@ -32,6 +32,7 @@ class MapDisplay extends Component {
 
     isStopShown: false,
     currStopIndex: 0,
+    currSegIndex: [0, 0],
     slideAnimate: new Animated.Value(ANIMATED_VAL),
     timeLeft: 0,
 
@@ -101,37 +102,43 @@ class MapDisplay extends Component {
     if (params.currentLocation) {
       this.setState({ currentLocation: true });
 
-      this.watchId = navigator.geolocation.watchPosition((position) => {
-        this.locations.push(position.coords);
-
-        let pos = { latitude: 0, longitude: 0 };
-        if (this.state.timeLeft == 0) {
-          pos = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          };
-        }
-        if (this.locations.length >= LOCATION_LIMIT) {
-          let latSum = 0,
-            lngSum = 0;
-          this.locations.forEach((item) => {
-            latSum += item.latitude;
-            lngSum += item.longitude;
-          });
-
-          pos = {
-            latitude: latSum / this.locations.length,
-            longitude: lngSum / this.locations.length,
-          };
-
-          this.locations = [];
-        }
-        let closest = this.getClosestPoint(pos);
-        if (!closest) return;
-        this.updateTimeLeft(closest);
-      });
+      this.watchId = navigator.geolocation.watchPosition(
+        this.getPositionUpdate
+      );
     }
   }
+
+  getPositionUpdate = (position) => {
+    if (!position) return;
+    this.locations.push(position.coords);
+
+    let pos = null;
+    if (this.state.timeLeft == 0) {
+      pos = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      };
+    }
+    if (this.locations.length >= LOCATION_LIMIT) {
+      let latSum = 0,
+        lngSum = 0;
+      this.locations.forEach((item) => {
+        latSum += item.latitude;
+        lngSum += item.longitude;
+      });
+
+      pos = {
+        latitude: latSum / this.locations.length,
+        longitude: lngSum / this.locations.length,
+      };
+
+      this.locations = [];
+    }
+    if (!pos) return;
+    let closest = this.getClosestPoint(pos);
+    if (!closest) return;
+    this.updateTimeLeft(closest);
+  };
 
   componentWillUnmount() {
     navigator.geolocation.clearWatch(this.watchId);
@@ -168,6 +175,7 @@ class MapDisplay extends Component {
       this.setState({ segments, start, end, stops, stopsList });
       // Zoom out the map
       this.mapComponent.animateToRegion(respJson.zoomBounds);
+      this.getPositionUpdate(this.state.location);
 
       return segments;
     } catch (error) {
@@ -178,7 +186,6 @@ class MapDisplay extends Component {
 
   getClosestPoint = (pos) => {
     if (this.state.segments.length == 0) return;
-
     let minDist = haversine(pos, this.state.segments[0].coords[0]);
     let minPoint = [0, 0];
     this.state.segments.forEach((segment, sIndex) => {
@@ -190,6 +197,7 @@ class MapDisplay extends Component {
         }
       });
     });
+    this.setState({ currSegIndex: minPoint });
     return minPoint;
   };
 
@@ -420,14 +428,18 @@ class MapDisplay extends Component {
             </Marker>
           ))}
 
-          {this.state.segments.map((seg, index) => (
-            <MapView.Polyline
-              key={index}
-              coordinates={seg.coords}
-              strokeWidth={4}
-              strokeColor="blue"
-            />
-          ))}
+          {this.state.segments.map((seg, index) => {
+            let color = "#0000ff";
+            if (index < this.state.currSegIndex) color = "#0000ff80";
+            return (
+              <MapView.Polyline
+                key={index}
+                coordinates={seg.coords}
+                strokeWidth={4}
+                strokeColor={color}
+              />
+            );
+          })}
         </MapView>
 
         <TouchableOpacity style={styles.fab} onPress={this.zoomToUserLocation}>
