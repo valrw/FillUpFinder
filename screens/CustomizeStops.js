@@ -32,6 +32,25 @@ class CustomizeStops extends Component {
         var end = params.endingPlaceId;
         var latitude = params.startingLat;
         var longitude = params.startingLong;
+
+        if (start !== "") {
+            this.setState({ startingPlaceId: start });
+        }
+
+        if (latitude !== "") {
+            this.setState({ startingLat: latitude });
+        }
+
+        if (longitude !== "") {
+            this.setState({ startingLat: longitude });
+        }
+
+        if (end !== "") {
+            this.setState({ endingPlaceId: end });
+        }
+
+        // console.log("start: ", this.state.startingPlaceId);
+        // console.log("START: ", start);
     }
 
 
@@ -64,8 +83,8 @@ class CustomizeStops extends Component {
     };
 
 
-    renderStops = (item, index) => {
-        let stopNumber = item + 1
+    renderStops = (item, index, zIndex) => {
+        let stopNumber = index + 1
         return (
             <View key={stopNumber} style={{ width: "100%", alignItems: "center" }}>
                 <Text style={styles.inputTitle}>Stop {stopNumber}:</Text>
@@ -75,7 +94,7 @@ class CustomizeStops extends Component {
                 }
                 stylesInput={styles.inputBox}
                 listViewStyle={{ width: "120%"}}
-                stylesContainer={{ width: "85%", height: 40, zIndex: index}}
+                stylesContainer={{ width: "85%", height: 40, zIndex: zIndex}}
                 />
             </View>
         );
@@ -85,7 +104,9 @@ class CustomizeStops extends Component {
     render() {
         let currZIndex = 100;
         return (
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
+            // <ScrollView contentContainerStyle={styles.scrollContainer}>
+            // <View style={{alignItems: "center"}}>
+            <>
                 <Text style={styles.inputTitle}>Starting point:</Text>
                 <View style={
                     Platform.OS == "android"
@@ -126,7 +147,7 @@ class CustomizeStops extends Component {
                 </View>
 
                 {this.state.stops.map((stop, index) => {
-                    return this.renderStops(stop, currZIndex - 1 - index);
+                    return this.renderStops(stop, index, currZIndex - 1 - index);
                 })}
 
                 <Text style={styles.inputTitle}>Destination:</Text>
@@ -145,7 +166,9 @@ class CustomizeStops extends Component {
                     name="plus-square-outline"
                 />
                 </Button>
-            </ScrollView>
+            {/* // </ScrollView> */}
+            {/* // </View> */}
+            </>
         );
     }
 }
