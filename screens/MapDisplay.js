@@ -45,8 +45,6 @@ class MapDisplay extends Component {
   constructor(props) {
     super(props);
     this.mapComponent = null;
-
-    this.locations = [];
   }
 
   zoomToUserLocation = () => {
@@ -110,34 +108,29 @@ class MapDisplay extends Component {
 
   getPositionUpdate = (position) => {
     if (!position) return;
-    this.locations.push(position.coords);
 
-    let pos = null;
-    if (this.state.timeLeft == 0) {
-      pos = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-      };
+    const MIN_DIST = 10;
+    let pos = {
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+    };
+
+    let currLoc = {
+      latitude: this.state.location?.coords.latitude,
+      longitude: this.state.location?.coords.longitude,
+    };
+
+    // update position when you have moved sufficiently
+    if (
+      !this.state.location ||
+      this.state.timeLeft == 0 ||
+      haversine(pos, currLoc) > MIN_DIST
+    ) {
+      this.setState({ location: position });
+      let closest = this.getClosestPoint(pos);
+      if (!closest) return;
+      this.updateTimeLeft(closest);
     }
-    if (this.locations.length >= LOCATION_LIMIT) {
-      let latSum = 0,
-        lngSum = 0;
-      this.locations.forEach((item) => {
-        latSum += item.latitude;
-        lngSum += item.longitude;
-      });
-
-      pos = {
-        latitude: latSum / this.locations.length,
-        longitude: lngSum / this.locations.length,
-      };
-
-      this.locations = [];
-    }
-    if (!pos) return;
-    let closest = this.getClosestPoint(pos);
-    if (!closest) return;
-    this.updateTimeLeft(closest);
   };
 
   componentWillUnmount() {
@@ -430,7 +423,7 @@ class MapDisplay extends Component {
 
           {this.state.segments.map((seg, index) => {
             let color = "#0000ff";
-            if (index < this.state.currSegIndex) color = "#0000ff80";
+            if (index < this.state.currSegIndex[0]) color = "#0000ff30";
             return (
               <MapView.Polyline
                 key={index}
