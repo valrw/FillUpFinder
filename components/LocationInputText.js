@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, View, Button, Platform } from "react-native";
+import { View } from "react-native";
 import { API_KEY } from "../constants/api";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 
@@ -16,10 +16,16 @@ class LocationInputText extends Component {
   }
 
   render() {
+    const bgColor = this.props.themedColors.bgColor;
+    const textColor = this.props.themedColors.textColor;
+
     return (
       <View style={this.props.stylesContainer}>
         <GooglePlacesAutocomplete
           placeholder="Search"
+          textInputProps={{
+            placeholderTextColor: "#8F9BB3",
+          }}
           fetchDetails={true}
           onPress={(data, details) => {
             this.updateSessionId();
@@ -36,12 +42,14 @@ class LocationInputText extends Component {
             listView: [
               {
                 top: 40,
-                color: "black",
                 zIndex: 15,
                 position: "absolute",
               },
               this.props.listViewStyle,
             ],
+            row: { backgroundColor: bgColor },
+            poweredContainer: { backgroundColor: bgColor },
+            description: { color: textColor },
           }}
           onFail={(error) => console.error(error)}
           onNotFound={() => console.log("Not found")}

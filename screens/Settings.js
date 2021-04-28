@@ -15,7 +15,7 @@ import {
 import { HeaderBackButton } from "@react-navigation/stack";
 import { StoreContext } from "../contexts/storeContext";
 
-const Options = ({ navigation }) => {
+const Settings = ({ navigation }) => {
   const storeContext = React.useContext(StoreContext);
 
   const units = ["US", "Metric"];
@@ -111,4 +111,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Options;
+export default Settings;
