@@ -1,18 +1,29 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Text, Icon, useTheme } from "@ui-kitten/components";
+import { useContext } from "react";
+import { StoreContext } from "../contexts/storeContext";
+import { converted, rounded } from "../utils/numbers";
+import { units, types } from "../constants/units";
 
 const BORDER_RADIUS = 8;
 
 function VehicleCard(props) {
   const { index, car } = props;
+
   const theme = useTheme();
-  // const colors = [
-  //   theme["color-primary-default"],
-  //   theme["color-danger-default"],
-  //   theme["color-info-default"],
-  //   theme["color-success-default"],
-  // ];
+  const storeContext = useContext(StoreContext);
+
+  // let mpg_val =
+  //   storeContext.unitIndex == 0 ? car.mpg : convert.mpgToKml(car.mpg);
+  // mpg_val = rounded(mpg_val);
+
+  // let fuel_val =
+  //   storeContext.unitIndex == 0
+  //     ? car.fuelCap
+  //     : convert.gallonsToLiters(car.fuelCap);
+  // fuel_val = rounded(fuel_val);
+
   const styles = StyleSheet.create({
     card: {
       width: "95%",
@@ -106,11 +117,18 @@ function VehicleCard(props) {
               appearance="alternative"
               style={styles.footerText}
             >
-              {car.mpg}
+              {rounded(
+                converted(
+                  car.mpg,
+                  types.MPG,
+                  units.US,
+                  units.unitsList[storeContext.unitIndex]
+                )
+              )}
             </Text>
 
             <Text category="s2" status="control" style={{ letterSpacing: 1 }}>
-              MPG
+              {storeContext.unitIndex == 0 ? "MPG" : "km/l"}
             </Text>
           </View>
 
@@ -122,11 +140,18 @@ function VehicleCard(props) {
               appearance="alternative"
               style={styles.footerText}
             >
-              {car.fuelCap}
+              {rounded(
+                converted(
+                  car.fuelCap,
+                  types.Fuel,
+                  units.US,
+                  units.unitsList[storeContext.unitIndex]
+                )
+              )}
             </Text>
 
             <Text category="s2" status="control" style={{ letterSpacing: 1 }}>
-              Gallons
+              {storeContext.unitIndex == 0 ? "Gallons" : "Liters"}
             </Text>
           </View>
         </View>
