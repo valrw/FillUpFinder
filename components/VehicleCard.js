@@ -14,16 +14,6 @@ function VehicleCard(props) {
   const theme = useTheme();
   const storeContext = useContext(StoreContext);
 
-  // let mpg_val =
-  //   storeContext.unitIndex == 0 ? car.mpg : convert.mpgToKml(car.mpg);
-  // mpg_val = rounded(mpg_val);
-
-  // let fuel_val =
-  //   storeContext.unitIndex == 0
-  //     ? car.fuelCap
-  //     : convert.gallonsToLiters(car.fuelCap);
-  // fuel_val = rounded(fuel_val);
-
   const styles = StyleSheet.create({
     card: {
       width: "95%",
@@ -40,13 +30,16 @@ function VehicleCard(props) {
 
     cardHeader: {
       flex: 2,
-      backgroundColor: theme["background-basic-color-1"],
+      backgroundColor: theme["background-basic-color-2"],
       borderTopLeftRadius: BORDER_RADIUS,
       borderTopRightRadius: BORDER_RADIUS,
     },
 
     cardTitle: {
       marginVertical: 4,
+      marginHorizontal: 3,
+      fontSize: 20,
+      fontFamily: "OpenSans_700Bold",
       alignSelf: "center",
       textAlign: "center",
     },
@@ -92,7 +85,7 @@ function VehicleCard(props) {
       <View style={styles.cardHeader}>
         <Icon
           style={styles.cardIcon}
-          fill="#222B45"
+          fill={theme["text-basic-color"]}
           name="trash-2-outline"
           onPress={props.deleteCar}
         />
@@ -112,11 +105,7 @@ function VehicleCard(props) {
       <View style={styles.cardFooter}>
         <View style={{ flexDirection: "row", flex: 1 }}>
           <View style={styles.footerBlock}>
-            <Text
-              category="h6"
-              appearance="alternative"
-              style={styles.footerText}
-            >
+            <Text category="h6" status="control" style={styles.footerText}>
               {rounded(
                 converted(
                   car.mpg,
@@ -135,11 +124,7 @@ function VehicleCard(props) {
           <View style={styles.footerDivider}></View>
 
           <View style={styles.footerBlock}>
-            <Text
-              category="h6"
-              appearance="alternative"
-              style={styles.footerText}
-            >
+            <Text category="h6" status="control" style={styles.footerText}>
               {rounded(
                 converted(
                   car.fuelCap,
