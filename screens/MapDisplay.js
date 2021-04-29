@@ -140,7 +140,7 @@ class MapDisplay extends Component {
   componentWillUnmount() {
     navigator.geolocation.clearWatch(this.watchId);
     // ONLY FOR TESTING
-    window.clearInterval(this.intervalId);
+    // window.clearInterval(this.intervalId);
   }
 
   // Call the back end api to get the route
