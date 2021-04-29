@@ -1,12 +1,9 @@
 import React, { Component } from "react";
-import { StyleSheet, Image, View, FlatList, ScrollView } from "react-native";
+import { Text, Button, Icon } from "@ui-kitten/components";
 import LocationInputText from "../components/LocationInputText";
-import {
-  Text,
-  Button,
-  Icon,
-} from "@ui-kitten/components";
 import { getLocation, getPlace } from "../services/LocationService.js";
+import { StyleSheet, Image, View, ScrollView, LogBox } from "react-native";
+LogBox.ignoreLogs(['VirtualizedLists should never be nested inside plain ScrollViews with the same orientation - use another VirtualizedList-backed container instead.'])
 
 class CustomizeStops extends Component {
     constructor(props) {
@@ -48,13 +45,12 @@ class CustomizeStops extends Component {
         if (end !== "") {
             this.setState({ endingPlaceId: end });
         }
-
-        // console.log("start: ", this.state.startingPlaceId);
-        // console.log("START: ", start);
     }
 
 
     getPlaceInfo = (place, details, index) => {
+        let currPlaceIds = this.state.placeIdsList
+
         if (index == 0) {
           // Starting Location
           var location = details.geometry.location;
@@ -68,11 +64,11 @@ class CustomizeStops extends Component {
           // Ending Location
           this.setState({ endingPlaceId: place.place_id });
         } else {
-          currPlaceIds = this.state.placeIdsList
           currPlaceIds[index] = place.place_id
           this.setState({ placeIdsList: currPlaceIds })
         }
-      };
+        console.log('IDs: ', currPlaceIds);
+    };
 
 
     addStop = () => {
@@ -83,7 +79,7 @@ class CustomizeStops extends Component {
     };
 
 
-    renderStops = (item, index, zIndex) => {
+    renderStops = (item, index) => {
         let stopNumber = index + 1
         return (
             <View key={stopNumber} style={{ width: "100%", alignItems: "center" }}>
@@ -94,19 +90,42 @@ class CustomizeStops extends Component {
                 }
                 stylesInput={styles.inputBox}
                 listViewStyle={{ width: "120%"}}
-                stylesContainer={{ width: "85%", height: 40, zIndex: zIndex}}
+                stylesContainer={{ width: "85%", height: 40 }}
                 />
             </View>
         );
     };
 
 
+    renderDoneButton = () => {
+        if (this.state.startingPlaceId !== "" && this.state.endingPlaceId !== "") {
+            return (
+                <Button
+                    style={styles.navigateButton}
+                    size="large"
+                    onPress={this.doneCustomizing}
+                >
+                    Done
+                </Button>
+            )
+        }
+    };
+
+
+    doneCustomizing = () => {
+        this.props.navigation.navigate("LocationInput", {
+          startingLat: this.state.startingLat,
+          startingLong: this.state.startingLong,
+          startingPlaceId: this.state.startingPlaceId,
+          endingPlaceId: this.state.endingPlaceId,
+          placeIdsList: this.state.placeIdsList
+        });
+    };
+
+
     render() {
-        let currZIndex = 100;
         return (
-            // <ScrollView contentContainerStyle={styles.scrollContainer}>
-            // <View style={{alignItems: "center"}}>
-            <>
+            <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps='always'>
                 <Text style={styles.inputTitle}>Starting point:</Text>
                 <View style={
                     Platform.OS == "android"
@@ -119,7 +138,7 @@ class CustomizeStops extends Component {
                     }
                     input_ref={this.startingInputRef}
                     stylesInput={styles.inputBox}
-                    stylesContainer={{ width: "85%", height: 40, zIndex: currZIndex }}
+                    stylesContainer={{ width: "85%", height: 40}}
                     />
                     <Button
                         size="small"
@@ -147,7 +166,7 @@ class CustomizeStops extends Component {
                 </View>
 
                 {this.state.stops.map((stop, index) => {
-                    return this.renderStops(stop, index, currZIndex - 1 - index);
+                    return this.renderStops(stop, index);
                 })}
 
                 <Text style={styles.inputTitle}>Destination:</Text>
@@ -156,7 +175,7 @@ class CustomizeStops extends Component {
                     this.getPlaceInfo(data, details, 100)
                 }
                 stylesInput={styles.inputBox}
-                stylesContainer={{ width: "85%", height: 40, zIndex: currZIndex - 1 - this.state.stops.length }}
+                stylesContainer={{ width: "85%", height: 40 }}
                 />
 
                 <Button style={styles.addStopsButton} onPress={this.addStop}>
@@ -166,9 +185,10 @@ class CustomizeStops extends Component {
                     name="plus-square-outline"
                 />
                 </Button>
-            {/* // </ScrollView> */}
-            {/* // </View> */}
-            </>
+
+                {this.renderDoneButton()}
+                
+            </ScrollView>
         );
     }
 }
@@ -186,7 +206,6 @@ const styles = StyleSheet.create({
       fontSize: 12,
       color: "#8F9BB3",
       textAlign: "left",
-      zIndex: -1,
     },
   
     inputBox: {
@@ -197,7 +216,6 @@ const styles = StyleSheet.create({
       borderColor: "#e4e9f2",
       backgroundColor: "#F7F9FC",
       marginBottom: 4,
-      zIndex: 5,
     },
     
     addStopsButton: {

@@ -65,6 +65,7 @@ class MapDisplay extends Component {
     var params = this.props.route.params;
     var start = params.startingPlaceId;
     var end = params.endingPlaceId;
+    var placeIds = params.placeIdsList;
     var fuelLeft = params.fuelLeft;
     var fuelCap = params.fuelCap;
     var mpg = params.mpg;
@@ -80,12 +81,13 @@ class MapDisplay extends Component {
       this.setState({ location: loc });
     });
 
-    this.getDirections(start, end, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity, mpgHighway);
+    this.getDirections(start, end, placeIds, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity, mpgHighway);
   }
 
   // Call the back end api to get the route
-  async getDirections(start, end, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg) {
+  async getDirections(start, end, placeIds, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg) {
     try {
+      // CHANGE URL FOR EVERY STOP (MAYBE A FOR LOOP). START -> STOP 1 -> STOP 2 -> ... -> STOP N--> END
       var url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelLeft}/${fuelCap}/${mpg}/${calcOnGas}/`;
       if (!calcOnGas) url = url + `${numStops}/`;
       else url = url + `?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
@@ -227,10 +229,6 @@ class MapDisplay extends Component {
     }).start();
   };
 
-  customizeStops = () => {
-    this.props.navigation.navigate("CustomizeStops");
-  };
-
   render() {
     const slideAnimation = {
       transform: [{ translateY: this.state.slideAnimate }],
@@ -312,18 +310,6 @@ class MapDisplay extends Component {
             />
           ))}
         </MapView>
-        
-        <View style={styles.customStopsButton}>
-          {/* <Text style={styles.customStopsButtonTitle}>Customize Stops</Text> */}
-          <TouchableOpacity
-            onPress={this.customizeStops}>
-            <Icon
-              style={styles.customStopsIcon}
-              fill={colors.defaultBlue}
-              name="brush-outline"
-            />
-          </TouchableOpacity>
-        </View>
 
         <TouchableOpacity style={styles.fab} onPress={this.zoomToUserLocation}>
           <Image
@@ -401,33 +387,4 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
   },
-
-  customStopsButtonTitle: {
-    marginTop: "3%",
-    marginBottom: "3%",
-    width: "86%",
-    fontSize: 12,
-    color: "#8F9BB3",
-    zIndex: -1,
-  },
-
-  customStopsButton: {
-    position: "absolute",
-    backgroundColor: "white",
-    borderRadius: 99,
-    width: 65,
-    height: 65,
-    alignItems: "center",
-    justifyContent: "center",
-    right: 30,
-    top: 35,
-    elevation: 4,
-    zIndex: 4,
-  },
-
-  customStopsIcon: {
-    width: 30,
-    height: 30,
-  },
-
 });

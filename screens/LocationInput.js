@@ -5,7 +5,6 @@ import {
   Platform,
   ScrollView,
   Image,
-  TouchableWithoutFeedbackBase,
 } from "react-native";
 import colors from "../constants/colors";
 import LocationInputText from "../components/LocationInputText";
@@ -50,11 +49,11 @@ class LocationInput extends Component {
     finishedLoading: false,
 
     startAtUserLocation: false,
+
+    placeIdsList: []
   };
 
   componentDidMount() {
-    // AsyncStorage.setItem("@cars", JSON.stringify(this.state.cars));
-
     AsyncStorage.getItem("@cars").then((stored_cars) => {
       if (stored_cars !== null) {
         const cars = JSON.parse(stored_cars);
@@ -63,6 +62,33 @@ class LocationInput extends Component {
         this.setState({ finishedLoading: true });
       }
     });
+
+    var params = this.props.route.params;
+    if (params !== undefined) {
+      var start = params.startingPlaceId;
+      var end = params.endingPlaceId;
+      var latitude = params.startingLat;
+      var longitude = params.startingLong;
+      var placeIDs = params.placeIdsList;
+
+      if (start !== "") {
+          this.setState({ startingPlaceId: start });
+      }
+
+      if (latitude !== "") {
+          this.setState({ startingLat: latitude });
+      }
+
+      if (longitude !== "") {
+          this.setState({ startingLat: longitude });
+      }
+
+      if (end !== "") {
+          this.setState({ endingPlaceId: end });
+      }
+
+      this.setState({ placeIdsList: placeIDs });
+    }
   }
 
 
@@ -125,6 +151,7 @@ class LocationInput extends Component {
       startingLong: this.state.startingLong,
       startingPlaceId: this.state.startingPlaceId,
       endingPlaceId: this.state.endingPlaceId,
+      placeIdsList: this.state.placeIdsList,
       fuelLeft: this.state.fuelPercent * 0.01 * fuelCap,
       fuelCap: fuelCap,
       mpg: mpg,
