@@ -101,14 +101,6 @@ class MapDisplay extends Component {
 
       let i = 0;
 
-      // ONLY FOR TESTING
-      this.intervalId = setInterval(() => {
-        i += 1;
-        if (!this.state.segments[0]?.coords) return;
-        console.log(this.state.segments[0].coords[i]);
-        this.getPositionUpdate({ coords: this.state.segments[0].coords[i] });
-      }, 1000);
-
       // this.watchId = navigator.geolocation.watchPosition(
       //   this.getPositionUpdate,
       //   (error) => console.log(error),
