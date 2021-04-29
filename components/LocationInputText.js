@@ -4,7 +4,10 @@ import { API_KEY } from "../constants/api";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 
 class LocationInputText extends Component {
-  state = { sessionId: "" };
+  state = {
+    sessionId: "",
+    borderColor: this.props.themedColors.borderColor,
+  };
 
   updateSessionId = () => {
     var sessionId = Math.random().toString(36).substring(2);
@@ -15,15 +18,29 @@ class LocationInputText extends Component {
     this.updateSessionId();
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    if (
+      this.props.themedColors.borderColor != prevProps.themedColors.borderColor
+    ) {
+      this.setState({ borderColor: this.props.themedColors.borderColor });
+    }
+  }
+
   render() {
     const bgColor = this.props.themedColors.bgColor;
     const textColor = this.props.themedColors.textColor;
+    const borderColor = this.props.themedColors.borderColor;
 
     return (
       <View style={this.props.stylesContainer}>
         <GooglePlacesAutocomplete
           placeholder="Search"
           textInputProps={{
+            onFocus: () => this.setState({ borderColor: "#3366FF" }),
+            onBlur: () =>
+              this.setState({
+                borderColor: borderColor,
+              }),
             placeholderTextColor: "#8F9BB3",
           }}
           fetchDetails={true}
@@ -38,7 +55,10 @@ class LocationInputText extends Component {
           }}
           nearbyPlacesAPI="GooglePlacesSearch"
           styles={{
-            textInput: this.props.stylesInput,
+            textInput: {
+              ...this.props.stylesInput,
+              borderColor: this.state.borderColor,
+            },
             listView: [
               {
                 top: 40,

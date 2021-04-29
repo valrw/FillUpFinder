@@ -512,7 +512,8 @@ const styles = StyleSheet.create({
   },
   autocomplete: {
     width: "100%",
-    paddingBottom: 20,
+    // marginBottom: 20,
+    // paddingBottom: 20,
   },
   buttonBot: {
     marginBottom: 14,

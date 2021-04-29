@@ -234,6 +234,7 @@ class LocationInput extends Component {
     const themedColors = {
       bgColor: this.props.eva.theme["background-basic-color-2"],
       textColor: this.props.eva.theme["text-basic-color"],
+      borderColor: this.props.eva.theme["border-basic-color-5"],
     };
 
     return (
@@ -247,6 +248,7 @@ class LocationInput extends Component {
           }
         >
           <LocationInputText
+            // theme={this.props.eva.theme}
             onSelectLocation={(data, details) =>
               this.getPlaceInfo(data, details, 0)
             }
@@ -283,6 +285,7 @@ class LocationInput extends Component {
 
         <Text style={styles.inputTitle}>Destination:</Text>
         <LocationInputText
+          // theme={this.props.eva.theme}
           themedColors={themedColors}
           onSelectLocation={(data, details) =>
             this.getPlaceInfo(data, details, 1)
@@ -376,7 +379,6 @@ export default LocationInput = withStyles(LocationInput, (theme) => ({
     height: 40,
     borderWidth: 1,
     borderRadius: 3,
-    borderColor: theme["border-basic-color-5"],
     backgroundColor: theme["background-basic-color-2"],
     marginBottom: 4,
     zIndex: 5,
