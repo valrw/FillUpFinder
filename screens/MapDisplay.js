@@ -18,7 +18,6 @@ import { getLocation } from "../services/LocationService.js";
 import haversine from "haversine-distance";
 
 const ANIMATED_VAL = 310;
-const LOCATION_LIMIT = 20;
 
 class MapDisplay extends Component {
   state = {
@@ -100,14 +99,27 @@ class MapDisplay extends Component {
     if (params.currentLocation) {
       this.setState({ currentLocation: true });
 
-      this.watchId = navigator.geolocation.watchPosition(
-        this.getPositionUpdate
-      );
+      let i = 0;
+
+      // ONLY FOR TESTING
+      this.intervalId = setInterval(() => {
+        i += 1;
+        if (!this.state.segments[0]?.coords) return;
+        console.log(this.state.segments[0].coords[i]);
+        this.getPositionUpdate({ coords: this.state.segments[0].coords[i] });
+      }, 1000);
+
+      // this.watchId = navigator.geolocation.watchPosition(
+      //   this.getPositionUpdate,
+      //   (error) => console.log(error),
+      //   { timeout: 3000 }
+      // );
     }
   }
 
   getPositionUpdate = (position) => {
     if (!position) return;
+    console.log(position);
 
     const MIN_DIST = 10;
     let pos = {
@@ -135,6 +147,8 @@ class MapDisplay extends Component {
 
   componentWillUnmount() {
     navigator.geolocation.clearWatch(this.watchId);
+    // ONLY FOR TESTING
+    window.clearInterval(this.intervalId);
   }
 
   // Call the back end api to get the route
@@ -422,8 +436,29 @@ class MapDisplay extends Component {
           ))}
 
           {this.state.segments.map((seg, index) => {
-            let color = "#0000ff";
-            if (index < this.state.currSegIndex[0]) color = "#0000ff30";
+            const transparent = "#0000ff30";
+            const regular = "#0000ff";
+            if (index == this.state.currSegIndex[0]) {
+              const pointIndex = this.state.currSegIndex[1];
+              return (
+                <>
+                  <MapView.Polyline
+                    key={index}
+                    coordinates={seg.coords.slice(0, pointIndex + 1)}
+                    strokeWidth={4}
+                    strokeColor={transparent}
+                  />
+                  <MapView.Polyline
+                    key={index + 0.1}
+                    coordinates={seg.coords.slice(pointIndex)}
+                    strokeWidth={4}
+                    strokeColor={regular}
+                  />
+                </>
+              );
+            }
+            let color = regular;
+            if (index < this.state.currSegIndex[0]) color = transparent;
             return (
               <MapView.Polyline
                 key={index}
