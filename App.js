@@ -51,7 +51,6 @@ export default function App() {
 
   const color_light = eva[theme]["color-basic-100"];
   const color_dark = eva[theme]["color-basic-800"];
-  console.log(color_light);
 
   return fontsLoaded ? (
     <StoreContext.Provider
