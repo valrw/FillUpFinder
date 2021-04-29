@@ -5,6 +5,7 @@ import MapDisplay from "../screens/MapDisplay";
 import LocationInput from "../screens/LocationInput";
 import VehicleInput from "../screens/VehicleInput";
 import Settings from "../screens/Settings";
+import { TouchableOpacity } from "react-native";
 
 import {
   Icon,
@@ -25,11 +26,30 @@ const StackNavigator = () => {
   const [menuVisible, setMenuVisible] = React.useState(false);
 
   const toggleMenu = () => {
+    console.log("Tgfg");
     setMenuVisible(!menuVisible);
   };
 
   const renderMenuAction = () => (
-    <TopNavigationAction icon={MenuIcon} onPress={toggleMenu} />
+    // <TouchableOpacity
+    //   onPress={() => console.log("GGG")}
+    //   style={{
+    //     paddingVertical: 8,
+    //     backgroundColor: "pink",
+    //     paddingHorizontal: 9,
+    //   }}
+    // >
+    <TopNavigationAction
+      icon={MenuIcon}
+      onPress={toggleMenu}
+      style={{ padding: 6 }}
+      // style={{
+      //   paddingVertical: 8,
+      //   backgroundColor: "pink",
+      //   paddingHorizontal: 9,
+      // }}
+    />
+    // </TouchableOpacity>
   );
 
   const renderRightActions = (navigation) => (
@@ -37,8 +57,9 @@ const StackNavigator = () => {
       <OverflowMenu
         anchor={renderMenuAction}
         visible={menuVisible}
-        placement="top"
+        placement="bottom end"
         onBackdropPress={toggleMenu}
+        onPress={() => console.log("AAB")}
       >
         <MenuItem
           accessoryLeft={SettingsIcon}

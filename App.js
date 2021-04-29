@@ -10,6 +10,7 @@ import AppLoading from "expo-app-loading";
 import StackNavigator from "./navigation/StackNavigator";
 
 import { default as mapping } from "./mapping.json";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import {
   OpenSans_300Light,
@@ -48,16 +49,25 @@ export default function App() {
     setTheme(nextTheme);
   };
 
+  const color_light = eva[theme]["color-basic-100"];
+  const color_dark = eva[theme]["color-basic-800"];
+
   return fontsLoaded ? (
     <StoreContext.Provider
       value={{ theme, toggleTheme, unitIndex, setUnitIndex }}
     >
       <IconRegistry icons={EvaIconsPack} />
       <ApplicationProvider {...eva} theme={eva[theme]} customMapping={mapping}>
-        <NavigationContainer>
-          <StatusBar style={theme === "light" ? "dark" : "light"}></StatusBar>
-          <StackNavigator />
-        </NavigationContainer>
+        <SafeAreaProvider>
+          <StatusBar
+            backgroundColor={theme === "light" ? color_light : color_dark}
+            style={theme === "light" ? "dark" : "light"}
+            translucent={false}
+          ></StatusBar>
+          <NavigationContainer>
+            <StackNavigator />
+          </NavigationContainer>
+        </SafeAreaProvider>
       </ApplicationProvider>
     </StoreContext.Provider>
   ) : (

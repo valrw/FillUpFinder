@@ -13,7 +13,6 @@ import { API_KEY, ROOT_URL } from "../constants/api";
 import colors from "../constants/colors";
 import StopInfo from "../components/StopInfo";
 import ConfirmModal from "../components/ConfirmModal";
-// import * as Location from "expo-location";
 import { getLocation } from "../services/LocationService.js";
 
 const ANIMATED_VAL = 310;
@@ -74,17 +73,39 @@ class MapDisplay extends Component {
     if (params.calcOnGas == 1) calcOnGas = false;
     var numStops = params.numStops;
 
+    console.log(params);
+
     this.setState({ calcOnGas });
 
     getLocation().then((loc) => {
       this.setState({ location: loc });
     });
 
-    this.getDirections(start, end, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity, mpgHighway);
+    this.getDirections(
+      start,
+      end,
+      fuelLeft,
+      fuelCap,
+      mpg,
+      calcOnGas,
+      numStops,
+      mpgCity,
+      mpgHighway
+    );
   }
 
   // Call the back end api to get the route
-  async getDirections(start, end, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg) {
+  async getDirections(
+    start,
+    end,
+    fuelLeft,
+    fuelCap,
+    mpg,
+    calcOnGas,
+    numStops,
+    mpgCity = mpg,
+    mpgHighway = mpg
+  ) {
     try {
       var url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelLeft}/${fuelCap}/${mpg}/${calcOnGas}/`;
       if (!calcOnGas) url = url + `${numStops}/`;
@@ -135,8 +156,12 @@ class MapDisplay extends Component {
 
       let fuelCap = this.props.route.params.fuelCap;
       let mpg = this.props.route.params.mpg;
-      let mpgCity = this.props.route.params.mpgCity ? this.props.route.params.mpgCity : mpg;
-      let mpgHighway = this.props.route.params.mpgHighway ? this.props.route.params.mpgHighway : mpg;
+      let mpgCity = this.props.route.params.mpgCity
+        ? this.props.route.params.mpgCity
+        : mpg;
+      let mpgHighway = this.props.route.params.mpgHighway
+        ? this.props.route.params.mpgHighway
+        : mpg;
 
       // if you are going from start to first stop, start with less gas
       let fuelLeft = fuelCap;
