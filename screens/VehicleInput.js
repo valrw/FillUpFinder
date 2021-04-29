@@ -16,8 +16,17 @@ import {
   Icon,
   Spinner,
 } from "@ui-kitten/components";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useNavigation } from "@react-navigation/native";
+import {
+  convert,
+  converted,
+  rounded,
+  mpgWord,
+  fuelWord,
+} from "../utils/numbers";
+import { units, types } from "../constants/units";
+import { StoreContext } from "../contexts/storeContext";
 
 const filter = (item, query) => {
   return item.toLowerCase().startsWith(query.toLowerCase());
@@ -29,16 +38,13 @@ const LoadingIndicator = (props) => (
   </View>
 );
 
-// const TextElement = (string, category = "p1", style = {}) => (
-//   <Text category={category} style={style}>
-//     {string}
-//   </Text>
-// );
-
 const VehicleInput = () => {
   const navigation = useNavigation();
   // For manual imput option
   const [manualMPG, setManualMPG] = useState(false);
+
+  // Context for unit types (metric/US)
+  const storeContext = useContext(StoreContext);
 
   // Header Button
   React.useLayoutEffect(() => {
@@ -70,16 +76,34 @@ const VehicleInput = () => {
     }
   };
 
+  const convertedMPG = (val) => {
+    if (storeContext.unitIndex == 0) {
+      return val;
+    }
+    return convert.kmlToMPG(val);
+  };
+
+  const convertedFuel = (fuel) => {
+    if (storeContext.unitIndex == 0) {
+      return fuel;
+    }
+    return convert.litersToGallons(fuel);
+  };
+
   const handleVehicleButton = () => {
     const vehicle = manualMPG ? manualName : [year, make, finalModel].join(" ");
     if (vehicle != null) {
       navigation.navigate("LocationInput", {
         vehicleSet: true,
         vehicle: vehicle,
-        fuelCap: manualMPG ? manualFuelCap : fuelCapacity,
-        mpg: manualMPG ? manualMPGVal : mpg,
-        mpgCity: manualMPG ? manualMPGVal : mpgCity,
-        mpgHighway: manualMPG ? manualMPGVal : mpgHighway,
+        fuelCap: manualMPG
+          ? convertedFuel(manualFuelCap)
+          : convertedFuel(fuelCapacity),
+        mpg: manualMPG ? convertedMPG(manualMPGVal) : convertedMPG(mpg),
+        mpgCity: manualMPG ? convertedMPG(manualMPGVal) : convertedMPG(mpgCity),
+        mpgHighway: manualMPG
+          ? convertedMPG(manualMPGVal)
+          : convertedMPG(mpgHighway),
       });
     }
   };
@@ -227,7 +251,7 @@ const VehicleInput = () => {
             }
             if (variantArray.length == 1) {
               const car = variantArray[0];
-              setFuelCapacity(car.fuelCap.toFixed(2).toString());
+              setFuelCapacity(car.fuelCap);
               setMPG(car.mpg);
               setMPGCity(car.mpgCity);
               setMPGHighway(car.mpgHighway);
@@ -274,8 +298,8 @@ const VehicleInput = () => {
       />
       <Input
         style={styles.input}
-        label="MPG"
-        placeholder="Enter MPG"
+        label={`Fuel Efficiency (${mpgWord(storeContext.unitIndex)})`}
+        placeholder={`Enter ${mpgWord(storeContext.unitIndex)}`}
         value={manualMPGVal}
         onChangeText={setManualMPGVal}
         keyboardType={
@@ -284,7 +308,7 @@ const VehicleInput = () => {
       />
       <Input
         style={styles.input}
-        label="Fuel Capacity"
+        label={`Fuel Capacity (${fuelWord(storeContext.unitIndex)})`}
         placeholder="Enter Fuel Capacity"
         value={manualFuelCap}
         onChangeText={setManualFuelCap}
@@ -368,11 +392,26 @@ const VehicleInput = () => {
       <View style={{ flexDirection: "row", justifyContent: "space-evenly" }}>
         <Input
           style={styles.mpgInput}
-          label="Average MPG"
+          label="Fuel Efficiency"
           size="large"
-          placeholder="MPG"
+          placeholder={mpgWord(storeContext.unitIndex)}
           accessoryLeft={variantIsLoading ? LoadingIndicator : null}
-          value={variantIsLoading ? "loading..." : mpg}
+          value={
+            variantIsLoading
+              ? "loading..."
+              : !isNaN(parseFloat(mpg))
+              ? rounded(
+                  converted(
+                    mpg,
+                    types.MPG,
+                    units.US,
+                    units.unitsList[storeContext.unitIndex]
+                  )
+                ) +
+                " " +
+                mpgWord(storeContext.unitIndex)
+              : ""
+          }
           disabled="true"
         />
         <Input
@@ -380,8 +419,23 @@ const VehicleInput = () => {
           size="large"
           label="Fuel Capacity"
           accessoryLeft={variantIsLoading ? LoadingIndicator : null}
-          placeholder="Fuel Capacity"
-          value={variantIsLoading ? "loading..." : fuelCapacity}
+          placeholder={fuelWord(storeContext.unitIndex)}
+          value={
+            variantIsLoading
+              ? "loading..."
+              : !isNaN(parseFloat(mpg))
+              ? rounded(
+                  converted(
+                    fuelCapacity,
+                    types.Fuel,
+                    units.US,
+                    units.unitsList[storeContext.unitIndex]
+                  )
+                ) +
+                " " +
+                fuelWord(storeContext.unitIndex)
+              : ""
+          }
           disabled="true"
         />
       </View>
@@ -458,7 +512,8 @@ const styles = StyleSheet.create({
   },
   autocomplete: {
     width: "100%",
-    paddingBottom: 20,
+    // marginBottom: 20,
+    // paddingBottom: 20,
   },
   buttonBot: {
     marginBottom: 14,

@@ -13,7 +13,6 @@ import { API_KEY, ROOT_URL } from "../constants/api";
 import colors from "../constants/colors";
 import StopInfo from "../components/StopInfo";
 import ConfirmModal from "../components/ConfirmModal";
-// import * as Location from "expo-location";
 import { getLocation } from "../services/LocationService.js";
 import haversine from "haversine-distance";
 
@@ -77,6 +76,8 @@ class MapDisplay extends Component {
     var calcOnGas = true;
     if (params.calcOnGas == 1) calcOnGas = false;
     var numStops = params.numStops;
+
+    console.log(params);
 
     this.setState({ calcOnGas });
 
