@@ -7,7 +7,7 @@ import {
   Animated,
   TouchableOpacity,
 } from "react-native";
-import { Text } from "@ui-kitten/components";
+import { Text, withStyles } from "@ui-kitten/components";
 import MapView, { Marker } from "react-native-maps";
 import { API_KEY, ROOT_URL } from "../constants/api";
 import colors from "../constants/colors";
@@ -465,7 +465,15 @@ class MapDisplay extends Component {
           })}
         </MapView>
 
-        <TouchableOpacity style={styles.fab} onPress={this.zoomToUserLocation}>
+        <TouchableOpacity
+          // style={this.props.eva.style.themedFAB}
+          style={{
+            ...styles.fab,
+            backgroundColor:
+              this.context.theme === "light" ? "white" : "#383838",
+          }}
+          onPress={this.zoomToUserLocation}
+        >
           <Image
             source={require("../assets/target.png")}
             style={styles.fabIcon}
@@ -501,7 +509,22 @@ class MapDisplay extends Component {
   }
 }
 
-export default MapDisplay;
+export default MapDisplay; // = withStyles(MapDisplay); //, (theme) => ({
+//   themedFAB: {
+//     position: "absolute",
+//     // backgroundColor: "white",
+//     backgroundColor: theme["background-basic-color-2"],
+//     borderRadius: 99,
+//     width: 65,
+//     height: 65,
+//     alignItems: "center",
+//     justifyContent: "center",
+//     right: 30,
+//     bottom: 35,
+//     elevation: 3,
+//     zIndex: 3,
+//   },
+// }));
 
 const styles = StyleSheet.create({
   container: {
@@ -527,7 +550,7 @@ const styles = StyleSheet.create({
 
   fab: {
     position: "absolute",
-    backgroundColor: "white",
+    // backgroundColor: "white",
     borderRadius: 99,
     width: 65,
     height: 65,

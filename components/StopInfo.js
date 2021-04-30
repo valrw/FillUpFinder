@@ -6,16 +6,23 @@ import {
   Animated,
   TouchableOpacity,
 } from "react-native";
-import { Text, Icon } from "@ui-kitten/components";
+import { Text, Icon, useTheme } from "@ui-kitten/components";
 import Constants from "expo-constants";
 import Carousel from "react-native-snap-carousel";
 
 const API_KEY = Constants.manifest.extra.API_KEY;
 
 function StopInfo(props) {
+  const theme = useTheme();
   if (props.currStop == undefined) return <View />;
   return (
-    <Animated.View style={[styles.cardView, props.anim]}>
+    <Animated.View
+      style={[
+        styles.cardView,
+        props.anim,
+        { backgroundColor: theme["background-basic-color-1"] },
+      ]}
+    >
       <View style={styles.titleAndRating}>
         <Text style={styles.cardTitle}> {props.currStop.name}</Text>
         {renderRatingsInfo(props.currStop.rating)}
@@ -27,7 +34,11 @@ function StopInfo(props) {
         onPress={props.onDeleteStop}
         style={styles.deleteButton}
       >
-        <Icon style={styles.trashIcon} fill="#222B45" name="trash-2-outline" />
+        <Icon
+          style={styles.trashIcon}
+          fill={theme["text-basic-color"]}
+          name="trash-2-outline"
+        />
       </TouchableOpacity>
     </Animated.View>
   );
@@ -98,7 +109,7 @@ const styles = StyleSheet.create({
     paddingRight: 10,
     paddingBottom: 10,
     alignSelf: "center",
-    backgroundColor: "white",
+    // backgroundColor: "white",
     borderRadius: 20,
     flexDirection: "column",
   },
