@@ -15,6 +15,8 @@ import StopInfo from "../components/StopInfo";
 import ConfirmModal from "../components/ConfirmModal";
 import { getLocation } from "../services/LocationService.js";
 import haversine from "haversine-distance";
+import { nightStyle } from "../constants/mapStyles.js";
+import { StoreContext } from "../contexts/StoreContext";
 
 const ANIMATED_VAL = 310;
 
@@ -40,6 +42,7 @@ class MapDisplay extends Component {
     location: null,
   };
 
+  static contextType = StoreContext;
   constructor(props) {
     super(props);
     this.mapComponent = null;
@@ -376,6 +379,7 @@ class MapDisplay extends Component {
             longitudeDelta: 0.0421,
           }}
           onPress={this.onMapPress}
+          customMapStyle={this.context.theme === "dark" ? nightStyle : []}
         >
           <MapView.Marker
             title="Start"
@@ -452,7 +456,7 @@ class MapDisplay extends Component {
             if (index < this.state.currSegIndex[0]) color = transparent;
             return (
               <MapView.Polyline
-                key={index + 0.2}
+                key={index}
                 coordinates={seg.coords}
                 strokeWidth={4}
                 strokeColor={color}

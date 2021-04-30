@@ -2,7 +2,7 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Text, Icon, useTheme } from "@ui-kitten/components";
 import { useContext } from "react";
-import { StoreContext } from "../contexts/storeContext";
+import { StoreContext } from "../contexts/StoreContext";
 import { converted, rounded } from "../utils/numbers";
 import { units, types } from "../constants/units";
 
