@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { View } from "react-native";
-import { API_KEY } from "../constants/api";
+import Constants from "expo-constants";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 
 class LocationInputText extends Component {
@@ -50,7 +50,7 @@ class LocationInputText extends Component {
           }}
           ref={this.props.input_ref}
           query={{
-            key: API_KEY,
+            key: Constants.manifest.extra.API_KEY,
             language: "en",
           }}
           nearbyPlacesAPI="GooglePlacesSearch"

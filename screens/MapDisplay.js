@@ -14,6 +14,7 @@ import colors from "../constants/colors";
 import StopInfo from "../components/StopInfo";
 import ConfirmModal from "../components/ConfirmModal";
 import { getLocation } from "../services/LocationService.js";
+import haversine from "haversine-distance";
 
 const ANIMATED_VAL = 310;
 
@@ -25,10 +26,13 @@ class MapDisplay extends Component {
     stops: 0,
     stopsList: [],
     calcOnGas: true,
+    currentLocation: false,
 
     isStopShown: false,
     currStopIndex: 0,
+    currSegIndex: [0, 0],
     slideAnimate: new Animated.Value(ANIMATED_VAL),
+    timeLeft: 0,
 
     showingModal: false,
     replacingStop: false,
@@ -92,6 +96,52 @@ class MapDisplay extends Component {
       mpgCity,
       mpgHighway
     );
+
+    if (params.currentLocation) {
+      this.setState({ currentLocation: true });
+
+      let i = 0;
+
+      // this.watchId = navigator.geolocation.watchPosition(
+      //   this.getPositionUpdate,
+      //   (error) => console.log(error),
+      //   { timeout: 3000 }
+      // );
+    }
+  }
+
+  getPositionUpdate = (position) => {
+    if (!position) return;
+    console.log(position);
+
+    const MIN_DIST = 10;
+    let pos = {
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+    };
+
+    let currLoc = {
+      latitude: this.state.location?.coords.latitude,
+      longitude: this.state.location?.coords.longitude,
+    };
+
+    // update position when you have moved sufficiently
+    if (
+      !this.state.location ||
+      this.state.timeLeft == 0 ||
+      haversine(pos, currLoc) > MIN_DIST
+    ) {
+      this.setState({ location: position });
+      let closest = this.getClosestPoint(pos);
+      if (!closest) return;
+      this.updateTimeLeft(closest);
+    }
+  };
+
+  componentWillUnmount() {
+    navigator.geolocation.clearWatch(this.watchId);
+    // ONLY FOR TESTING
+    // window.clearInterval(this.intervalId);
   }
 
   // Call the back end api to get the route
@@ -125,6 +175,7 @@ class MapDisplay extends Component {
       this.setState({ segments, start, end, stops, stopsList });
       // Zoom out the map
       this.mapComponent.animateToRegion(respJson.zoomBounds);
+      this.getPositionUpdate(this.state.location);
 
       return segments;
     } catch (error) {
@@ -132,6 +183,49 @@ class MapDisplay extends Component {
       return error;
     }
   }
+
+  getClosestPoint = (pos) => {
+    if (this.state.segments.length == 0) return;
+    let minDist = haversine(pos, this.state.segments[0].coords[0]);
+    let minPoint = [0, 0];
+    this.state.segments.forEach((segment, sIndex) => {
+      segment.coords.forEach((point, pIndex) => {
+        let newDist = haversine(pos, point);
+        if (newDist < minDist) {
+          minDist = newDist;
+          minPoint = [sIndex, pIndex];
+        }
+      });
+    });
+    this.setState({ currSegIndex: minPoint });
+    return minPoint;
+  };
+
+  updateTimeLeft = (point) => {
+    if (!this.state.segments) return;
+
+    let timeLeft = 0;
+
+    let totalDist = 0;
+    const currSegment = this.state.segments[point[0]].coords;
+    for (let i = 0; i < currSegment.length - 1; i++) {
+      totalDist += haversine(currSegment[i], currSegment[i + 1]);
+    }
+
+    let k = point[1];
+    let currDist = 0;
+    for (let i = 0; i < k; i++) {
+      currDist += haversine(currSegment[i], currSegment[i + 1]);
+    }
+    timeLeft +=
+      (1 - currDist / totalDist) * this.state.segments[point[0]].duration;
+
+    for (let i = point[0] + 1; i < this.state.segments.length; i++) {
+      timeLeft += this.state.segments[i].duration;
+    }
+
+    this.setState({ timeLeft });
+  };
 
   onDeletePress = () => {
     this.setState({ showingModal: true });
@@ -252,6 +346,16 @@ class MapDisplay extends Component {
     }).start();
   };
 
+  renderTimeLeft = () => {
+    if (this.state.segments.length == 0 || !this.state.currentLocation)
+      return null;
+
+    const minutesLeft = Math.floor(this.state.timeLeft / 60);
+    return (
+      <Text style={styles.timeLeft}>Time Left: {minutesLeft} minutes</Text>
+    );
+  };
+
   render() {
     const slideAnimation = {
       transform: [{ translateY: this.state.slideAnimate }],
@@ -324,14 +428,39 @@ class MapDisplay extends Component {
             </Marker>
           ))}
 
-          {this.state.segments.map((seg, index) => (
-            <MapView.Polyline
-              key={index}
-              coordinates={seg.coords}
-              strokeWidth={4}
-              strokeColor="blue"
-            />
-          ))}
+          {this.state.segments.map((seg, index) => {
+            const transparent = "#0000ff30";
+            const regular = "#0000ff";
+            if (index == this.state.currSegIndex[0]) {
+              const pointIndex = this.state.currSegIndex[1];
+              return (
+                <>
+                  <MapView.Polyline
+                    key={index}
+                    coordinates={seg.coords.slice(0, pointIndex + 1)}
+                    strokeWidth={4}
+                    strokeColor={transparent}
+                  />
+                  <MapView.Polyline
+                    key={index + 0.1}
+                    coordinates={seg.coords.slice(pointIndex)}
+                    strokeWidth={4}
+                    strokeColor={regular}
+                  />
+                </>
+              );
+            }
+            let color = regular;
+            if (index < this.state.currSegIndex[0]) color = transparent;
+            return (
+              <MapView.Polyline
+                key={index}
+                coordinates={seg.coords}
+                strokeWidth={4}
+                strokeColor={color}
+              />
+            );
+          })}
         </MapView>
 
         <TouchableOpacity style={styles.fab} onPress={this.zoomToUserLocation}>
@@ -363,6 +492,8 @@ class MapDisplay extends Component {
           currStop={currStop}
           onDeleteStop={this.onDeletePress}
         />
+
+        {this.renderTimeLeft()}
       </View>
     );
   }
@@ -409,5 +540,12 @@ const styles = StyleSheet.create({
   fabIcon: {
     width: 30,
     height: 30,
+  },
+
+  timeLeft: {
+    position: "absolute",
+    fontSize: 12,
+    right: 10,
+    top: 10,
   },
 });
