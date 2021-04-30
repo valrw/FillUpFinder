@@ -1,5 +1,4 @@
 import React from "react";
-import { API_KEY } from "../constants/api";
 import {
   StyleSheet,
   View,
@@ -8,6 +7,10 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Text, Icon } from "@ui-kitten/components";
+import Constants from "expo-constants";
+import Carousel from "react-native-snap-carousel";
+
+const API_KEY = Constants.manifest.extra.API_KEY;
 
 function StopInfo(props) {
   if (props.currStop == undefined) return <View />;
@@ -18,16 +21,13 @@ function StopInfo(props) {
         {renderRatingsInfo(props.currStop.rating)}
       </View>
       <Text> {props.currStop.vicinity}</Text>
+      {/* {renderStopImages(props.currStop.photos)} */}
       {renderStopImage(props.currStop.photos)}
       <TouchableOpacity
         onPress={props.onDeleteStop}
         style={styles.deleteButton}
       >
-        <Icon
-          style={styles.trashIcon}
-          fill="#222B45"
-          name="trash-2-outline"
-        />
+        <Icon style={styles.trashIcon} fill="#222B45" name="trash-2-outline" />
       </TouchableOpacity>
     </Animated.View>
   );
@@ -61,6 +61,30 @@ const renderStopImage = (photos) => {
   currUri = currUri + photo.photo_reference;
   currUri = currUri + "&key=" + API_KEY;
   return <Image source={{ uri: currUri }} style={styles.cardImage} />;
+};
+
+// const renderStopImage = (photo) => {
+//   if (photo.photo_reference == undefined) return;
+
+//   let maxheight = 300;
+//   let currUri = `https://maps.googleapis.com/maps/api/place/photo?maxheight=${maxheight}&photoreference=`;
+//   currUri = currUri + photo.photo_reference;
+//   currUri = currUri + "&key=" + API_KEY;
+//   return <Image source={{ uri: currUri }} style={styles.cardImage} />;
+// };
+
+const renderStopImages = (photos) => {
+  if (photos == undefined || photos.length == 0) return;
+  // console.log(photos.length);
+  return (
+    <Carousel
+      data={photos}
+      renderItem={({ item, index }) => renderStopImage(item)}
+      sliderWidth={310}
+      itemWidth={210}
+      // containerCustomStyle={{ flexGrow: 0 }}
+    />
+  );
 };
 
 const styles = StyleSheet.create({
@@ -112,7 +136,8 @@ const styles = StyleSheet.create({
   cardImage: {
     marginTop: 10,
     marginRight: 8,
-    height: "65%",
+    height: 100,
+    // height: "65%",
     resizeMode: "contain",
   },
 
@@ -124,6 +149,6 @@ const styles = StyleSheet.create({
 
   trashIcon: {
     height: 24,
-    width: 24
-  }
+    width: 24,
+  },
 });

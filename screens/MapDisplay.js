@@ -77,8 +77,6 @@ class MapDisplay extends Component {
     if (params.calcOnGas == 1) calcOnGas = false;
     var numStops = params.numStops;
 
-    console.log(params);
-
     this.setState({ calcOnGas });
 
     getLocation().then((loc) => {
@@ -112,7 +110,7 @@ class MapDisplay extends Component {
 
   getPositionUpdate = (position) => {
     if (!position) return;
-    console.log(position);
+    // console.log(position);
 
     const MIN_DIST = 10;
     let pos = {
@@ -454,7 +452,7 @@ class MapDisplay extends Component {
             if (index < this.state.currSegIndex[0]) color = transparent;
             return (
               <MapView.Polyline
-                key={index}
+                key={index + 0.2}
                 coordinates={seg.coords}
                 strokeWidth={4}
                 strokeColor={color}

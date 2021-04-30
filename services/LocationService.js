@@ -1,6 +1,8 @@
 import axios from "axios";
 import * as Location from "expo-location";
-import { API_KEY } from "../constants/api";
+import Constants from "expo-constants";
+
+const API_KEY = Constants.manifest.extra.API_KEY;
 
 export const getLocation = async () => {
   const { status } = await Location.requestPermissionsAsync();
@@ -9,8 +11,9 @@ export const getLocation = async () => {
     return;
   }
 
+  let location = null;
   try {
-    const location = await Location.getCurrentPositionAsync({});
+    location = await Location.getCurrentPositionAsync({});
   } catch (error) {
     alert(
       "We could not find your position. Please make sure your location service provider is on"
