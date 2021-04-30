@@ -63,8 +63,49 @@ class LocationInput extends Component {
       }
     });
 
-    var params = this.props.route.params;
-    if (params !== undefined) {
+    // var params = this.props.route.params;
+    // if (params !== undefined) {
+    //   var start = params.startingPlaceId;
+    //   var end = params.endingPlaceId;
+    //   var latitude = params.startingLat;
+    //   var longitude = params.startingLong;
+    //   var placeIDs = params.placeIdsList;
+
+    //   if (start !== "") {
+    //       this.setState({ startingPlaceId: start });
+    //   }
+
+    //   if (latitude !== "") {
+    //       this.setState({ startingLat: latitude });
+    //   }
+
+    //   if (longitude !== "") {
+    //       this.setState({ startingLat: longitude });
+    //   }
+
+    //   if (end !== "") {
+    //       this.setState({ endingPlaceId: end });
+    //   }
+
+    //   this.setState({ placeIdsList: placeIDs });
+    // }
+    // console.log('START: ', start)
+    // console.log('END: ', end)
+  }
+
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.route.params == null) return;
+    if (this.props.route.params != prevProps.route.params) {
+      const params = this.props.route.params;
+      this.addCar({
+        name: params.vehicle,
+        mpg: params.mpg,
+        mpgCity: params.mpgCity,
+        mpgHighway: params.mpgHighway,
+        fuelCap: params.fuelCap,
+      });
+
       var start = params.startingPlaceId;
       var end = params.endingPlaceId;
       var latitude = params.startingLat;
@@ -89,21 +130,8 @@ class LocationInput extends Component {
 
       this.setState({ placeIdsList: placeIDs });
     }
-  }
-
-
-  componentDidUpdate(prevProps, prevState) {
-    if (this.props.route.params == null) return;
-    if (this.props.route.params != prevProps.route.params) {
-      const params = this.props.route.params;
-      this.addCar({
-        name: params.vehicle,
-        mpg: params.mpg,
-        mpgCity: params.mpgCity,
-        mpgHighway: params.mpgHighway,
-        fuelCap: params.fuelCap,
-      });
-    }
+    // console.log('START: ', start)
+    // console.log('END: ', end)
   }
 
 

@@ -7,9 +7,8 @@ import {
   Animated,
   TouchableOpacity,
 } from "react-native";
-import { Text, Icon, Button } from "@ui-kitten/components";
 import MapView, { Marker } from "react-native-maps";
-import { API_KEY, ROOT_URL } from "../constants/api";
+import { ROOT_URL } from "../constants/api";
 import colors from "../constants/colors";
 import StopInfo from "../components/StopInfo";
 import ConfirmModal from "../components/ConfirmModal";
@@ -84,30 +83,71 @@ class MapDisplay extends Component {
     this.getDirections(start, end, placeIds, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity, mpgHighway);
   }
 
-  // Call the back end api to get the route
-  async getDirections(start, end, placeIds, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg) {
+  async handleStops(start, end, placeIds, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg) {
     try {
-      // CHANGE URL FOR EVERY STOP (MAYBE A FOR LOOP). START -> STOP 1 -> STOP 2 -> ... -> STOP N--> END
-      var url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelLeft}/${fuelCap}/${mpg}/${calcOnGas}/`;
-      if (!calcOnGas) url = url + `${numStops}/`;
-      else url = url + `?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
+      console.log('BEFORE: ', placeIds)
+      placeIds.splice(0, 1);
+      var tempStart = [start]
+      var allPlaceIds = tempStart.concat(placeIds);
+      allPlaceIds.concat(end);
+      console.log('AFTER: ', allPlaceIds)
 
-      let resp = await fetch(url);
-      let respJson = await resp.json();
-      let segments = respJson.route;
+      for (let stop = 0; stop < allPlaceIds.length - 1; stop++) {
+        var url = `${ROOT_URL}/api/directions/${allPlaceIds[stop]}/${allPlaceIds[stop+1]}/${fuelLeft}/${fuelCap}/${mpg}/${calcOnGas}/`;
+        if (!calcOnGas) url = url + `${numStops}/`;
+        else url = url + `?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
 
-      let stops = respJson.stops;
-      let stopsList = respJson.stopsList;
+        let resp = await fetch(url);
+        let respJson = await resp.json();
+        let segments = respJson.route;
 
-      var start = segments[0].coords[0];
-      var lastSeg = segments[segments.length - 1];
-      var end = lastSeg.coords[lastSeg.coords.length - 1];
+        let stops = respJson.stops;
+        let stopsList = respJson.stopsList;
 
-      this.setState({ segments, start, end, stops, stopsList });
+        var start = segments[0].coords[0];
+        var lastSeg = segments[segments.length - 1];
+        var end = lastSeg.coords[lastSeg.coords.length - 1];
+
+        this.setState({ segments, start, end, stops, stopsList });
+      }
+
       // Zoom out the map
       this.mapComponent.animateToRegion(respJson.zoomBounds);
 
       return segments;
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
+  }
+
+  // Call the back end api to get the route
+  async getDirections(start, end, placeIds, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg) {
+    try {
+      if (placeIds.length == 0) {
+        var url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelLeft}/${fuelCap}/${mpg}/${calcOnGas}/`;
+        if (!calcOnGas) url = url + `${numStops}/`;
+        else url = url + `?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
+
+        let resp = await fetch(url);
+        let respJson = await resp.json();
+        let segments = respJson.route;
+
+        let stops = respJson.stops;
+        let stopsList = respJson.stopsList;
+
+        var start = segments[0].coords[0];
+        var lastSeg = segments[segments.length - 1];
+        var end = lastSeg.coords[lastSeg.coords.length - 1];
+
+        this.setState({ segments, start, end, stops, stopsList });
+        // Zoom out the map
+        this.mapComponent.animateToRegion(respJson.zoomBounds);
+
+        return segments;
+      } else {
+        this.handleStops(start, end, placeIds, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg)
+      }
     } catch (error) {
       console.log(error);
       return error;
