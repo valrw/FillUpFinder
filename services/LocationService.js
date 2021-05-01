@@ -8,7 +8,6 @@ export const getLocation = async () => {
     console.log("Location Permission Denied");
     return;
   }
-
   try {
     const location = await Location.getCurrentPositionAsync({});
     return location;

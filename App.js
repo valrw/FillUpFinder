@@ -2,7 +2,7 @@ import React from "react";
 import { useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 
-import { StoreContext } from "./contexts/storeContext";
+import { StoreContext } from "./contexts/StoreContext";
 import * as eva from "@eva-design/eva";
 import { ApplicationProvider, IconRegistry } from "@ui-kitten/components";
 import { EvaIconsPack } from "@ui-kitten/eva-icons";

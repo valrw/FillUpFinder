@@ -7,8 +7,8 @@ import {
   Animated,
   TouchableOpacity,
 } from "react-native";
-import { Text } from "@ui-kitten/components";
-import MapView, { Marker } from "react-native-maps";
+import { Text, withStyles } from "@ui-kitten/components";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { ROOT_URL } from "../constants/api";
 import colors from "../constants/colors";
 import StopInfo from "../components/StopInfo";
@@ -16,6 +16,8 @@ import ConfirmModal from "../components/ConfirmModal";
 import GpsDisplay from "../components/GpsDisplay";
 import { getLocation } from "../services/LocationService.js";
 import haversine from "haversine-distance";
+import { nightStyle } from "../constants/mapStyles.js";
+import { StoreContext } from "../contexts/StoreContext";
 
 const ANIMATED_VAL = 310;
 
@@ -42,6 +44,7 @@ class MapDisplay extends Component {
     fineLocation: null,
   };
 
+  static contextType = StoreContext;
   constructor(props) {
     super(props);
     this.mapComponent = null;
@@ -72,8 +75,6 @@ class MapDisplay extends Component {
     let calcOnGas = true;
     if (params.calcOnGas == 1) calcOnGas = false;
     let numStops = params.numStops;
-
-    console.log(params);
 
     this.setState({ calcOnGas });
 
@@ -425,6 +426,7 @@ class MapDisplay extends Component {
     return (
       <View style={{ flex: 1 }}>
         <MapView
+          provider={PROVIDER_GOOGLE}
           ref={(ref) => (this.mapComponent = ref)}
           style={{ width: "100%", height: "100%", zIndex: -1 }}
           initialRegion={{
@@ -444,6 +446,7 @@ class MapDisplay extends Component {
               },
             });
           }}
+          customMapStyle={this.context.theme === "dark" ? nightStyle : []}
         >
           <MapView.Marker
             title="Start"
@@ -557,7 +560,7 @@ class MapDisplay extends Component {
   }
 }
 
-export default MapDisplay;
+export default MapDisplay; // = withStyles(MapDisplay); //, (theme) => ({
 
 const styles = StyleSheet.create({
   container: {
@@ -583,7 +586,7 @@ const styles = StyleSheet.create({
 
   fab: {
     position: "absolute",
-    backgroundColor: "white",
+    // backgroundColor: "white",
     borderRadius: 99,
     width: 65,
     height: 65,
