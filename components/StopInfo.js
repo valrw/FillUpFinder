@@ -1,4 +1,5 @@
 import React from "react";
+import Constants from "expo-constants";
 import {
   StyleSheet,
   View,
@@ -7,10 +8,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Text, Icon, useTheme } from "@ui-kitten/components";
-import Constants from "expo-constants";
 import Carousel from "react-native-snap-carousel";
-
-const API_KEY = Constants.manifest.extra.API_KEY;
 
 function StopInfo(props) {
   const theme = useTheme();
@@ -70,7 +68,7 @@ const renderStopImage = (photos) => {
   let maxheight = 300;
   let currUri = `https://maps.googleapis.com/maps/api/place/photo?maxheight=${maxheight}&photoreference=`;
   currUri = currUri + photo.photo_reference;
-  currUri = currUri + "&key=" + API_KEY;
+  currUri = currUri + "&key=" + Constants.manifest.extra.API_KEY;
   return <Image source={{ uri: currUri }} style={styles.cardImage} />;
 };
 

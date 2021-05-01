@@ -2,18 +2,15 @@ import axios from "axios";
 import * as Location from "expo-location";
 import Constants from "expo-constants";
 
-const API_KEY = Constants.manifest.extra.API_KEY;
-
 export const getLocation = async () => {
   const { status } = await Location.requestPermissionsAsync();
   if (status !== "granted") {
     console.log("Location Permission Denied");
     return;
   }
-
-  let location = null;
   try {
-    location = await Location.getCurrentPositionAsync({});
+    const location = await Location.getCurrentPositionAsync({});
+    return location;
   } catch (error) {
     alert(
       "We could not find your position. Please make sure your location service provider is on"
@@ -21,12 +18,11 @@ export const getLocation = async () => {
     console.log("Error while trying to get location: ", e);
     return;
   }
-
-  return location;
 };
 
 export const getPlace = async (lat, long) => {
-  const req = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat}, ${long}&key=${API_KEY}`;
+  const key = Constants.manifest.extra.API_KEY;
+  const req = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${key}`;
   const response = await axios.get(req);
   const place = {
     address: response.data.results[0].formatted_address,
