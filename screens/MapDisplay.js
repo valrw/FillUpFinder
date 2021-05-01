@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Text, withStyles } from "@ui-kitten/components";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { API_KEY, ROOT_URL } from "../constants/api";
 import colors from "../constants/colors";
 import StopInfo from "../components/StopInfo";
@@ -113,7 +113,6 @@ class MapDisplay extends Component {
 
   getPositionUpdate = (position) => {
     if (!position) return;
-    // console.log(position);
 
     const MIN_DIST = 10;
     let pos = {
@@ -370,6 +369,7 @@ class MapDisplay extends Component {
     return (
       <View style={{ flex: 1 }}>
         <MapView
+          provider={PROVIDER_GOOGLE}
           ref={(ref) => (this.mapComponent = ref)}
           style={{ width: "100%", height: "100%", zIndex: -1 }}
           initialRegion={{
@@ -510,21 +510,6 @@ class MapDisplay extends Component {
 }
 
 export default MapDisplay; // = withStyles(MapDisplay); //, (theme) => ({
-//   themedFAB: {
-//     position: "absolute",
-//     // backgroundColor: "white",
-//     backgroundColor: theme["background-basic-color-2"],
-//     borderRadius: 99,
-//     width: 65,
-//     height: 65,
-//     alignItems: "center",
-//     justifyContent: "center",
-//     right: 30,
-//     bottom: 35,
-//     elevation: 3,
-//     zIndex: 3,
-//   },
-// }));
 
 const styles = StyleSheet.create({
   container: {
