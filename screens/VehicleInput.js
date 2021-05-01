@@ -26,7 +26,7 @@ import {
   fuelWord,
 } from "../utils/numbers";
 import { units, types } from "../constants/units";
-import { StoreContext } from "../contexts/storeContext";
+import { StoreContext } from "../contexts/StoreContext";
 
 const filter = (item, query) => {
   return item.toLowerCase().startsWith(query.toLowerCase());
