@@ -14,7 +14,6 @@ import colors from "../constants/colors";
 import StopInfo from "../components/StopInfo";
 import ConfirmModal from "../components/ConfirmModal";
 import GpsDisplay from "../components/GpsDisplay";
-// import * as Location from "expo-location";
 import { getLocation } from "../services/LocationService.js";
 import haversine from "haversine-distance";
 
@@ -73,6 +72,8 @@ class MapDisplay extends Component {
     let calcOnGas = true;
     if (params.calcOnGas == 1) calcOnGas = false;
     let numStops = params.numStops;
+
+    console.log(params);
 
     this.setState({ calcOnGas });
 
