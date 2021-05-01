@@ -1,5 +1,5 @@
 import React from "react";
-import { API_KEY } from "../constants/api";
+import Constants from "expo-constants";
 import {
   StyleSheet,
   View,
@@ -23,11 +23,7 @@ function StopInfo(props) {
         onPress={props.onDeleteStop}
         style={styles.deleteButton}
       >
-        <Icon
-          style={styles.trashIcon}
-          fill="#222B45"
-          name="trash-2-outline"
-        />
+        <Icon style={styles.trashIcon} fill="#222B45" name="trash-2-outline" />
       </TouchableOpacity>
     </Animated.View>
   );
@@ -59,7 +55,7 @@ const renderStopImage = (photos) => {
   let maxheight = 300;
   let currUri = `https://maps.googleapis.com/maps/api/place/photo?maxheight=${maxheight}&photoreference=`;
   currUri = currUri + photo.photo_reference;
-  currUri = currUri + "&key=" + API_KEY;
+  currUri = currUri + "&key=" + Constants.manifest.extra.API_KEY;
   return <Image source={{ uri: currUri }} style={styles.cardImage} />;
 };
 
@@ -124,6 +120,6 @@ const styles = StyleSheet.create({
 
   trashIcon: {
     height: 24,
-    width: 24
-  }
+    width: 24,
+  },
 });
