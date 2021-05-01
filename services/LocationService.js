@@ -3,13 +3,22 @@ import * as Location from "expo-location";
 import { API_KEY } from "../constants/api";
 
 export const getLocation = async () => {
-  let { status } = await Location.requestPermissionsAsync();
+  const { status } = await Location.requestPermissionsAsync();
   if (status !== "granted") {
     console.log("Location Permission Denied");
     return;
   }
 
-  const location = await Location.getCurrentPositionAsync({});
+  try {
+    const location = await Location.getCurrentPositionAsync({});
+  } catch (error) {
+    alert(
+      "We could not find your position. Please make sure your location service provider is on"
+    );
+    console.log("Error while trying to get location: ", e);
+    return;
+  }
+
   return location;
 };
 
