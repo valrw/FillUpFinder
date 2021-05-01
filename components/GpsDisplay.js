@@ -1,8 +1,9 @@
 import React from "react";
 import { Platform, StyleSheet, View } from "react-native";
-import { Text, Button } from "@ui-kitten/components";
+import { Text, Button, useTheme } from "@ui-kitten/components";
 
 function GpsDisplay(props) {
+  const theme = useTheme();
   let timeTitle = props.gpsMode ? "Time Left" : "Total Time";
 
   const minutes = Math.floor(props.timeLeft / 60);
@@ -12,11 +13,12 @@ function GpsDisplay(props) {
 
   return (
     <View
-      style={
+      style={[
         Platform.OS == "android"
           ? styles.displayContainer
-          : { ...styles.displayContainer, paddingBottom: 25 }
-      }
+          : { ...styles.displayContainer, paddingBottom: 25 },
+        { backgroundColor: theme["background-basic-color-1"] },
+      ]}
     >
       <View style={styles.textContainer}>
         <Text style={styles.largeText}>{timeTitle}</Text>
@@ -38,7 +40,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "100%",
     height: "15%",
-    backgroundColor: "white",
+    // backgroundColor: "white",
   },
 
   textContainer: {

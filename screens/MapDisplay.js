@@ -566,7 +566,7 @@ class MapDisplay extends Component {
   }
 }
 
-export default MapDisplay; // = withStyles(MapDisplay); //, (theme) => ({
+export default MapDisplay;
 
 const styles = StyleSheet.create({
   container: {
@@ -592,7 +592,6 @@ const styles = StyleSheet.create({
 
   fab: {
     position: "absolute",
-    // backgroundColor: "white",
     borderRadius: 99,
     width: 65,
     height: 65,
