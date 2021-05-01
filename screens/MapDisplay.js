@@ -7,7 +7,6 @@ import {
   Animated,
   TouchableOpacity,
 } from "react-native";
-import { Text, withStyles } from "@ui-kitten/components";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { ROOT_URL } from "../constants/api";
 import colors from "../constants/colors";
@@ -18,6 +17,7 @@ import { getLocation } from "../services/LocationService.js";
 import haversine from "haversine-distance";
 import { nightStyle } from "../constants/mapStyles.js";
 import { StoreContext } from "../contexts/StoreContext";
+import debounce from "lodash.debounce";
 
 const ANIMATED_VAL = 310;
 
@@ -81,6 +81,8 @@ class MapDisplay extends Component {
     getLocation().then((loc) => {
       this.setState({ location: loc });
     });
+
+    this.getPositionUpdate = debounce(this.getPositionUpdate, 200);
 
     this.getDirections(
       start,

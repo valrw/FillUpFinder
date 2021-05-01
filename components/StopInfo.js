@@ -8,10 +8,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Text, Icon, useTheme } from "@ui-kitten/components";
-import Constants from "expo-constants";
 import Carousel from "react-native-snap-carousel";
-
-const API_KEY = Constants.manifest.extra.API_KEY;
 
 function StopInfo(props) {
   const theme = useTheme();
