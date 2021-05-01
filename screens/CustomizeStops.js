@@ -88,7 +88,8 @@ class CustomizeStops extends Component {
                 onSelectLocation={(data, details) =>
                     this.getPlaceInfo(data, details, stopNumber)
                 }
-                stylesInput={styles.inputBox}
+                themedColors={themedColors}
+                stylesInput={this.props.eva.style.themedInputBox}
                 listViewStyle={{ width: "120%"}}
                 stylesContainer={{ width: "85%", height: 40 }}
                 />
@@ -124,6 +125,12 @@ class CustomizeStops extends Component {
 
 
     render() {
+        const themedColors = {
+            bgColor: this.props.eva.theme["background-basic-color-2"],
+            textColor: this.props.eva.theme["text-basic-color"],
+            borderColor: this.props.eva.theme["border-basic-color-5"],
+        };
+
         return (
             <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps='always'>
                 <Text style={styles.inputTitle}>Starting point:</Text>
@@ -137,7 +144,8 @@ class CustomizeStops extends Component {
                         this.getPlaceInfo(data, details, 0)
                     }
                     input_ref={this.startingInputRef}
-                    stylesInput={styles.inputBox}
+                    themedColors={themedColors}
+                    stylesInput={this.props.eva.style.themedInputBox}
                     stylesContainer={{ width: "85%", height: 40}}
                     />
                     <Button
@@ -174,7 +182,8 @@ class CustomizeStops extends Component {
                 onSelectLocation={(data, details) =>
                     this.getPlaceInfo(data, details, 100)
                 }
-                stylesInput={styles.inputBox}
+                themedColors={themedColors}
+                stylesInput={this.props.eva.style.themedInputBox}
                 stylesContainer={{ width: "85%", height: 40 }}
                 />
 

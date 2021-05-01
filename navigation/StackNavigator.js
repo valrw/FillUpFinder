@@ -1,11 +1,12 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 
-import WelcomeScreen from "./screens/WelcomeScreen";
+import WelcomeScreen from "../screens/WelcomeScreen";
 import MapDisplay from "../screens/MapDisplay";
 import LocationInput from "../screens/LocationInput";
 import VehicleInput from "../screens/VehicleInput";
 import Settings from "../screens/Settings";
+import CustomizeStops from "../screens/CustomizeStops";
 import { TouchableOpacity } from "react-native";
 
 import {
@@ -113,6 +114,11 @@ const StackNavigator = () => {
         name="VehicleInput"
         component={VehicleInput}
         options={{ title: "Add Vehicle", headerTitleAlign: "center" }}
+      />
+      <Stack.Screen
+        name="CustomizeStops"
+        component={CustomizeStops}
+        options={{ title: "Customize your stops", headerTitleAlign: "center" }}
       />
       <Stack.Screen
         name="Settings"
