@@ -13,7 +13,7 @@ import {
   useTheme,
 } from "@ui-kitten/components";
 import { HeaderBackButton } from "@react-navigation/stack";
-import { StoreContext } from "../contexts/storeContext";
+import { StoreContext } from "../contexts/StoreContext";
 
 const Settings = ({ navigation }) => {
   const storeContext = React.useContext(StoreContext);
