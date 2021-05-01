@@ -121,13 +121,10 @@ class MapDisplay extends Component {
       haversine(pos, currLoc) > MIN_DIST
     ) {
       if (!this.state.GpsMode) return;
-      let start = performance.now();
       let closest = this.getClosestPoint(pos);
-      let end = performance.now();
-      console.log(end - start + " ms");
       if (!closest) return;
-      this.setState({ location: position });
       this.updateTimeLeft(closest);
+      this.setState({ location: position, currSegIndex: closest });
     }
   };
 
@@ -181,14 +178,14 @@ class MapDisplay extends Component {
   }
 
   getClosestPoint = (pos) => {
-    const MAX_DISTANCE = 200;
+    const MAX_DISTANCE = 50;
 
     if (this.state.segments.length == 0) return;
 
     // check the next 10 points
     let minPoint = this.state.currSegIndex;
     let [currSeg, currPoint] = this.state.currSegIndex;
-    let testPoints = 10;
+    let testPoints = 25;
     let minDist = 1000;
 
     for (let i = 0; i < testPoints; i++) {
@@ -198,19 +195,18 @@ class MapDisplay extends Component {
         currSeg < this.state.segments.length
       ) {
         currSeg += 1;
-        pointIndex = (currPoint + i) % thisSegment.coords.length;
+        pointIndex =
+          (currPoint + i) % this.state.segments[currSeg].coords.length;
       }
       const thisSegment = this.state.segments[currSeg];
       let thisDist = haversine(pos, thisSegment.coords[pointIndex]);
       if (thisDist < minDist) {
         minDist = thisDist;
-        minPoint[(currSeg, pointIndex)];
+        minPoint = [currSeg, pointIndex];
       }
     }
 
     if (minDist < MAX_DISTANCE) {
-      console.log("returned here " + minDist);
-      this.setState({ currSegIndex: minPoint });
       return minPoint;
     }
 
@@ -226,27 +222,35 @@ class MapDisplay extends Component {
         }
       });
     });
-    console.log("Returned later " + minDist);
-    this.setState({ currSegIndex: minPoint });
     return minPoint;
   };
 
-  updateTimeLeft = (point) => {
+  getDistArray = () => {
+    this.distArray = [];
+    for (let i = 0; i < this.state.segments.length; i++) {
+      let currDists = [];
+      this.distArray.push(currDists);
+      const currSegment = this.state.segments[i].coords;
+      let totalDist = 0;
+      for (let i = 0; i < currSegment.length - 1; i++) {
+        currDists.push(totalDist);
+        totalDist += haversine(currSegment[i], currSegment[i + 1]);
+      }
+      currDists.push(totalDist);
+    }
+  };
+
+  updateTimeLeft = async (point) => {
     if (!this.state.segments) return;
 
     let timeLeft = 0;
 
-    let totalDist = 0;
-    const currSegment = this.state.segments[point[0]].coords;
-    for (let i = 0; i < currSegment.length - 1; i++) {
-      totalDist += haversine(currSegment[i], currSegment[i + 1]);
-    }
+    if (!this.distArray || this.distArray.length == 0) this.getDistArray();
 
-    let k = point[1];
-    let currDist = 0;
-    for (let i = 0; i < k; i++) {
-      currDist += haversine(currSegment[i], currSegment[i + 1]);
-    }
+    const currDist = this.distArray[point[0]][point[1]];
+    const totalDist = this.distArray[point[0]][
+      this.distArray[point[0]].length - 1
+    ];
     timeLeft +=
       (1 - currDist / totalDist) * this.state.segments[point[0]].duration;
 
