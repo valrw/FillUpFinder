@@ -521,11 +521,15 @@ class MapDisplay extends Component {
 
         <TouchableOpacity
           onPress={this.zoomToUserLocation}
-          style={
+          style={[
             this.state.isStopShown || this.state.segments?.length == 0
               ? styles.fab
-              : { ...styles.fab, bottom: 150 }
-          }
+              : { ...styles.fab, bottom: 150 },
+            {
+              backgroundColor:
+                this.context.theme === "light" ? "white" : "#383838",
+            },
+          ]}
         >
           <Image
             source={require("../assets/target.png")}
