@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Text, Button, Icon } from "@ui-kitten/components";
+import { Text, Button, Icon, withStyles } from "@ui-kitten/components";
 import LocationInputText from "../components/LocationInputText";
 import { getLocation, getPlace } from "../services/LocationService.js";
 import { StyleSheet, Image, View, ScrollView, LogBox } from "react-native";
@@ -80,6 +80,12 @@ class CustomizeStops extends Component {
 
 
     renderStops = (item, index) => {
+        const themedColors = {
+            bgColor: this.props.eva.theme["background-basic-color-2"],
+            textColor: this.props.eva.theme["text-basic-color"],
+            borderColor: this.props.eva.theme["border-basic-color-5"],
+        };
+        
         let stopNumber = index + 1
         return (
             <View key={stopNumber} style={{ width: "100%", alignItems: "center" }}>
@@ -202,7 +208,19 @@ class CustomizeStops extends Component {
     }
 }
 
-export default CustomizeStops;
+export default CustomizeStops = withStyles(CustomizeStops, (theme) => ({
+    themedInputBox: {
+        paddingHorizontal: 10,
+        height: 40,
+        borderWidth: 1,
+        borderRadius: 3,
+        backgroundColor: theme["background-basic-color-2"],
+        marginBottom: 4,
+        zIndex: 5,
+
+        color: theme["text-basic-color"],
+    },
+}));
 
 const styles = StyleSheet.create({
     scrollContainer: {

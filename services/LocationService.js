@@ -11,6 +11,7 @@ export const getLocation = async () => {
 
   try {
     const location = await Location.getCurrentPositionAsync({});
+    return location;
   } catch (error) {
     alert(
       "We could not find your position. Please make sure your location service provider is on"
@@ -19,7 +20,7 @@ export const getLocation = async () => {
     return;
   }
 
-  return location;
+  // return location;
 };
 
 export const getPlace = async (lat, long) => {
