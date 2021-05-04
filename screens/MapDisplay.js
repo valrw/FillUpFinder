@@ -484,7 +484,15 @@ class MapDisplay extends Component {
             </Marker>
           ))}
 
-          {this.state.segments.map((seg, index) => {
+          {this.state.segments.length > 0 && (
+            <MapView.Polyline
+              coordinates={this.state.segments.map((seg) => seg.coords).flat(1)}
+              strokeWidth={4}
+              strokeColor="#0000ff"
+            ></MapView.Polyline>
+          )}
+
+          {/* {this.state.segments.map((seg, index) => {
             const transparent = "#0000ff30";
             const regular = "#0000ff";
             if (index == this.state.currSegIndex[0]) {
@@ -516,7 +524,7 @@ class MapDisplay extends Component {
                 strokeColor={color}
               />
             );
-          })}
+          })} */}
         </MapView>
 
         <TouchableOpacity
@@ -524,7 +532,7 @@ class MapDisplay extends Component {
           style={[
             this.state.isStopShown || this.state.segments?.length == 0
               ? styles.fab
-              : { ...styles.fab, bottom: 150 },
+              : { ...styles.fab, bottom: 110 },
             {
               backgroundColor:
                 this.context.theme === "light" ? "white" : "#383838",
@@ -597,7 +605,7 @@ const styles = StyleSheet.create({
     height: 65,
     alignItems: "center",
     justifyContent: "center",
-    right: 30,
+    right: 20,
     bottom: 35,
     elevation: 3,
     zIndex: 3,

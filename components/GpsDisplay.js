@@ -39,8 +39,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
-    height: "15%",
-    // backgroundColor: "white",
+    height: 90,
   },
 
   textContainer: {
