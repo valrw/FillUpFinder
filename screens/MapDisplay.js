@@ -22,43 +22,42 @@ import debounce from "lodash.debounce";
 const ANIMATED_VAL = 310;
 
 class MapDisplay extends Component {
-  state = {
-    segments: [],
-    start: { latitude: 0, longitude: 0 },
-    end: { latitude: 0, longitude: 0 },
-    stops: 0,
-    stopsList: [],
-    calcOnGas: true,
-    GpsMode: false,
-
-    isStopShown: false,
-    currStopIndex: 0,
-    currSegIndex: [0, 0],
-    slideAnimate: new Animated.Value(ANIMATED_VAL),
-    timeLeft: 0,
-
-    showingModal: false,
-    replacingStop: false,
-
-    location: null,
-    fineLocation: null,
-  };
-
   static contextType = StoreContext;
   constructor(props) {
     super(props);
     this.mapComponent = null;
+    this.state = {
+      segments: [],
+      start: { latitude: 0, longitude: 0 },
+      end: { latitude: 0, longitude: 0 },
+      stops: 0,
+      stopsList: [],
+      calcOnGas: true,
+      GpsMode: false,
+
+      isStopShown: false,
+      currStopIndex: 0,
+      currSegIndex: [0, 0],
+      slideAnimate: new Animated.Value(ANIMATED_VAL),
+      timeLeft: 0,
+
+      showingModal: false,
+      replacingStop: false,
+
+      location: null,
+      fineLocation: null,
+    };
   }
 
-  zoomToUserLocation = () => {
-    if (this.state.location === null) return;
+  zoomToUserLocation = (coords = this.state.fineLocation) => {
+    if (this.state.fineLocation == null) return;
     const camera = {
       center: {
-        latitude: this.state.location.coords.latitude,
-        longitude: this.state.location.coords.longitude,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
       },
       altitude: 10000,
-      zoom: 30,
+      zoom: 15,
     };
     this.mapComponent.animateCamera(camera, 5);
   };
@@ -79,7 +78,7 @@ class MapDisplay extends Component {
     this.setState({ calcOnGas });
 
     getLocation().then((loc) => {
-      this.setState({ location: loc });
+      this.setState({ location: loc, fineLocation: loc });
     });
 
     this.getPositionUpdate = debounce(this.getPositionUpdate, 200);
@@ -123,8 +122,8 @@ class MapDisplay extends Component {
       this.state.timeLeft == 0 ||
       haversine(pos, currLoc) > MIN_DIST
     ) {
-      if (!this.state.GpsMode) return;
       let closest = this.getClosestPoint(pos);
+      if (!this.state.GpsMode) return;
       if (!closest) return;
       this.updateTimeLeft(closest);
       this.setState({ location: position, currSegIndex: closest });
@@ -391,28 +390,10 @@ class MapDisplay extends Component {
         gpsMode={this.state.GpsMode}
         timeLeft={this.state.timeLeft}
         onStart={() => {
-          this.setState({ GpsMode: true });
+          this.setState((prevState) => ({ GpsMode: !prevState.GpsMode }));
         }}
       />
     );
-  };
-
-  getMapRegion = () => {
-    if (this.state.GpsMode && this.state.location != undefined) {
-      let loc = this.state.fineLocation;
-      if (!loc) {
-        loc = {
-          latitude: this.state.location.coords.latitude,
-          longitude: this.state.location.coords.longitude,
-        };
-      }
-      return {
-        latitude: loc.latitude,
-        longitude: loc.longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-      };
-    }
   };
 
   render() {
@@ -437,10 +418,12 @@ class MapDisplay extends Component {
             latitudeDelta: 0.0922,
             longitudeDelta: 0.0421,
           }}
-          region={this.getMapRegion()}
           onPress={this.onMapPress}
           showsUserLocation={true}
           onUserLocationChange={(e) => {
+            if (this.state.GpsMode)
+              this.zoomToUserLocation(e.nativeEvent.coordinate);
+
             this.setState({
               fineLocation: {
                 latitude: e.nativeEvent.coordinate.latitude,

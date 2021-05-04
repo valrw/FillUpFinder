@@ -10,6 +10,22 @@ function GpsDisplay(props) {
   if (minutes / 60 > 1)
     timeDisplay = `${Math.floor(minutes / 60)} hr ` + timeDisplay;
 
+  const renderButton = () => {
+    return props.gpsMode ? (
+      <Button
+        style={styles.startButton}
+        onPress={props.onStart}
+        appearance="outline"
+      >
+        <Text style={styles.buttonText}>Cancel</Text>
+      </Button>
+    ) : (
+      <Button style={styles.startButton} onPress={props.onStart}>
+        <Text style={{ ...styles.buttonText, color: "white" }}>Start</Text>
+      </Button>
+    );
+  };
+
   return (
     <View
       style={
@@ -22,9 +38,7 @@ function GpsDisplay(props) {
         <Text style={styles.largeText}>{timeTitle}</Text>
         <Text style={styles.textDisplay}>{timeDisplay}</Text>
       </View>
-      <Button style={styles.startButton} onPress={props.onStart}>
-        <Text style={styles.buttonText}>Start</Text>
-      </Button>
+      {renderButton()}
     </View>
   );
 }
@@ -62,7 +76,6 @@ const styles = StyleSheet.create({
 
   buttonText: {
     fontSize: 20,
-    color: "white",
   },
 });
 
