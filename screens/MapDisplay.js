@@ -484,6 +484,14 @@ class MapDisplay extends Component {
             </Marker>
           ))}
 
+          {/* {this.state.segments.length > 0 && (
+            <MapView.Polyline
+              coordinates={this.state.segments.map((seg) => seg.coords).flat(1)}
+              strokeWidth={4}
+              strokeColor="#0000ff"
+            ></MapView.Polyline>
+          )} */}
+
           {this.state.segments.map((seg, index) => {
             const transparent = "#0000ff30";
             const regular = "#0000ff";
@@ -521,11 +529,15 @@ class MapDisplay extends Component {
 
         <TouchableOpacity
           onPress={this.zoomToUserLocation}
-          style={
+          style={[
             this.state.isStopShown || this.state.segments?.length == 0
               ? styles.fab
-              : { ...styles.fab, bottom: 150 }
-          }
+              : { ...styles.fab, bottom: 110 },
+            {
+              backgroundColor:
+                this.context.theme === "light" ? "white" : "#383838",
+            },
+          ]}
         >
           <Image
             source={require("../assets/target.png")}
@@ -562,7 +574,7 @@ class MapDisplay extends Component {
   }
 }
 
-export default MapDisplay; // = withStyles(MapDisplay); //, (theme) => ({
+export default MapDisplay;
 
 const styles = StyleSheet.create({
   container: {
@@ -588,13 +600,12 @@ const styles = StyleSheet.create({
 
   fab: {
     position: "absolute",
-    // backgroundColor: "white",
     borderRadius: 99,
     width: 65,
     height: 65,
     alignItems: "center",
     justifyContent: "center",
-    right: 30,
+    right: 20,
     bottom: 35,
     elevation: 3,
     zIndex: 3,
