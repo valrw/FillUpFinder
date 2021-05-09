@@ -7,11 +7,7 @@ import {
   Animated,
   TouchableOpacity,
 } from "react-native";
-<<<<<<< HEAD
-import MapView, { Marker } from "react-native-maps";
-=======
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
->>>>>>> 8b647ed2db7c155a6417c75067069737a00163d8
 import { ROOT_URL } from "../constants/api";
 import colors from "../constants/colors";
 import StopInfo from "../components/StopInfo";
@@ -109,13 +105,13 @@ class MapDisplay extends Component {
     );
   }
 
-  async handleStops(start, end, placeIds, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg) {
+  async handleStops(startPos, endPos, placeIds, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg) {
     try {
       console.log('BEFORE: ', placeIds)
       placeIds.splice(0, 1);
-      var tempStart = [start]
+      var tempStart = [startPos]
       var allPlaceIds = tempStart.concat(placeIds);
-      allPlaceIds.concat(end);
+      allPlaceIds.concat(endPos);
       console.log('AFTER: ', allPlaceIds)
 
       for (let stop = 0; stop < allPlaceIds.length - 1; stop++) {
@@ -123,12 +119,12 @@ class MapDisplay extends Component {
         if (!calcOnGas) url = url + `${numStops}/`;
         else url = url + `?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
 
-        let resp = await fetch(url);
-        let respJson = await resp.json();
-        let segments = respJson.route;
+        var resp = await fetch(url);
+        var respJson = await resp.json();
+        var segments = respJson.route;
 
-        let stops = respJson.stops;
-        let stopsList = respJson.stopsList;
+        var stops = respJson.stops;
+        var stopsList = respJson.stopsList;
 
         var start = segments[0].coords[0];
         var lastSeg = segments[segments.length - 1];
@@ -222,7 +218,7 @@ class MapDisplay extends Component {
 
         return segments;
       } else {
-        this.handleStops(start, end, placeIds, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg)
+        this.handleStops(startPos, endPos, placeIds, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg)
       }
     } catch (error) {
       console.log(error);
