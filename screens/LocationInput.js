@@ -1,12 +1,5 @@
 import React, { Component } from "react";
-import {
-  StyleSheet,
-  View,
-  Platform,
-  ScrollView,
-  Image,
-  TouchableWithoutFeedbackBase,
-} from "react-native";
+import { StyleSheet, View, Platform, ScrollView, Image } from "react-native";
 import colors from "../constants/colors";
 import LocationInputText from "../components/LocationInputText";
 import {
@@ -19,6 +12,7 @@ import {
   Text,
   Button,
   Icon,
+  withStyles,
 } from "@ui-kitten/components";
 
 import Slider from "@react-native-community/slider";
@@ -55,8 +49,6 @@ class LocationInput extends Component {
   };
 
   componentDidMount() {
-    // AsyncStorage.setItem("@cars", JSON.stringify(this.state.cars));
-
     AsyncStorage.getItem("@cars").then((stored_cars) => {
       if (stored_cars !== null) {
         const cars = JSON.parse(stored_cars);
@@ -241,6 +233,13 @@ class LocationInput extends Component {
 
   render() {
     const options = ["Get Stops Based On Gas", "Set Fixed Number of Stops"];
+
+    const themedColors = {
+      bgColor: this.props.eva.theme["background-basic-color-2"],
+      textColor: this.props.eva.theme["text-basic-color"],
+      borderColor: this.props.eva.theme["border-basic-color-5"],
+    };
+
     return (
       <Layout style={styles.container1}>
         <Text style={styles.inputTitle}>Starting point:</Text>
@@ -252,12 +251,13 @@ class LocationInput extends Component {
           }
         >
           <LocationInputText
+            // theme={this.props.eva.theme}
             onSelectLocation={(data, details) =>
               this.getPlaceInfo(data, details, 0)
             }
             input_ref={this.startingInputRef}
-            // onFocus={() => console.log("AAAAFF")}
-            stylesInput={styles.inputBox}
+            themedColors={themedColors}
+            stylesInput={this.props.eva.style.themedInputBox}
             listViewStyle={{ width: "120%" }}
             stylesContainer={{ width: "85%", height: 40 }}
           />
@@ -288,10 +288,12 @@ class LocationInput extends Component {
 
         <Text style={styles.inputTitle}>Destination:</Text>
         <LocationInputText
+          // theme={this.props.eva.theme}
+          themedColors={themedColors}
           onSelectLocation={(data, details) =>
             this.getPlaceInfo(data, details, 1)
           }
-          stylesInput={styles.inputBox}
+          stylesInput={this.props.eva.style.themedInputBox}
           stylesContainer={
             Platform.OS == "android"
               ? { width: "86%", height: 40 }
@@ -405,7 +407,19 @@ class LocationInput extends Component {
   }
 }
 
-export default LocationInput;
+export default LocationInput = withStyles(LocationInput, (theme) => ({
+  themedInputBox: {
+    paddingHorizontal: 10,
+    height: 40,
+    borderWidth: 1,
+    borderRadius: 3,
+    backgroundColor: theme["background-basic-color-2"],
+    marginBottom: 4,
+    zIndex: 5,
+
+    color: theme["text-basic-color"],
+  },
+}));
 
 const styles = StyleSheet.create({
   container1: {
@@ -439,18 +453,6 @@ const styles = StyleSheet.create({
     color: "#8F9BB3",
     textAlign: "left",
     zIndex: -1,
-  },
-
-  inputBox: {
-    paddingHorizontal: 10,
-    height: 40,
-    // marginTop: 6,
-    borderWidth: 1,
-    borderRadius: 3,
-    borderColor: "#e4e9f2",
-    backgroundColor: "#F7F9FC",
-    marginBottom: 4,
-    zIndex: 5,
   },
 
   selectTripTypeTitle: {

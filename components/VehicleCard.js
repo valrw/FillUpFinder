@@ -1,18 +1,19 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Text, Icon, useTheme } from "@ui-kitten/components";
+import { useContext } from "react";
+import { StoreContext } from "../contexts/StoreContext";
+import { converted, rounded } from "../utils/numbers";
+import { units, types } from "../constants/units";
 
 const BORDER_RADIUS = 8;
 
 function VehicleCard(props) {
   const { index, car } = props;
+
   const theme = useTheme();
-  // const colors = [
-  //   theme["color-primary-default"],
-  //   theme["color-danger-default"],
-  //   theme["color-info-default"],
-  //   theme["color-success-default"],
-  // ];
+  const storeContext = useContext(StoreContext);
+
   const styles = StyleSheet.create({
     card: {
       width: "95%",
@@ -29,13 +30,16 @@ function VehicleCard(props) {
 
     cardHeader: {
       flex: 2,
-      backgroundColor: theme["background-basic-color-1"],
+      backgroundColor: theme["background-basic-color-2"],
       borderTopLeftRadius: BORDER_RADIUS,
       borderTopRightRadius: BORDER_RADIUS,
     },
 
     cardTitle: {
       marginVertical: 4,
+      marginHorizontal: 3,
+      fontSize: 20,
+      fontFamily: "OpenSans_700Bold",
       alignSelf: "center",
       textAlign: "center",
     },
@@ -81,7 +85,7 @@ function VehicleCard(props) {
       <View style={styles.cardHeader}>
         <Icon
           style={styles.cardIcon}
-          fill="#222B45"
+          fill={theme["text-basic-color"]}
           name="trash-2-outline"
           onPress={props.deleteCar}
         />
@@ -101,32 +105,38 @@ function VehicleCard(props) {
       <View style={styles.cardFooter}>
         <View style={{ flexDirection: "row", flex: 1 }}>
           <View style={styles.footerBlock}>
-            <Text
-              category="h6"
-              appearance="alternative"
-              style={styles.footerText}
-            >
-              {car.mpg}
+            <Text category="h6" status="control" style={styles.footerText}>
+              {rounded(
+                converted(
+                  car.mpg,
+                  types.MPG,
+                  units.US,
+                  units.unitsList[storeContext.unitIndex]
+                )
+              )}
             </Text>
 
             <Text category="s2" status="control" style={{ letterSpacing: 1 }}>
-              MPG
+              {storeContext.unitIndex == 0 ? "MPG" : "km/l"}
             </Text>
           </View>
 
           <View style={styles.footerDivider}></View>
 
           <View style={styles.footerBlock}>
-            <Text
-              category="h6"
-              appearance="alternative"
-              style={styles.footerText}
-            >
-              {car.fuelCap}
+            <Text category="h6" status="control" style={styles.footerText}>
+              {rounded(
+                converted(
+                  car.fuelCap,
+                  types.Fuel,
+                  units.US,
+                  units.unitsList[storeContext.unitIndex]
+                )
+              )}
             </Text>
 
             <Text category="s2" status="control" style={{ letterSpacing: 1 }}>
-              Gallons
+              {storeContext.unitIndex == 0 ? "Gallons" : "Liters"}
             </Text>
           </View>
         </View>
