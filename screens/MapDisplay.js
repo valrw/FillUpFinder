@@ -13,6 +13,7 @@ import { API_KEY, ROOT_URL } from "../constants/api";
 import colors from "../constants/colors";
 import StopInfo from "../components/StopInfo";
 import ConfirmModal from "../components/ConfirmModal";
+import ErrorModal from "../components/ErrorModal";
 // import * as Location from "expo-location";
 import { getLocation } from "../services/LocationService.js";
 
@@ -31,6 +32,7 @@ class MapDisplay extends Component {
     slideAnimate: new Animated.Value(ANIMATED_VAL),
 
     showingModal: false,
+    showingError: false,
     replacingStop: false,
 
     location: null,
@@ -39,6 +41,7 @@ class MapDisplay extends Component {
   constructor(props) {
     super(props);
     this.mapComponent = null;
+    this.getDirections = this.getDirections.bind(this);
   }
 
   zoomToUserLocation = () => {
@@ -88,21 +91,28 @@ class MapDisplay extends Component {
       url = url + `?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
 
       let resp = await fetch(url);
-      let respJson = await resp.json();
-      let segments = respJson.route;
 
-      let stops = respJson.stops;
-      let stopsList = respJson.stopsList;
+      if (resp.status == 422) {
+        this.setState({ showingError: true });
+      }
 
-      var start = segments[0].coords[0];
-      var lastSeg = segments[segments.length - 1];
-      var end = lastSeg.coords[lastSeg.coords.length - 1];
-
-      this.setState({ segments, start, end, stops, stopsList });
-      // Zoom out the map
-      this.mapComponent.animateToRegion(respJson.zoomBounds);
-
-      return segments;
+      else {
+        let respJson = await resp.json();
+        let segments = respJson.route;
+  
+        let stops = respJson.stops;
+        let stopsList = respJson.stopsList;
+  
+        var start = segments[0].coords[0];
+        var lastSeg = segments[segments.length - 1];
+        var end = lastSeg.coords[lastSeg.coords.length - 1];
+  
+        this.setState({ segments, start, end, stops, stopsList });
+        // Zoom out the map
+        this.mapComponent.animateToRegion(respJson.zoomBounds);
+  
+        return segments;
+      }
     } catch (error) {
       console.log(error);
       return error;
@@ -324,6 +334,18 @@ class MapDisplay extends Component {
           }}
           onCancel={() => {
             this.setState({ showingModal: false });
+          }}
+        />
+
+        <ErrorModal
+          visible={this.state.showingError}
+          title={"No Route Found"}
+          subtitle={
+            "Sorry, no route was found between those locations."
+          }
+          onConfirm={() => {
+            this.setState({ showingModal: false });
+            this.props.navigation.navigate("LocationInput");
           }}
         />
 
