@@ -34,7 +34,6 @@ function StopInfo(props) {
     return (
       <View
         style={{
-          // backgroundColor: "pink",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
