@@ -19,6 +19,7 @@ import Slider from "@react-native-community/slider";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Carousel from "react-native-snap-carousel";
 import VehicleCard from "../components/VehicleCard";
+import ErrorModal from "../components/ErrorModal";
 
 import { getLocation, getPlace } from "../services/LocationService.js";
 
@@ -43,6 +44,8 @@ class LocationInput extends Component {
     cars: [],
     finishedLoading: false,
     startAtUserLocation: false,
+
+    showingModal: false,
   };
 
   componentDidMount() {
@@ -344,30 +347,61 @@ class LocationInput extends Component {
                 mpg = 0;
               var calcOnGas = this.state.selectedIndex.row;
               if (calcOnGas == 0) {
-                const currentCar = this.state.cars[this._carousel._activeItem];
-                fuelCap = currentCar.fuelCap;
-                mpg = currentCar.mpg;
-                var mpgCity = currentCar.mpgCity;
-                var mpgHighway = currentCar.mpgHighway;
+                if (this._carousel == undefined) {
+                  this.setState({ showingModal: true });
+                }
+                else {
+                  const currentCar = this.state.cars[this._carousel._activeItem];
+                  fuelCap = currentCar.fuelCap;
+                  mpg = currentCar.mpg;
+                  var mpgCity = currentCar.mpgCity;
+                  var mpgHighway = currentCar.mpgHighway;
+
+                  this.props.navigation.navigate("MapDisplay", {
+                    startingLat: this.state.startingLat,
+                    startingLong: this.state.startingLong,
+                    startingPlaceId: this.state.startingPlaceId,
+                    endingPlaceId: this.state.endingPlaceId,
+                    fuelLeft: this.state.fuelPercent * 0.01 * fuelCap,
+                    fuelCap: fuelCap,
+                    mpg: mpg,
+                    mpgCity: mpgCity,
+                    mpgHighway: mpgHighway,
+                    calcOnGas: this.state.selectedIndex.row,
+                    numStops: this.state.numberOfStops,
+                  });
+                }
+              } else {
+                this.props.navigation.navigate("MapDisplay", {
+                  startingLat: this.state.startingLat,
+                  startingLong: this.state.startingLong,
+                  startingPlaceId: this.state.startingPlaceId,
+                  endingPlaceId: this.state.endingPlaceId,
+                  fuelLeft: this.state.fuelPercent * 0.01 * fuelCap,
+                  fuelCap: fuelCap,
+                  mpg: mpg,
+                  mpgCity: mpgCity,
+                  mpgHighway: mpgHighway,
+                  calcOnGas: this.state.selectedIndex.row,
+                  numStops: this.state.numberOfStops,
+                });
               }
-              this.props.navigation.navigate("MapDisplay", {
-                startingLat: this.state.startingLat,
-                startingLong: this.state.startingLong,
-                startingPlaceId: this.state.startingPlaceId,
-                endingPlaceId: this.state.endingPlaceId,
-                fuelLeft: this.state.fuelPercent * 0.01 * fuelCap,
-                fuelCap: fuelCap,
-                mpg: mpg,
-                mpgCity: mpgCity,
-                mpgHighway: mpgHighway,
-                calcOnGas: this.state.selectedIndex.row,
-                numStops: this.state.numberOfStops,
-              });
             }}
           >
             Get Directions
           </Button>
         </View>
+
+        <ErrorModal
+          visible={this.state.showingModal}
+          title={"No Vehicle Entered"}
+          subtitle={
+            "Please choose a vehicle to calculate stops based on gas."
+          }
+          onConfirm={() => {
+            this.setState({ showingModal: false });
+          }}
+        />
       </Layout>
     );
   }

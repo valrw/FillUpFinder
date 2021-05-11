@@ -12,6 +12,8 @@ import { ROOT_URL } from "../constants/api";
 import colors from "../constants/colors";
 import StopInfo from "../components/StopInfo";
 import ConfirmModal from "../components/ConfirmModal";
+import ErrorModal from "../components/ErrorModal";
+// import * as Location from "expo-location";
 import GpsDisplay from "../components/GpsDisplay";
 import { getLocation } from "../services/LocationService.js";
 import haversine from "haversine-distance";
@@ -38,6 +40,7 @@ class MapDisplay extends Component {
     timeLeft: 0,
 
     showingModal: false,
+    showingError: false,
     replacingStop: false,
 
     location: null,
@@ -153,27 +156,34 @@ class MapDisplay extends Component {
       else url = url + `?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
 
       let resp = await fetch(url);
-      let respJson = await resp.json();
-      let segments = respJson.route;
 
-      let stops = respJson.stops;
-      let stopsList = respJson.stopsList;
+      if (resp.status == 422) {
+        this.setState({ showingError: true });
+      }
 
-      let start = segments[0].coords[0];
-      let lastSeg = segments[segments.length - 1];
-      let end = lastSeg.coords[lastSeg.coords.length - 1];
+      else {
+        let respJson = await resp.json();
+        let segments = respJson.route;
+  
+        let stops = respJson.stops;
+        let stopsList = respJson.stopsList;
+  
+        var start = segments[0].coords[0];
+        var lastSeg = segments[segments.length - 1];
+        var end = lastSeg.coords[lastSeg.coords.length - 1];
 
-      let timeLeft = 0;
-      segments.forEach((seg) => {
-        timeLeft += seg.duration;
-      });
-
-      this.setState({ segments, start, end, stops, stopsList, timeLeft });
-      // Zoom out the map
-      this.mapComponent.animateToRegion(respJson.zoomBounds);
-      this.getPositionUpdate(this.state.location);
-
-      return segments;
+        let timeLeft = 0;
+        segments.forEach((seg) => {
+          timeLeft += seg.duration;
+        });
+  
+        this.setState({ segments, start, end, stops, stopsList });
+        // Zoom out the map
+        this.mapComponent.animateToRegion(respJson.zoomBounds);
+        this.getPositionUpdate(this.state.location);
+  
+        return segments;
+      }
     } catch (error) {
       console.log(error);
       return error;
@@ -559,6 +569,18 @@ class MapDisplay extends Component {
           }}
           onCancel={() => {
             this.setState({ showingModal: false });
+          }}
+        />
+
+        <ErrorModal
+          visible={this.state.showingError}
+          title={"No Route Found"}
+          subtitle={
+            "Sorry, no route was found between those locations."
+          }
+          onConfirm={() => {
+            this.setState({ showingModal: false });
+            this.props.navigation.navigate("LocationInput");
           }}
         />
 
