@@ -51,7 +51,6 @@ class MapDisplay extends Component {
   constructor(props) {
     super(props);
     this.mapComponent = null;
-    this.getDirections = this.getDirections.bind(this);
   }
 
   zoomToUserLocation = () => {
