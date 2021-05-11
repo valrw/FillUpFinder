@@ -1,13 +1,22 @@
 import React from "react";
-import { Modal, StyleSheet, View } from "react-native";
-import { Text, Button } from "@ui-kitten/components";
+import { Modal, StyleSheet, View, TouchableOpacity } from "react-native";
+import { Text, Button, useTheme } from "@ui-kitten/components";
 
 function ErrorModal(props) {
+  const theme = useTheme();
   return (
     <Modal animationType="slide" transparent={true} visible={props.visible}>
       <View style={styles.mainContainer}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>{props.title}</Text>
+        <View
+          style={{
+            ...styles.modalContainer,
+            backgroundColor: theme["background-basic-color-1"],
+            borderColor: theme["border-basic-color-5"],
+          }}
+        >
+          <Text status="danger" style={styles.modalTitle}>
+            {props.title}
+          </Text>
           <Text style={styles.modalSubtitle}>{props.subtitle}</Text>
           <View style={styles.buttonContainer}>
             <Button style={styles.modalButton} onPress={props.onConfirm}>
@@ -35,9 +44,8 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderStyle: "solid",
     borderWidth: 1,
-    borderColor: "red",
     padding: 15,
-    borderRadius: 20,
+    borderRadius: 6,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -66,7 +74,7 @@ const styles = StyleSheet.create({
   },
 
   modalButton: {
-    width: "45%",
+    width: "50%",
   },
 });
 

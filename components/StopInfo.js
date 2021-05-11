@@ -96,7 +96,6 @@ const renderRatingsInfo = (rating) => {
 
 const getPhotos = async (placeID) => {
   const req = `https://maps.googleapis.com/maps/api/place/details/json?key=${API_KEY}&place_id=${placeID}`;
-  // console.log(req);
   const response = await axios.get(req);
   const photos = response.data.result.photos;
 
