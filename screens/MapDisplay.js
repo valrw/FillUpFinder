@@ -70,6 +70,7 @@ class MapDisplay extends Component {
     let params = this.props.route.params;
     let start = params.startingPlaceId;
     let end = params.endingPlaceId;
+    let placeIds = params.placeIdsList;
     let fuelLeft = params.fuelLeft;
     let fuelCap = params.fuelCap;
     let mpg = params.mpg;
@@ -90,6 +91,7 @@ class MapDisplay extends Component {
     this.getDirections(
       start,
       end,
+      placeIds,
       fuelLeft,
       fuelCap,
       mpg,
@@ -104,6 +106,45 @@ class MapDisplay extends Component {
       (error) => console.log(error),
       { timeout: 3000 }
     );
+  }
+
+  async handleStops(startPos, endPos, placeIds, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg) {
+    try {
+      console.log('BEFORE: ', placeIds)
+      placeIds.splice(0, 1);
+      var tempStart = [startPos]
+      var allPlaceIds = tempStart.concat(placeIds);
+      allPlaceIds.concat(endPos);
+      console.log('AFTER: ', allPlaceIds)
+
+      for (let stop = 0; stop < allPlaceIds.length - 1; stop++) {
+        var url = `${ROOT_URL}/api/directions/${allPlaceIds[stop]}/${allPlaceIds[stop+1]}/${fuelLeft}/${fuelCap}/${mpg}/${calcOnGas}/`;
+        if (!calcOnGas) url = url + `${numStops}/`;
+        else url = url + `?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
+
+        var resp = await fetch(url);
+        var respJson = await resp.json();
+        var segments = respJson.route;
+
+        var stops = respJson.stops;
+        var stopsList = respJson.stopsList;
+
+        var start = segments[0].coords[0];
+        var lastSeg = segments[segments.length - 1];
+        var end = lastSeg.coords[lastSeg.coords.length - 1];
+
+        this.setState({ segments, start, end, stops, stopsList });
+      }
+
+      // Zoom out the map
+      this.mapComponent.animateToRegion(respJson.zoomBounds);
+      this.getPositionUpdate(this.state.location);
+
+      return segments;
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
   }
 
   getPositionUpdate = (position) => {
@@ -142,6 +183,7 @@ class MapDisplay extends Component {
   async getDirections(
     startPos,
     endPos,
+    placeIds,
     fuelLeft,
     fuelCap,
     mpg,
@@ -162,27 +204,35 @@ class MapDisplay extends Component {
       }
 
       else {
-        let respJson = await resp.json();
-        let segments = respJson.route;
-  
-        let stops = respJson.stops;
-        let stopsList = respJson.stopsList;
-  
-        var start = segments[0].coords[0];
-        var lastSeg = segments[segments.length - 1];
-        var end = lastSeg.coords[lastSeg.coords.length - 1];
+        if (placeIds.length == 0) {
+          var url = `${ROOT_URL}/api/directions/${startPos}/${endPos}/${fuelLeft}/${fuelCap}/${mpg}/${calcOnGas}/`;
+          if (!calcOnGas) url = url + `${numStops}/`;
+          else url = url + `?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
 
-        let timeLeft = 0;
-        segments.forEach((seg) => {
-          timeLeft += seg.duration;
-        });
-  
-        this.setState({ segments, start, end, stops, stopsList });
-        // Zoom out the map
-        this.mapComponent.animateToRegion(respJson.zoomBounds);
-        this.getPositionUpdate(this.state.location);
-  
-        return segments;
+          let respJson = await resp.json();
+          let segments = respJson.route;
+    
+          let stops = respJson.stops;
+          let stopsList = respJson.stopsList;
+    
+          var start = segments[0].coords[0];
+          var lastSeg = segments[segments.length - 1];
+          var end = lastSeg.coords[lastSeg.coords.length - 1];
+
+          let timeLeft = 0;
+          segments.forEach((seg) => {
+            timeLeft += seg.duration;
+          });
+
+          this.setState({ segments, start, end, stops, stopsList, timeLeft });
+          // Zoom out the map
+          this.mapComponent.animateToRegion(respJson.zoomBounds);
+          this.getPositionUpdate(this.state.location);
+
+          return segments;
+        } else {
+          this.handleStops(startPos, endPos, placeIds, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg)
+        }
       }
     } catch (error) {
       console.log(error);
