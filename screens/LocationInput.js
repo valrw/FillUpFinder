@@ -45,7 +45,8 @@ class LocationInput extends Component {
     finishedLoading: false,
     startAtUserLocation: false,
 
-    showingModal: false,
+    showingCarError: false,
+    showingLocError: false,
   };
 
   componentDidMount() {
@@ -343,20 +344,40 @@ class LocationInput extends Component {
             style={styles.navigateButton}
             size="giant"
             onPress={() => {
-              var fuelCap = 0,
-                mpg = 0;
-              var calcOnGas = this.state.selectedIndex.row;
-              if (calcOnGas == 0) {
-                if (this._carousel == undefined) {
-                  this.setState({ showingModal: true });
-                }
-                else {
-                  const currentCar = this.state.cars[this._carousel._activeItem];
-                  fuelCap = currentCar.fuelCap;
-                  mpg = currentCar.mpg;
-                  var mpgCity = currentCar.mpgCity;
-                  var mpgHighway = currentCar.mpgHighway;
+              if (this.state.startingPlaceId == "" || this.state.endingPlaceId == "") {
+                this.setState({ showingLocError: true });
+              }
 
+              else {
+                var fuelCap = 0,
+                  mpg = 0;
+                var calcOnGas = this.state.selectedIndex.row;
+                if (calcOnGas == 0) {
+                  if (this._carousel == undefined) {
+                    this.setState({ showingCarError: true });
+                  }
+                  else {
+                    const currentCar = this.state.cars[this._carousel._activeItem];
+                    fuelCap = currentCar.fuelCap;
+                    mpg = currentCar.mpg;
+                    var mpgCity = currentCar.mpgCity;
+                    var mpgHighway = currentCar.mpgHighway;
+
+                    this.props.navigation.navigate("MapDisplay", {
+                      startingLat: this.state.startingLat,
+                      startingLong: this.state.startingLong,
+                      startingPlaceId: this.state.startingPlaceId,
+                      endingPlaceId: this.state.endingPlaceId,
+                      fuelLeft: this.state.fuelPercent * 0.01 * fuelCap,
+                      fuelCap: fuelCap,
+                      mpg: mpg,
+                      mpgCity: mpgCity,
+                      mpgHighway: mpgHighway,
+                      calcOnGas: this.state.selectedIndex.row,
+                      numStops: this.state.numberOfStops,
+                    });
+                  }
+                } else {
                   this.props.navigation.navigate("MapDisplay", {
                     startingLat: this.state.startingLat,
                     startingLong: this.state.startingLong,
@@ -371,20 +392,6 @@ class LocationInput extends Component {
                     numStops: this.state.numberOfStops,
                   });
                 }
-              } else {
-                this.props.navigation.navigate("MapDisplay", {
-                  startingLat: this.state.startingLat,
-                  startingLong: this.state.startingLong,
-                  startingPlaceId: this.state.startingPlaceId,
-                  endingPlaceId: this.state.endingPlaceId,
-                  fuelLeft: this.state.fuelPercent * 0.01 * fuelCap,
-                  fuelCap: fuelCap,
-                  mpg: mpg,
-                  mpgCity: mpgCity,
-                  mpgHighway: mpgHighway,
-                  calcOnGas: this.state.selectedIndex.row,
-                  numStops: this.state.numberOfStops,
-                });
               }
             }}
           >
@@ -393,13 +400,24 @@ class LocationInput extends Component {
         </View>
 
         <ErrorModal
-          visible={this.state.showingModal}
+          visible={this.state.showingCarError}
           title={"No Vehicle Entered"}
           subtitle={
             "Please choose a vehicle to calculate stops based on gas."
           }
           onConfirm={() => {
-            this.setState({ showingModal: false });
+            this.setState({ showingCarError: false });
+          }}
+        />
+
+        <ErrorModal
+          visible={this.state.showingLocError}
+          title={"Missing Location"}
+          subtitle={
+            "Please enter a valid starting point and destination."
+          }
+          onConfirm={() => {
+            this.setState({ showingLocError: false});
           }}
         />
       </Layout>
