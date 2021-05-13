@@ -30,7 +30,7 @@ function StopInfo(props) {
 
   // Render photos in a Carousel
   const renderStopImages = () => {
-    if (photos.length === 0) return;
+    if (!photos || photos.length === 0) return;
     return (
       <View
         style={{

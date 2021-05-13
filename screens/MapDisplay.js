@@ -44,7 +44,6 @@ class MapDisplay extends Component {
       showingModal: false,
       replacingStop: false,
 
-      location: null,
       fineLocation: null,
     };
   }
@@ -78,10 +77,18 @@ class MapDisplay extends Component {
     this.setState({ calcOnGas });
 
     getLocation().then((loc) => {
-      this.setState({ location: loc, fineLocation: loc });
+      const newLoc = {
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude,
+      };
+      this.setState({ fineLocation: newLoc });
     });
 
-    this.getPositionUpdate = debounce(this.getPositionUpdate, 200);
+    this.getPositionUpdate = debounce(this.getPositionUpdate, 500);
+    this.prevLocation = {
+      latitude: parseFloat(params.startingLat),
+      longitude: parseFloat(params.startingLong),
+    };
 
     this.getDirections(
       start,
@@ -94,12 +101,6 @@ class MapDisplay extends Component {
       mpgCity,
       mpgHighway
     );
-
-    this.watchId = navigator.geolocation.watchPosition(
-      this.getPositionUpdate,
-      (error) => console.log(error),
-      { timeout: 3000 }
-    );
   }
 
   getPositionUpdate = (position) => {
@@ -107,32 +108,24 @@ class MapDisplay extends Component {
 
     const MIN_DIST = 50;
     let pos = {
-      latitude: position.coords.latitude,
-      longitude: position.coords.longitude,
-    };
-
-    let currLoc = {
-      latitude: this.state.location?.coords.latitude,
-      longitude: this.state.location?.coords.longitude,
+      latitude: position.latitude,
+      longitude: position.longitude,
     };
 
     // update position when you have moved sufficiently
     if (
-      !this.state.location ||
+      !this.state.fineLocation ||
       this.state.timeLeft == 0 ||
-      haversine(pos, currLoc) > MIN_DIST
+      haversine(pos, this.prevLocation) > MIN_DIST
     ) {
+      this.prevLocation = { latitude: pos.latitude, longitude: pos.longitude };
       let closest = this.getClosestPoint(pos);
       if (!this.state.GpsMode) return;
       if (!closest) return;
       this.updateTimeLeft(closest);
-      this.setState({ location: position, currSegIndex: closest });
+      this.setState({ currSegIndex: closest });
     }
   };
-
-  componentWillUnmount() {
-    navigator.geolocation.clearWatch(this.watchId);
-  }
 
   // Call the back end api to get the route
   async getDirections(
@@ -170,7 +163,7 @@ class MapDisplay extends Component {
       this.setState({ segments, start, end, stops, stopsList, timeLeft });
       // Zoom out the map
       this.mapComponent.animateToRegion(respJson.zoomBounds);
-      this.getPositionUpdate(this.state.location);
+      this.getPositionUpdate(this.state.fineLocation);
 
       return segments;
     } catch (error) {
@@ -250,9 +243,8 @@ class MapDisplay extends Component {
     if (!this.distArray || this.distArray.length == 0) this.getDistArray();
 
     const currDist = this.distArray[point[0]][point[1]];
-    const totalDist = this.distArray[point[0]][
-      this.distArray[point[0]].length - 1
-    ];
+    const totalDist =
+      this.distArray[point[0]][this.distArray[point[0]].length - 1];
     timeLeft +=
       (1 - currDist / totalDist) * this.state.segments[point[0]].duration;
 
@@ -409,7 +401,6 @@ class MapDisplay extends Component {
     return (
       <View style={{ flex: 1 }}>
         <MapView
-          provider={PROVIDER_GOOGLE}
           ref={(ref) => (this.mapComponent = ref)}
           style={{ width: "100%", height: "100%", zIndex: -1 }}
           initialRegion={{
@@ -420,10 +411,12 @@ class MapDisplay extends Component {
           }}
           onPress={this.onMapPress}
           showsUserLocation={true}
+          zoomTapEnabled={false}
           onUserLocationChange={(e) => {
-            if (this.state.GpsMode)
+            if (this.state.GpsMode) {
               this.zoomToUserLocation(e.nativeEvent.coordinate);
-
+              this.getPositionUpdate(e.nativeEvent.coordinate);
+            }
             this.setState({
               fineLocation: {
                 latitude: e.nativeEvent.coordinate.latitude,
@@ -459,6 +452,7 @@ class MapDisplay extends Component {
                 e.stopPropagation();
                 this.onMarkerClick(index);
               }}
+              tracksViewChanges={false}
             >
               <Image
                 source={this.getMarkerIcon(index)}
@@ -466,14 +460,6 @@ class MapDisplay extends Component {
               />
             </Marker>
           ))}
-
-          {/* {this.state.segments.length > 0 && (
-            <MapView.Polyline
-              coordinates={this.state.segments.map((seg) => seg.coords).flat(1)}
-              strokeWidth={4}
-              strokeColor="#0000ff"
-            ></MapView.Polyline>
-          )} */}
 
           {this.state.segments.map((seg, index) => {
             const transparent = "#0000ff30";
@@ -483,13 +469,13 @@ class MapDisplay extends Component {
               return (
                 <>
                   <MapView.Polyline
-                    key={index}
+                    key={seg.coords[0].latitude}
                     coordinates={seg.coords.slice(0, pointIndex + 1)}
                     strokeWidth={4}
                     strokeColor={transparent}
                   />
                   <MapView.Polyline
-                    key={index + 0.1}
+                    key={`alt${seg.coords[0].latitude}`}
                     coordinates={seg.coords.slice(pointIndex)}
                     strokeWidth={4}
                     strokeColor={regular}
@@ -501,7 +487,7 @@ class MapDisplay extends Component {
             if (index < this.state.currSegIndex[0]) color = transparent;
             return (
               <MapView.Polyline
-                key={index}
+                key={seg.coords[0].latitude}
                 coordinates={seg.coords}
                 strokeWidth={4}
                 strokeColor={color}
