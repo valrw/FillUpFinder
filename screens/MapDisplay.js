@@ -30,10 +30,10 @@ class MapDisplay extends Component {
       segments: [],
       start: { latitude: 0, longitude: 0 },
       end: { latitude: 0, longitude: 0 },
-      stops: 0,
       stopsList: [],
       calcOnGas: true,
       GpsMode: false,
+      recalculating: false,
 
       isStopShown: false,
       currStopIndex: 0,
@@ -48,8 +48,8 @@ class MapDisplay extends Component {
     };
   }
 
-  zoomToUserLocation = (coords = this.state.fineLocation) => {
-    if (this.state.fineLocation == null) return;
+  zoomToUserLocation = (coords) => {
+    if (!coords) return;
     const camera = {
       center: {
         latitude: coords.latitude,
@@ -105,8 +105,10 @@ class MapDisplay extends Component {
 
   getPositionUpdate = (position) => {
     if (!position) return;
+    if (!this.state.GpsMode) return;
 
     const MIN_DIST = 50;
+    const REROUTE_DIST = 300;
     let pos = {
       latitude: position.latitude,
       longitude: position.longitude,
@@ -120,8 +122,14 @@ class MapDisplay extends Component {
     ) {
       this.prevLocation = { latitude: pos.latitude, longitude: pos.longitude };
       let closest = this.getClosestPoint(pos);
-      if (!this.state.GpsMode) return;
       if (!closest) return;
+
+      const closestPoint = this.state.segments[closest[0]].coords[closest[1]];
+      if (haversine(pos, closestPoint) > REROUTE_DIST) {
+        this.recalculateRoute();
+        return;
+      }
+
       this.updateTimeLeft(closest);
       this.setState({ currSegIndex: closest });
     }
@@ -148,7 +156,6 @@ class MapDisplay extends Component {
       let respJson = await resp.json();
       let segments = respJson.route;
 
-      let stops = respJson.stops;
       let stopsList = respJson.stopsList;
 
       let start = segments[0].coords[0];
@@ -160,7 +167,7 @@ class MapDisplay extends Component {
         timeLeft += seg.duration;
       });
 
-      this.setState({ segments, start, end, stops, stopsList, timeLeft });
+      this.setState({ segments, start, end, stopsList, timeLeft });
       // Zoom out the map
       this.mapComponent.animateToRegion(respJson.zoomBounds);
       this.getPositionUpdate(this.state.fineLocation);
@@ -253,6 +260,33 @@ class MapDisplay extends Component {
     }
 
     this.setState({ timeLeft });
+  };
+
+  recalculateRoute = async () => {
+    let nextStop = null;
+    if (this.state.currSegIndex[0] == this.state.stopsList.length)
+      nextStop = this.props.route.params.endingPlaceId;
+    else nextStop = this.state.stopsList[this.state.currSegIndex[0]].placeId;
+
+    const { latitude, longitude } = this.state.fineLocation;
+    const url = `${ROOT_URL}/api/update/?startLat=${latitude}&startLong=${longitude}&end=${nextStop}`;
+
+    this.setState({ recalculating: true });
+    try {
+      const resp = await fetch(url);
+      const respJson = await resp.json();
+
+      const segments = [
+        respJson,
+        ...this.state.segments.slice(this.state.currSegIndex[0] + 1),
+      ];
+      this.setState({ segments, currSegIndex: [0, 0] });
+      this.getPositionUpdate();
+    } catch (error) {
+      console.log(`Error fetching position update ${error}`);
+    }
+
+    this.setState({ recalculating: false });
   };
 
   onDeletePress = () => {
@@ -381,8 +415,10 @@ class MapDisplay extends Component {
       <GpsDisplay
         gpsMode={this.state.GpsMode}
         timeLeft={this.state.timeLeft}
+        recalculating={this.state.recalculating}
         onStart={() => {
           this.setState((prevState) => ({ GpsMode: !prevState.GpsMode }));
+          this.zoomToUserLocation(this.state.fineLocation);
         }}
       />
     );
@@ -497,7 +533,7 @@ class MapDisplay extends Component {
         </MapView>
 
         <TouchableOpacity
-          onPress={this.zoomToUserLocation}
+          onPress={() => this.zoomToUserLocation(this.state.fineLocation)}
           style={[
             this.state.isStopShown || this.state.segments?.length == 0
               ? styles.fab

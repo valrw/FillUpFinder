@@ -1,5 +1,5 @@
 import React from "react";
-import { Platform, StyleSheet, View } from "react-native";
+import { Platform, ActivityIndicator, View, StyleSheet } from "react-native";
 import { Text, Button, useTheme } from "@ui-kitten/components";
 
 function GpsDisplay(props) {
@@ -27,6 +27,26 @@ function GpsDisplay(props) {
     );
   };
 
+  const renderContents = () => {
+    if (props.recalculating) {
+      return (
+        <>
+          <Text style={styles.largeText}>Recalculating</Text>
+          <ActivityIndicator style={styles.loadingSpinner} />
+        </>
+      );
+    }
+    return (
+      <>
+        <View style={styles.textContainer}>
+          <Text style={styles.largeText}>{timeTitle}</Text>
+          <Text style={styles.textDisplay}>{timeDisplay}</Text>
+        </View>
+        {renderButton()}
+      </>
+    );
+  };
+
   return (
     <View
       style={[
@@ -36,11 +56,7 @@ function GpsDisplay(props) {
         { backgroundColor: theme["background-basic-color-1"] },
       ]}
     >
-      <View style={styles.textContainer}>
-        <Text style={styles.largeText}>{timeTitle}</Text>
-        <Text style={styles.textDisplay}>{timeDisplay}</Text>
-      </View>
-      {renderButton()}
+      {renderContents()}
     </View>
   );
 }
@@ -77,6 +93,10 @@ const styles = StyleSheet.create({
 
   buttonText: {
     fontSize: 20,
+  },
+
+  loadingSpinner: {
+    marginLeft: 30,
   },
 });
 
