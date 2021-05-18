@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { PureComponent } from "react";
 import {
   StyleSheet,
   View,
@@ -10,20 +10,19 @@ import {
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { ROOT_URL } from "../constants/api";
 import colors from "../constants/colors";
-import StopInfo from "../components/StopInfo";
+// import StopInfo from "../components/StopInfo";
 import ConfirmModal from "../components/ConfirmModal";
 import ErrorModal from "../components/ErrorModal";
-// import * as Location from "expo-location";
-import GpsDisplay from "../components/GpsDisplay";
+// import GpsDisplay from "../components/GpsDisplay";
 import { getLocation } from "../services/LocationService.js";
 import haversine from "haversine-distance";
 import { nightStyle } from "../constants/mapStyles.js";
 import { StoreContext } from "../contexts/StoreContext";
 import debounce from "lodash.debounce";
 
-const ANIMATED_VAL = 310;
+// const ANIMATED_VAL = 310;
 
-class MapDisplay extends Component {
+class MapDisplay extends PureComponent {
   state = {
     segments: [],
     start: { latitude: 0, longitude: 0 },
@@ -36,7 +35,7 @@ class MapDisplay extends Component {
     isStopShown: false,
     currStopIndex: 0,
     currSegIndex: [0, 0],
-    slideAnimate: new Animated.Value(ANIMATED_VAL),
+    // slideAnimate: new Animated.Value(ANIMATED_VAL),
     timeLeft: 0,
 
     showingModal: false,
@@ -67,7 +66,8 @@ class MapDisplay extends Component {
   };
 
   componentDidMount() {
-    let params = this.props.route.params;
+    // let params = this.props.route.params;
+    let params = this.props.params;
     let start = params.startingPlaceId;
     let end = params.endingPlaceId;
     let fuelLeft = params.fuelLeft;
@@ -159,15 +159,13 @@ class MapDisplay extends Component {
 
       if (resp.status == 422) {
         this.setState({ showingError: true });
-      }
-
-      else {
+      } else {
         let respJson = await resp.json();
         let segments = respJson.route;
-  
+
         let stops = respJson.stops;
         let stopsList = respJson.stopsList;
-  
+
         var start = segments[0].coords[0];
         var lastSeg = segments[segments.length - 1];
         var end = lastSeg.coords[lastSeg.coords.length - 1];
@@ -176,12 +174,12 @@ class MapDisplay extends Component {
         segments.forEach((seg) => {
           timeLeft += seg.duration;
         });
-  
+
         this.setState({ segments, start, end, stops, stopsList });
         // Zoom out the map
         this.mapComponent.animateToRegion(respJson.zoomBounds);
         this.getPositionUpdate(this.state.location);
-  
+
         return segments;
       }
     } catch (error) {
@@ -261,9 +259,8 @@ class MapDisplay extends Component {
     if (!this.distArray || this.distArray.length == 0) this.getDistArray();
 
     const currDist = this.distArray[point[0]][point[1]];
-    const totalDist = this.distArray[point[0]][
-      this.distArray[point[0]].length - 1
-    ];
+    const totalDist =
+      this.distArray[point[0]][this.distArray[point[0]].length - 1];
     timeLeft +=
       (1 - currDist / totalDist) * this.state.segments[point[0]].duration;
 
@@ -286,27 +283,25 @@ class MapDisplay extends Component {
       const stopToReplace = this.state.stopsList[removedStopIndex].placeId;
 
       // the start will be either the previous gas station or the route start
-      let start = this.props.route.params.startingPlaceId;
+      let start = this.props.params.startingPlaceId;
       if (removedStopIndex > 0)
         start = this.state.stopsList[removedStopIndex - 1].placeId;
 
       // the end will be either the next gas station of the route destination
-      let end = this.props.route.params.endingPlaceId;
+      let end = this.props.params.endingPlaceId;
       if (removedStopIndex < this.state.stopsList.length - 1)
         end = this.state.stopsList[removedStopIndex + 1].placeId;
 
-      let fuelCap = this.props.route.params.fuelCap;
-      let mpg = this.props.route.params.mpg;
-      let mpgCity = this.props.route.params.mpgCity
-        ? this.props.route.params.mpgCity
-        : mpg;
-      let mpgHighway = this.props.route.params.mpgHighway
-        ? this.props.route.params.mpgHighway
+      let fuelCap = this.props.params.fuelCap;
+      let mpg = this.props.params.mpg;
+      let mpgCity = this.props.params.mpgCity ? this.props.params.mpgCity : mpg;
+      let mpgHighway = this.props.params.mpgHighway
+        ? this.props.params.mpgHighway
         : mpg;
 
       // if you are going from start to first stop, start with less gas
       let fuelLeft = fuelCap;
-      if (removedStopIndex == 0) fuelLeft = this.props.route.params.fuelLeft;
+      if (removedStopIndex == 0) fuelLeft = this.props.params.fuelLeft;
 
       let url = `${ROOT_URL}/api/directions/${start}/${end}/${fuelLeft}/${fuelCap}/${mpg}/true/0/${stopToReplace}?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
       if (!this.state.calcOnGas)
@@ -362,16 +357,14 @@ class MapDisplay extends Component {
 
   // Show the stop information view
   onMarkerClick = (index) => {
-    let slideInAnimation = Animated.timing(this.state.slideAnimate, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    });
-
+    // let slideInAnimation = Animated.timing(this.state.slideAnimate, {
+    //   toValue: 0,
+    //   duration: 300,
+    //   useNativeDriver: true,
+    // });
     // Animate the slide in entrance of the stop information view
-    if (!this.state.isStopShown) slideInAnimation.start();
-
-    this.setState({ currStopIndex: index, isStopShown: true });
+    // if (!this.state.isStopShown) slideInAnimation.start();
+    // this.setState({ currStopIndex: index, isStopShown: true });
   };
 
   // Get blue icons for all icons, light blue for the selected icon
@@ -383,28 +376,15 @@ class MapDisplay extends Component {
 
   // When randomly pressing on the map, dismiss the stop information view
   onMapPress = () => {
-    if (this.state.isStopShown) {
-      this.setState({ isStopShown: false });
-    }
-    Animated.timing(this.state.slideAnimate, {
-      toValue: ANIMATED_VAL,
-      duration: 150,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  renderTimeLeft = () => {
-    if (this.state.segments.length == 0 || this.state.isStopShown) return null;
-
-    return (
-      <GpsDisplay
-        gpsMode={this.state.GpsMode}
-        timeLeft={this.state.timeLeft}
-        onStart={() => {
-          this.setState({ GpsMode: true });
-        }}
-      />
-    );
+    this.props.setCurrStop(null);
+    // if (this.state.isStopShown) {
+    //   this.setState({ isStopShown: false });
+    // }
+    // Animated.timing(this.state.slideAnimate, {
+    //   toValue: ANIMATED_VAL,
+    //   duration: 150,
+    //   useNativeDriver: true,
+    // }).start();
   };
 
   getMapRegion = () => {
@@ -426,24 +406,23 @@ class MapDisplay extends Component {
   };
 
   render() {
-    const slideAnimation = {
-      transform: [{ translateY: this.state.slideAnimate }],
-    };
-
-    let currStop = { name: "", vicinity: "" };
-
-    if (this.state.isStopShown)
-      currStop = this.state.stopsList[this.state.currStopIndex];
+    // const slideAnimation = {
+    //   transform: [{ translateY: this.state.slideAnimate }],
+    // };
+    // let currStop = { name: "", vicinity: "" };
+    // if (this.state.isStopShown)
+    //   currStop = this.state.stopsList[this.state.currStopIndex];
 
     return (
       <View style={{ flex: 1 }}>
         <MapView
           provider={PROVIDER_GOOGLE}
+          zoomTapEnabled={false}
           ref={(ref) => (this.mapComponent = ref)}
           style={{ width: "100%", height: "100%", zIndex: -1 }}
           initialRegion={{
-            latitude: parseFloat(this.props.route.params.startingLat),
-            longitude: parseFloat(this.props.route.params.startingLong),
+            latitude: parseFloat(this.props.params.startingLat),
+            longitude: parseFloat(this.props.params.startingLong),
             latitudeDelta: 0.0922,
             longitudeDelta: 0.0421,
           }}
@@ -483,8 +462,9 @@ class MapDisplay extends Component {
                 longitude: station.longitude,
               }}
               onPress={(e) => {
+                this.props.setCurrStop(station);
                 e.stopPropagation();
-                this.onMarkerClick(index);
+                // this.onMarkerClick(index);
               }}
             >
               <Image
@@ -493,14 +473,6 @@ class MapDisplay extends Component {
               />
             </Marker>
           ))}
-
-          {/* {this.state.segments.length > 0 && (
-            <MapView.Polyline
-              coordinates={this.state.segments.map((seg) => seg.coords).flat(1)}
-              strokeWidth={4}
-              strokeColor="#0000ff"
-            ></MapView.Polyline>
-          )} */}
 
           {this.state.segments.map((seg, index) => {
             const transparent = "#0000ff30";
@@ -575,22 +547,20 @@ class MapDisplay extends Component {
         <ErrorModal
           visible={this.state.showingError}
           title={"No Route Found"}
-          subtitle={
-            "Sorry, no route was found between those locations."
-          }
+          subtitle={"Sorry, no route was found between those locations."}
           onConfirm={() => {
             this.setState({ showingModal: false });
             this.props.navigation.navigate("LocationInput");
           }}
         />
 
-        <StopInfo
+        {/* <StopInfo
           anim={slideAnimation}
           currStop={currStop}
           onDeleteStop={this.onDeletePress}
-        />
+        /> */}
 
-        {this.renderTimeLeft()}
+        {/* {this.renderTimeLeft()} */}
       </View>
     );
   }

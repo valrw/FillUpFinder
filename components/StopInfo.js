@@ -17,7 +17,7 @@ function StopInfo(props) {
   const theme = useTheme();
   const [photos, setPhotos] = useState([]);
 
-  if (props.currStop == undefined) return <View />;
+  if (props.currStop === undefined || props.currStop === null) return <View />;
 
   // Fetch Photos to display
   useEffect(() => {
@@ -34,7 +34,6 @@ function StopInfo(props) {
     return (
       <View
         style={{
-          // backgroundColor: "pink",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
@@ -51,10 +50,10 @@ function StopInfo(props) {
   };
 
   return (
-    <Animated.View
+    <View
       style={[
         styles.cardView,
-        props.anim,
+        // props.anim,
         { backgroundColor: theme["background-basic-color-1"] },
       ]}
     >
@@ -74,7 +73,7 @@ function StopInfo(props) {
           name="trash-2-outline"
         />
       </TouchableOpacity>
-    </Animated.View>
+    </View>
   );
 }
 
@@ -96,7 +95,6 @@ const renderRatingsInfo = (rating) => {
 
 const getPhotos = async (placeID) => {
   const req = `https://maps.googleapis.com/maps/api/place/details/json?key=${API_KEY}&place_id=${placeID}`;
-  // console.log(req);
   const response = await axios.get(req);
   const photos = response.data.result.photos;
 

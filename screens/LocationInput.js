@@ -344,20 +344,21 @@ class LocationInput extends Component {
             style={styles.navigateButton}
             size="giant"
             onPress={() => {
-              if (this.state.startingPlaceId == "" || this.state.endingPlaceId == "") {
+              if (
+                this.state.startingPlaceId == "" ||
+                this.state.endingPlaceId == ""
+              ) {
                 this.setState({ showingLocError: true });
-              }
-
-              else {
+              } else {
                 var fuelCap = 0,
                   mpg = 0;
                 var calcOnGas = this.state.selectedIndex.row;
                 if (calcOnGas == 0) {
                   if (this._carousel == undefined) {
                     this.setState({ showingCarError: true });
-                  }
-                  else {
-                    const currentCar = this.state.cars[this._carousel._activeItem];
+                  } else {
+                    const currentCar =
+                      this.state.cars[this._carousel._activeItem];
                     fuelCap = currentCar.fuelCap;
                     mpg = currentCar.mpg;
                     var mpgCity = currentCar.mpgCity;
@@ -378,7 +379,20 @@ class LocationInput extends Component {
                     });
                   }
                 } else {
-                  this.props.navigation.navigate("MapDisplay", {
+                  // this.props.navigation.navigate("MapDisplay", {
+                  //   startingLat: this.state.startingLat,
+                  //   startingLong: this.state.startingLong,
+                  //   startingPlaceId: this.state.startingPlaceId,
+                  //   endingPlaceId: this.state.endingPlaceId,
+                  //   fuelLeft: this.state.fuelPercent * 0.01 * fuelCap,
+                  //   fuelCap: fuelCap,
+                  //   mpg: mpg,
+                  //   mpgCity: mpgCity,
+                  //   mpgHighway: mpgHighway,
+                  //   calcOnGas: this.state.selectedIndex.row,
+                  //   numStops: this.state.numberOfStops,
+                  // });
+                  this.props.navigation.navigate("MapScreen", {
                     startingLat: this.state.startingLat,
                     startingLong: this.state.startingLong,
                     startingPlaceId: this.state.startingPlaceId,
@@ -402,9 +416,7 @@ class LocationInput extends Component {
         <ErrorModal
           visible={this.state.showingCarError}
           title={"No Vehicle Entered"}
-          subtitle={
-            "Please choose a vehicle to calculate stops based on gas."
-          }
+          subtitle={"Please choose a vehicle to calculate stops based on gas."}
           onConfirm={() => {
             this.setState({ showingCarError: false });
           }}
@@ -413,11 +425,9 @@ class LocationInput extends Component {
         <ErrorModal
           visible={this.state.showingLocError}
           title={"Missing Location"}
-          subtitle={
-            "Please enter a valid starting point and destination."
-          }
+          subtitle={"Please enter a valid starting point and destination."}
           onConfirm={() => {
-            this.setState({ showingLocError: false});
+            this.setState({ showingLocError: false });
           }}
         />
       </Layout>

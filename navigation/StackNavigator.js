@@ -1,11 +1,10 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
-
-import MapDisplay from "../screens/MapDisplay";
+// import MapDisplay from "../screens/MapDisplay";
+import MapScreen from "../screens/MapScreen";
 import LocationInput from "../screens/LocationInput";
 import VehicleInput from "../screens/VehicleInput";
 import Settings from "../screens/Settings";
-import { TouchableOpacity } from "react-native";
 
 import {
   Icon,
@@ -31,25 +30,11 @@ const StackNavigator = () => {
   };
 
   const renderMenuAction = () => (
-    // <TouchableOpacity
-    //   onPress={() => console.log("GGG")}
-    //   style={{
-    //     paddingVertical: 8,
-    //     backgroundColor: "pink",
-    //     paddingHorizontal: 9,
-    //   }}
-    // >
     <TopNavigationAction
       icon={MenuIcon}
       onPress={toggleMenu}
       style={{ padding: 6 }}
-      // style={{
-      //   paddingVertical: 8,
-      //   backgroundColor: "pink",
-      //   paddingHorizontal: 9,
-      // }}
     />
-    // </TouchableOpacity>
   );
 
   const renderRightActions = (navigation) => (
@@ -95,9 +80,14 @@ const StackNavigator = () => {
           headerRight: () => renderRightActions(navigation),
         })}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="MapDisplay"
         component={MapDisplay}
+        options={{ title: "Your Route", headerTitleAlign: "center" }}
+      /> */}
+      <Stack.Screen
+        name="MapScreen"
+        component={MapScreen}
         options={{ title: "Your Route", headerTitleAlign: "center" }}
       />
       <Stack.Screen
