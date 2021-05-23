@@ -62,34 +62,34 @@ class LocationInput extends Component {
       }
     });
 
-    // var params = this.props.route.params;
-    // if (params !== undefined) {
-    //   var start = params.startingPlaceId;
-    //   var end = params.endingPlaceId;
-    //   var latitude = params.startingLat;
-    //   var longitude = params.startingLong;
-    //   var placeIDs = params.placeIdsList;
+    var params = this.props.route.params;
+    if (params !== undefined) {
+      var start = params.startingPlaceId;
+      var end = params.endingPlaceId;
+      var latitude = params.startingLat;
+      var longitude = params.startingLong;
+      var placeIDs = params.placeIdsList;
 
-    //   if (start !== "") {
-    //       this.setState({ startingPlaceId: start });
-    //   }
+      if (start !== "") {
+          this.setState({ startingPlaceId: start });
+      }
 
-    //   if (latitude !== "") {
-    //       this.setState({ startingLat: latitude });
-    //   }
+      if (latitude !== "") {
+          this.setState({ startingLat: latitude });
+      }
 
-    //   if (longitude !== "") {
-    //       this.setState({ startingLat: longitude });
-    //   }
+      if (longitude !== "") {
+          this.setState({ startingLat: longitude });
+      }
 
-    //   if (end !== "") {
-    //       this.setState({ endingPlaceId: end });
-    //   }
+      if (end !== "") {
+          this.setState({ endingPlaceId: end });
+      }
 
-    //   this.setState({ placeIdsList: placeIDs });
-    // }
-    // console.log('START: ', start)
-    // console.log('END: ', end)
+      this.setState({ placeIdsList: placeIDs });
+    }
+    console.log('START: ', start)
+    console.log('END: ', end)
   }
 
 
@@ -129,8 +129,8 @@ class LocationInput extends Component {
 
       this.setState({ placeIdsList: placeIDs });
     }
-    // console.log('START: ', start)
-    // console.log('END: ', end)
+    console.log('START: ', start)
+    console.log('END: ', end)
   }
 
 
@@ -189,6 +189,7 @@ class LocationInput extends Component {
             startingLong: this.state.startingLong,
             startingPlaceId: this.state.startingPlaceId,
             endingPlaceId: this.state.endingPlaceId,
+            placeIdsList: this.state.placeIdsList,
             fuelLeft: this.state.fuelPercent * 0.01 * fuelCap,
             fuelCap: fuelCap,
             mpg: mpg,
@@ -204,6 +205,7 @@ class LocationInput extends Component {
           startingLong: this.state.startingLong,
           startingPlaceId: this.state.startingPlaceId,
           endingPlaceId: this.state.endingPlaceId,
+          placeIdsList: this.state.placeIdsList,
           fuelLeft: this.state.fuelPercent * 0.01 * fuelCap,
           fuelCap: fuelCap,
           mpg: mpg,

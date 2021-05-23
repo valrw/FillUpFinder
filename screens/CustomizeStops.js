@@ -59,22 +59,20 @@ class CustomizeStops extends Component {
             startingLat: location.lat,
             startingLong: location.lng,
           });
-          return;
         } else if (index == 100) {
           // Ending Location
           this.setState({ endingPlaceId: place.place_id });
         } else {
-          currPlaceIds[index] = place.place_id
+          currPlaceIds[index - 1] = place.place_id
           this.setState({ placeIdsList: currPlaceIds })
         }
-        console.log('IDs: ', currPlaceIds);
     };
 
 
     addStop = () => {
         this.setState({
-            stopCount: this.state.stopCount + 1,
             stops: this.state.stops.concat(this.state.stopCount),
+            stopCount: this.state.stopCount + 1,
         });
     };
 
