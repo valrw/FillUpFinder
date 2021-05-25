@@ -12,6 +12,8 @@ import { ROOT_URL } from "../constants/api";
 import colors from "../constants/colors";
 import StopInfo from "../components/StopInfo";
 import ConfirmModal from "../components/ConfirmModal";
+import ErrorModal from "../components/ErrorModal";
+// import * as Location from "expo-location";
 import GpsDisplay from "../components/GpsDisplay";
 import { getLocation } from "../services/LocationService.js";
 import haversine from "haversine-distance";
@@ -22,43 +24,42 @@ import debounce from "lodash.debounce";
 const ANIMATED_VAL = 310;
 
 class MapDisplay extends Component {
-  state = {
-    segments: [],
-    start: { latitude: 0, longitude: 0 },
-    end: { latitude: 0, longitude: 0 },
-    stops: 0,
-    stopsList: [],
-    calcOnGas: true,
-    GpsMode: false,
-
-    isStopShown: false,
-    currStopIndex: 0,
-    currSegIndex: [0, 0],
-    slideAnimate: new Animated.Value(ANIMATED_VAL),
-    timeLeft: 0,
-
-    showingModal: false,
-    replacingStop: false,
-
-    location: null,
-    fineLocation: null,
-  };
-
   static contextType = StoreContext;
   constructor(props) {
     super(props);
     this.mapComponent = null;
+    this.state = {
+      segments: [],
+      start: { latitude: 0, longitude: 0 },
+      end: { latitude: 0, longitude: 0 },
+      stopsList: [],
+      calcOnGas: true,
+      GpsMode: false,
+      recalculating: false,
+
+      isStopShown: false,
+      currStopIndex: 0,
+      currSegIndex: [0, 0],
+      slideAnimate: new Animated.Value(ANIMATED_VAL),
+      timeLeft: 0,
+
+      showingModal: false,
+      showingError: false,
+      replacingStop: false,
+
+      fineLocation: null,
+    };
   }
 
-  zoomToUserLocation = () => {
-    if (this.state.location === null) return;
+  zoomToUserLocation = (coords) => {
+    if (!coords) return;
     const camera = {
       center: {
-        latitude: this.state.location.coords.latitude,
-        longitude: this.state.location.coords.longitude,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
       },
       altitude: 10000,
-      zoom: 30,
+      zoom: 15,
     };
     this.mapComponent.animateCamera(camera, 5);
   };
@@ -67,6 +68,7 @@ class MapDisplay extends Component {
     let params = this.props.route.params;
     let start = params.startingPlaceId;
     let end = params.endingPlaceId;
+    let placeIds = params.placeIdsList;
     let fuelLeft = params.fuelLeft;
     let fuelCap = params.fuelCap;
     let mpg = params.mpg;
@@ -79,14 +81,23 @@ class MapDisplay extends Component {
     this.setState({ calcOnGas });
 
     getLocation().then((loc) => {
-      this.setState({ location: loc });
+      const newLoc = {
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude,
+      };
+      this.setState({ fineLocation: newLoc });
     });
 
-    this.getPositionUpdate = debounce(this.getPositionUpdate, 200);
+    this.getPositionUpdate = debounce(this.getPositionUpdate, 500);
+    this.prevLocation = {
+      latitude: parseFloat(params.startingLat),
+      longitude: parseFloat(params.startingLong),
+    };
 
     this.getDirections(
       start,
       end,
+      placeIds,
       fuelLeft,
       fuelCap,
       mpg,
@@ -95,50 +106,94 @@ class MapDisplay extends Component {
       mpgCity,
       mpgHighway
     );
-
-    this.watchId = navigator.geolocation.watchPosition(
-      this.getPositionUpdate,
-      (error) => console.log(error),
-      { timeout: 3000 }
-    );
   }
+
+  // async handleStops(startPos, endPos, placeIds, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg) {
+  //   try {
+  //     console.log('BEFORE: ', placeIds)
+  //     placeIds.splice(0, 1);
+  //     var tempStart = [startPos]
+  //     var allPlaceIds = tempStart.concat(placeIds);
+  //     allPlaceIds.concat(endPos);
+  //     console.log('AFTER: ', allPlaceIds)
+
+  //     for (let stop = 0; stop < allPlaceIds.length - 1; stop++) {
+  //       var url = `${ROOT_URL}/api/directions/${allPlaceIds[stop]}/${allPlaceIds[stop+1]}/${fuelLeft}/${fuelCap}/${mpg}/${calcOnGas}/`;
+  //       if (!calcOnGas) url = url + `${numStops}/`;
+  //       else url = url + `?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
+
+  //       var resp = await fetch(url);
+  //       var respJson = await resp.json();
+  //       var segments = respJson.route;
+
+  //       var stops = respJson.stops;
+  //       var stopsList = respJson.stopsList;
+
+  //       var start = segments[0].coords[0];
+  //       var lastSeg = segments[segments.length - 1];
+  //       var end = lastSeg.coords[lastSeg.coords.length - 1];
+
+  //       this.setState((prevState) => {
+  //         prevSegments = [...prevState.segments];
+  //         prevSegments.append(segments);
+
+  //         prevStopsList = [...prevState.stopsList];
+  //         prevStopsList.append(stopsList);
+
+  //         this.setState({ segments: prevSegments, stopsList: prevStopsList});
+  //       })
+
+  //       // this.setState({ segments, start, end, stops, stopsList });
+  //     }
+
+  //     // Zoom out the map
+  //     this.mapComponent.animateToRegion(respJson.zoomBounds);
+  //     this.getPositionUpdate(this.state.location);
+
+  //     return segments;
+  //   } catch (error) {
+  //     console.log(error);
+  //     return error;
+  //   }
+  // }
 
   getPositionUpdate = (position) => {
     if (!position) return;
+    if (!this.state.GpsMode) return;
 
     const MIN_DIST = 50;
+    const REROUTE_DIST = 300;
     let pos = {
-      latitude: position.coords.latitude,
-      longitude: position.coords.longitude,
-    };
-
-    let currLoc = {
-      latitude: this.state.location?.coords.latitude,
-      longitude: this.state.location?.coords.longitude,
+      latitude: position.latitude,
+      longitude: position.longitude,
     };
 
     // update position when you have moved sufficiently
     if (
-      !this.state.location ||
+      !this.state.fineLocation ||
       this.state.timeLeft == 0 ||
-      haversine(pos, currLoc) > MIN_DIST
+      haversine(pos, this.prevLocation) > MIN_DIST
     ) {
-      if (!this.state.GpsMode) return;
+      this.prevLocation = { latitude: pos.latitude, longitude: pos.longitude };
       let closest = this.getClosestPoint(pos);
       if (!closest) return;
+
+      const closestPoint = this.state.segments[closest[0]].coords[closest[1]];
+      if (haversine(pos, closestPoint) > REROUTE_DIST) {
+        this.recalculateRoute();
+        return;
+      }
+
       this.updateTimeLeft(closest);
-      this.setState({ location: position, currSegIndex: closest });
+      this.setState({ currSegIndex: closest });
     }
   };
-
-  componentWillUnmount() {
-    navigator.geolocation.clearWatch(this.watchId);
-  }
 
   // Call the back end api to get the route
   async getDirections(
     startPos,
     endPos,
+    placeIds,
     fuelLeft,
     fuelCap,
     mpg,
@@ -148,32 +203,45 @@ class MapDisplay extends Component {
     mpgHighway = mpg
   ) {
     try {
-      var url = `${ROOT_URL}/api/directions/${startPos}/${endPos}/${fuelLeft}/${fuelCap}/${mpg}/${calcOnGas}/`;
-      if (!calcOnGas) url = url + `${numStops}/`;
-      else url = url + `?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
+      var url = `${ROOT_URL}/api/${placeIds.length > 0 ? "custom-" : ""}directions/`;
+      url = url + `${startPos}/${endPos}/${fuelLeft}/${fuelCap}/${mpg}/${calcOnGas}`;
+      if (!calcOnGas) url += `/${numStops}`;
+      else url += `?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
+
+      if (placeIds.length > 0){
+        url += `${calcOnGas ? "&" : "?"}stop=${placeIds[0]}`
+        for (let i = 1; i < placeIds.length; i++) {
+          url += `&stop=${placeIds[i]}`
+        }
+      }
 
       let resp = await fetch(url);
-      let respJson = await resp.json();
-      let segments = respJson.route;
 
-      let stops = respJson.stops;
-      let stopsList = respJson.stopsList;
+      if (resp.status == 422) {
+        this.setState({ showingError: true });
+      }
+      else {
+        let respJson = await resp.json();
+        let segments = respJson.route;
 
-      let start = segments[0].coords[0];
-      let lastSeg = segments[segments.length - 1];
-      let end = lastSeg.coords[lastSeg.coords.length - 1];
+        let stopsList = respJson.stopsList;
 
-      let timeLeft = 0;
-      segments.forEach((seg) => {
-        timeLeft += seg.duration;
-      });
+        let start = segments[0].coords[0];
+        let lastSeg = segments[segments.length - 1];
+        let end = lastSeg.coords[lastSeg.coords.length - 1];
 
-      this.setState({ segments, start, end, stops, stopsList, timeLeft });
-      // Zoom out the map
-      this.mapComponent.animateToRegion(respJson.zoomBounds);
-      this.getPositionUpdate(this.state.location);
+        let timeLeft = 0;
+        segments.forEach((seg) => {
+          timeLeft += seg.duration;
+        });
 
-      return segments;
+        this.setState({ segments, start, end, stopsList, timeLeft });
+        // Zoom out the map
+        this.mapComponent.animateToRegion(respJson.zoomBounds);
+        this.getPositionUpdate(this.state.fineLocation);
+        return segments;
+
+      }
     } catch (error) {
       console.log(error);
       return error;
@@ -251,9 +319,8 @@ class MapDisplay extends Component {
     if (!this.distArray || this.distArray.length == 0) this.getDistArray();
 
     const currDist = this.distArray[point[0]][point[1]];
-    const totalDist = this.distArray[point[0]][
-      this.distArray[point[0]].length - 1
-    ];
+    const totalDist =
+      this.distArray[point[0]][this.distArray[point[0]].length - 1];
     timeLeft +=
       (1 - currDist / totalDist) * this.state.segments[point[0]].duration;
 
@@ -262,6 +329,33 @@ class MapDisplay extends Component {
     }
 
     this.setState({ timeLeft });
+  };
+
+  recalculateRoute = async () => {
+    let nextStop = null;
+    if (this.state.currSegIndex[0] == this.state.stopsList.length)
+      nextStop = this.props.route.params.endingPlaceId;
+    else nextStop = this.state.stopsList[this.state.currSegIndex[0]].placeId;
+
+    const { latitude, longitude } = this.state.fineLocation;
+    const url = `${ROOT_URL}/api/update/?startLat=${latitude}&startLong=${longitude}&end=${nextStop}`;
+
+    this.setState({ recalculating: true });
+    try {
+      const resp = await fetch(url);
+      const respJson = await resp.json();
+
+      const segments = [
+        respJson,
+        ...this.state.segments.slice(this.state.currSegIndex[0] + 1),
+      ];
+      this.setState({ segments, currSegIndex: [0, 0] });
+      this.getPositionUpdate();
+    } catch (error) {
+      console.log(`Error fetching position update ${error}`);
+    }
+
+    this.setState({ recalculating: false });
   };
 
   onDeletePress = () => {
@@ -390,29 +484,13 @@ class MapDisplay extends Component {
       <GpsDisplay
         gpsMode={this.state.GpsMode}
         timeLeft={this.state.timeLeft}
+        recalculating={this.state.recalculating}
         onStart={() => {
-          this.setState({ GpsMode: true });
+          this.setState((prevState) => ({ GpsMode: !prevState.GpsMode }));
+          this.zoomToUserLocation(this.state.fineLocation);
         }}
       />
     );
-  };
-
-  getMapRegion = () => {
-    if (this.state.GpsMode && this.state.location != undefined) {
-      let loc = this.state.fineLocation;
-      if (!loc) {
-        loc = {
-          latitude: this.state.location.coords.latitude,
-          longitude: this.state.location.coords.longitude,
-        };
-      }
-      return {
-        latitude: loc.latitude,
-        longitude: loc.longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-      };
-    }
   };
 
   render() {
@@ -428,7 +506,6 @@ class MapDisplay extends Component {
     return (
       <View style={{ flex: 1 }}>
         <MapView
-          provider={PROVIDER_GOOGLE}
           ref={(ref) => (this.mapComponent = ref)}
           style={{ width: "100%", height: "100%", zIndex: -1 }}
           initialRegion={{
@@ -437,10 +514,14 @@ class MapDisplay extends Component {
             latitudeDelta: 0.0922,
             longitudeDelta: 0.0421,
           }}
-          region={this.getMapRegion()}
           onPress={this.onMapPress}
           showsUserLocation={true}
+          zoomTapEnabled={false}
           onUserLocationChange={(e) => {
+            if (this.state.GpsMode) {
+              this.zoomToUserLocation(e.nativeEvent.coordinate);
+              this.getPositionUpdate(e.nativeEvent.coordinate);
+            }
             this.setState({
               fineLocation: {
                 latitude: e.nativeEvent.coordinate.latitude,
@@ -476,6 +557,7 @@ class MapDisplay extends Component {
                 e.stopPropagation();
                 this.onMarkerClick(index);
               }}
+              tracksViewChanges={false}
             >
               <Image
                 source={this.getMarkerIcon(index)}
@@ -492,13 +574,13 @@ class MapDisplay extends Component {
               return (
                 <>
                   <MapView.Polyline
-                    key={index}
+                    key={seg.coords[0].latitude}
                     coordinates={seg.coords.slice(0, pointIndex + 1)}
                     strokeWidth={4}
                     strokeColor={transparent}
                   />
                   <MapView.Polyline
-                    key={index + 0.1}
+                    key={`alt${seg.coords[0].latitude}`}
                     coordinates={seg.coords.slice(pointIndex)}
                     strokeWidth={4}
                     strokeColor={regular}
@@ -510,7 +592,7 @@ class MapDisplay extends Component {
             if (index < this.state.currSegIndex[0]) color = transparent;
             return (
               <MapView.Polyline
-                key={index}
+                key={seg.coords[0].latitude}
                 coordinates={seg.coords}
                 strokeWidth={4}
                 strokeColor={color}
@@ -520,12 +602,16 @@ class MapDisplay extends Component {
         </MapView>
 
         <TouchableOpacity
-          onPress={this.zoomToUserLocation}
-          style={
+          onPress={() => this.zoomToUserLocation(this.state.fineLocation)}
+          style={[
             this.state.isStopShown || this.state.segments?.length == 0
               ? styles.fab
-              : { ...styles.fab, bottom: 150 }
-          }
+              : { ...styles.fab, bottom: 110 },
+            {
+              backgroundColor:
+                this.context.theme === "light" ? "white" : "#383838",
+            },
+          ]}
         >
           <Image
             source={require("../assets/target.png")}
@@ -550,6 +636,18 @@ class MapDisplay extends Component {
           }}
         />
 
+        <ErrorModal
+          visible={this.state.showingError}
+          title={"No Route Found"}
+          subtitle={
+            "Sorry, no route was found between those locations."
+          }
+          onConfirm={() => {
+            this.setState({ showingModal: false });
+            this.props.navigation.navigate("LocationInput");  
+          }}
+        />
+
         <StopInfo
           anim={slideAnimation}
           currStop={currStop}
@@ -562,7 +660,7 @@ class MapDisplay extends Component {
   }
 }
 
-export default MapDisplay; // = withStyles(MapDisplay); //, (theme) => ({
+export default MapDisplay;
 
 const styles = StyleSheet.create({
   container: {
@@ -588,13 +686,12 @@ const styles = StyleSheet.create({
 
   fab: {
     position: "absolute",
-    // backgroundColor: "white",
     borderRadius: 99,
     width: 65,
     height: 65,
     alignItems: "center",
     justifyContent: "center",
-    right: 30,
+    right: 20,
     bottom: 35,
     elevation: 3,
     zIndex: 3,

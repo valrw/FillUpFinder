@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Constants from "expo-constants";
 import {
   StyleSheet,
@@ -9,10 +9,47 @@ import {
 } from "react-native";
 import { Text, Icon, useTheme } from "@ui-kitten/components";
 import Carousel from "react-native-snap-carousel";
+import axios from "axios";
+
+const API_KEY = Constants.manifest.extra.API_KEY;
 
 function StopInfo(props) {
   const theme = useTheme();
+  const [photos, setPhotos] = useState([]);
+
   if (props.currStop == undefined) return <View />;
+
+  // Fetch Photos to display
+  useEffect(() => {
+    if (props.currStop.placeId !== undefined) {
+      getPhotos(props.currStop.placeId).then((res) => {
+        setPhotos(res);
+      });
+    }
+  }, [props.currStop.placeId]);
+
+  // Render photos in a Carousel
+  const renderStopImages = () => {
+    if (!photos || photos.length === 0) return;
+    return (
+      <View
+        style={{
+          // backgroundColor: "pink",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Carousel
+          data={photos}
+          renderItem={({ item, index }) => renderStopImage(item)}
+          sliderWidth={300}
+          itemWidth={220}
+        />
+      </View>
+    );
+  };
+
   return (
     <Animated.View
       style={[
@@ -26,8 +63,7 @@ function StopInfo(props) {
         {renderRatingsInfo(props.currStop.rating)}
       </View>
       <Text> {props.currStop.vicinity}</Text>
-      {/* {renderStopImages(props.currStop.photos)} */}
-      {renderStopImage(props.currStop.photos)}
+      {renderStopImages()}
       <TouchableOpacity
         onPress={props.onDeleteStop}
         style={styles.deleteButton}
@@ -58,48 +94,29 @@ const renderRatingsInfo = (rating) => {
   );
 };
 
-// Render the overview image for each stop
-const renderStopImage = (photos) => {
-  if (photos == undefined || photos.length == 0) return;
+const getPhotos = async (placeID) => {
+  const req = `https://maps.googleapis.com/maps/api/place/details/json?key=${API_KEY}&place_id=${placeID}`;
+  // console.log(req);
+  const response = await axios.get(req);
+  const photos = response.data.result.photos;
 
-  let photo = photos[0];
+  return photos;
+};
+
+const renderStopImage = (photo) => {
   if (photo.photo_reference == undefined) return;
 
   let maxheight = 300;
   let currUri = `https://maps.googleapis.com/maps/api/place/photo?maxheight=${maxheight}&photoreference=`;
   currUri = currUri + photo.photo_reference;
-  currUri = currUri + "&key=" + Constants.manifest.extra.API_KEY;
+  currUri = currUri + "&key=" + API_KEY;
   return <Image source={{ uri: currUri }} style={styles.cardImage} />;
-};
-
-// const renderStopImage = (photo) => {
-//   if (photo.photo_reference == undefined) return;
-
-//   let maxheight = 300;
-//   let currUri = `https://maps.googleapis.com/maps/api/place/photo?maxheight=${maxheight}&photoreference=`;
-//   currUri = currUri + photo.photo_reference;
-//   currUri = currUri + "&key=" + API_KEY;
-//   return <Image source={{ uri: currUri }} style={styles.cardImage} />;
-// };
-
-const renderStopImages = (photos) => {
-  if (photos == undefined || photos.length == 0) return;
-  // console.log(photos.length);
-  return (
-    <Carousel
-      data={photos}
-      renderItem={({ item, index }) => renderStopImage(item)}
-      sliderWidth={310}
-      itemWidth={210}
-      // containerCustomStyle={{ flexGrow: 0 }}
-    />
-  );
 };
 
 const styles = StyleSheet.create({
   cardView: {
     width: "90%",
-    height: "35%",
+    height: 230,
     position: "absolute",
     bottom: 20,
     paddingTop: 10,
@@ -107,7 +124,6 @@ const styles = StyleSheet.create({
     paddingRight: 10,
     paddingBottom: 10,
     alignSelf: "center",
-    // backgroundColor: "white",
     borderRadius: 20,
     flexDirection: "column",
   },
@@ -137,17 +153,17 @@ const styles = StyleSheet.create({
     right: 3,
   },
 
-  cardScroll: {
-    height: "60%",
-    width: "100%",
-  },
+  // cardScroll: {
+  //   height: "60%",
+  //   width: "100%",
+  // },
 
   cardImage: {
     marginTop: 10,
     marginRight: 8,
-    height: 100,
-    // height: "65%",
-    resizeMode: "contain",
+    borderRadius: 6,
+    height: 120,
+    resizeMode: "cover",
   },
 
   deleteButton: {
