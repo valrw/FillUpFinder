@@ -70,6 +70,7 @@ class MapDisplay extends Component {
     let params = this.props.route.params;
     let start = params.startingPlaceId;
     let end = params.endingPlaceId;
+    let placeIds = params.placeIdsList;
     let fuelLeft = params.fuelLeft;
     let fuelCap = params.fuelCap;
     let mpg = params.mpg;
@@ -98,6 +99,7 @@ class MapDisplay extends Component {
     this.getDirections(
       start,
       end,
+      placeIds,
       fuelLeft,
       fuelCap,
       mpg,
@@ -107,6 +109,55 @@ class MapDisplay extends Component {
       mpgHighway
     );
   }
+
+  // async handleStops(startPos, endPos, placeIds, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg) {
+  //   try {
+  //     console.log('BEFORE: ', placeIds)
+  //     placeIds.splice(0, 1);
+  //     var tempStart = [startPos]
+  //     var allPlaceIds = tempStart.concat(placeIds);
+  //     allPlaceIds.concat(endPos);
+  //     console.log('AFTER: ', allPlaceIds)
+
+  //     for (let stop = 0; stop < allPlaceIds.length - 1; stop++) {
+  //       var url = `${ROOT_URL}/api/directions/${allPlaceIds[stop]}/${allPlaceIds[stop+1]}/${fuelLeft}/${fuelCap}/${mpg}/${calcOnGas}/`;
+  //       if (!calcOnGas) url = url + `${numStops}/`;
+  //       else url = url + `?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
+
+  //       var resp = await fetch(url);
+  //       var respJson = await resp.json();
+  //       var segments = respJson.route;
+
+  //       var stops = respJson.stops;
+  //       var stopsList = respJson.stopsList;
+
+  //       var start = segments[0].coords[0];
+  //       var lastSeg = segments[segments.length - 1];
+  //       var end = lastSeg.coords[lastSeg.coords.length - 1];
+
+  //       this.setState((prevState) => {
+  //         prevSegments = [...prevState.segments];
+  //         prevSegments.append(segments);
+
+  //         prevStopsList = [...prevState.stopsList];
+  //         prevStopsList.append(stopsList);
+
+  //         this.setState({ segments: prevSegments, stopsList: prevStopsList});
+  //       })
+
+  //       // this.setState({ segments, start, end, stops, stopsList });
+  //     }
+
+  //     // Zoom out the map
+  //     this.mapComponent.animateToRegion(respJson.zoomBounds);
+  //     this.getPositionUpdate(this.state.location);
+
+  //     return segments;
+  //   } catch (error) {
+  //     console.log(error);
+  //     return error;
+  //   }
+  // }
 
   getPositionUpdate = (position) => {
     if (!position) return;
@@ -144,6 +195,7 @@ class MapDisplay extends Component {
   async getDirections(
     startPos,
     endPos,
+    placeIds,
     fuelLeft,
     fuelCap,
     mpg,
@@ -153,9 +205,17 @@ class MapDisplay extends Component {
     mpgHighway = mpg
   ) {
     try {
-      var url = `${ROOT_URL}/api/directions/${startPos}/${endPos}/${fuelLeft}/${fuelCap}/${mpg}/${calcOnGas}/`;
-      if (!calcOnGas) url = url + `${numStops}/`;
-      else url = url + `?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
+      var url = `${ROOT_URL}/api/${placeIds.length > 0 ? "custom-" : ""}directions/`;
+      url = url + `${startPos}/${endPos}/${fuelLeft}/${fuelCap}/${mpg}/${calcOnGas}`;
+      if (!calcOnGas) url += `/${numStops}`;
+      else url += `?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
+
+      if (placeIds.length > 0){
+        url += `${calcOnGas ? "&" : "?"}stop=${placeIds[0]}`
+        for (let i = 1; i < placeIds.length; i++) {
+          url += `&stop=${placeIds[i]}`
+        }
+      }
 
       let resp = await fetch(url);
 
@@ -181,6 +241,7 @@ class MapDisplay extends Component {
         this.mapComponent.animateToRegion(respJson.zoomBounds);
         this.getPositionUpdate(this.state.fineLocation);
         return segments;
+
       }
     } catch (error) {
       console.log(error);
@@ -571,7 +632,7 @@ class MapDisplay extends Component {
           subtitle={"Sorry, no route was found between those locations."}
           onConfirm={() => {
             this.setState({ showingModal: false });
-            this.props.navigation.navigate("LocationInput");
+            this.props.navigation.navigate("LocationInput");  
           }}
         />
 
