@@ -115,10 +115,8 @@ const renderStopImage = (photo) => {
 
 const styles = StyleSheet.create({
   cardView: {
-    width: "90%",
-    height: "35%",
-    position: "absolute",
-    bottom: 20,
+    width: "100%",
+    height: 300,
     paddingTop: 10,
     paddingLeft: 10,
     paddingRight: 10,
@@ -167,8 +165,8 @@ const styles = StyleSheet.create({
 
   deleteButton: {
     position: "absolute",
-    bottom: 10,
-    left: 10,
+    bottom: 20,
+    left: 20,
   },
 
   trashIcon: {

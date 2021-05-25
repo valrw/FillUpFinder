@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, createRef } from "react";
 import {
   StyleSheet,
   View,
@@ -20,6 +20,7 @@ import haversine from "haversine-distance";
 import { nightStyle } from "../constants/mapStyles.js";
 import { StoreContext } from "../contexts/StoreContext";
 import debounce from "lodash.debounce";
+import { Modalize } from "react-native-modalize";
 
 const ANIMATED_VAL = 310;
 
@@ -28,6 +29,7 @@ class MapDisplay extends Component {
   constructor(props) {
     super(props);
     this.mapComponent = null;
+    this.modalize = createRef();
     this.state = {
       segments: [],
       start: { latitude: 0, longitude: 0 },
@@ -159,8 +161,7 @@ class MapDisplay extends Component {
 
       if (resp.status == 422) {
         this.setState({ showingError: true });
-      }
-      else {
+      } else {
         let respJson = await resp.json();
         let segments = respJson.route;
 
@@ -385,14 +386,7 @@ class MapDisplay extends Component {
 
   // Show the stop information view
   onMarkerClick = (index) => {
-    let slideInAnimation = Animated.timing(this.state.slideAnimate, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    });
-
-    // Animate the slide in entrance of the stop information view
-    if (!this.state.isStopShown) slideInAnimation.start();
+    if (!this.state.isStopShown) this.modalize.current?.open();
 
     this.setState({ currStopIndex: index, isStopShown: true });
   };
@@ -409,11 +403,7 @@ class MapDisplay extends Component {
     if (this.state.isStopShown) {
       this.setState({ isStopShown: false });
     }
-    Animated.timing(this.state.slideAnimate, {
-      toValue: ANIMATED_VAL,
-      duration: 150,
-      useNativeDriver: true,
-    }).start();
+    this.modalize.current?.close();
   };
 
   renderTimeLeft = () => {
@@ -578,22 +568,22 @@ class MapDisplay extends Component {
         <ErrorModal
           visible={this.state.showingError}
           title={"No Route Found"}
-          subtitle={
-            "Sorry, no route was found between those locations."
-          }
+          subtitle={"Sorry, no route was found between those locations."}
           onConfirm={() => {
             this.setState({ showingModal: false });
             this.props.navigation.navigate("LocationInput");
           }}
         />
 
-        <StopInfo
-          anim={slideAnimation}
-          currStop={currStop}
-          onDeleteStop={this.onDeletePress}
-        />
-
         {this.renderTimeLeft()}
+        <Modalize
+          ref={this.modalize}
+          adjustToContentHeight={true}
+          onClose={() => this.setState({ isStopShown: false })}
+          withOverlay={false}
+        >
+          <StopInfo currStop={currStop} onDeleteStop={this.onDeletePress} />
+        </Modalize>
       </View>
     );
   }
