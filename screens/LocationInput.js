@@ -43,10 +43,13 @@ class LocationInput extends Component {
 
     cars: [],
     finishedLoading: false,
+
     startAtUserLocation: false,
 
     showingCarError: false,
     showingLocError: false,
+
+    placeIdsList: [],
   };
 
   componentDidMount() {
@@ -58,6 +61,35 @@ class LocationInput extends Component {
         this.setState({ finishedLoading: true });
       }
     });
+
+    var params = this.props.route.params;
+    if (params !== undefined) {
+      var start = params.startingPlaceId;
+      var end = params.endingPlaceId;
+      var latitude = params.startingLat;
+      var longitude = params.startingLong;
+      var placeIDs = params.placeIdsList;
+
+      if (start !== "") {
+        this.setState({ startingPlaceId: start });
+      }
+
+      if (latitude !== "") {
+        this.setState({ startingLat: latitude });
+      }
+
+      if (longitude !== "") {
+        this.setState({ startingLat: longitude });
+      }
+
+      if (end !== "") {
+        this.setState({ endingPlaceId: end });
+      }
+
+      this.setState({ placeIdsList: placeIDs });
+    }
+    console.log("START: ", start);
+    console.log("END: ", end);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -71,7 +103,33 @@ class LocationInput extends Component {
         mpgHighway: params.mpgHighway,
         fuelCap: params.fuelCap,
       });
+
+      var start = params.startingPlaceId;
+      var end = params.endingPlaceId;
+      var latitude = params.startingLat;
+      var longitude = params.startingLong;
+      var placeIDs = params.placeIdsList;
+
+      if (start !== "") {
+        this.setState({ startingPlaceId: start });
+      }
+
+      if (latitude !== "") {
+        this.setState({ startingLat: latitude });
+      }
+
+      if (longitude !== "") {
+        this.setState({ startingLat: longitude });
+      }
+
+      if (end !== "") {
+        this.setState({ endingPlaceId: end });
+      }
+
+      this.setState({ placeIdsList: placeIDs });
     }
+    console.log("START: ", start);
+    console.log("END: ", end);
   }
 
   // Save current car list to async storage
@@ -99,6 +157,57 @@ class LocationInput extends Component {
     newCars.splice(this._carousel._activeItem, 1);
 
     this.setState({ cars: newCars }, this.saveCars);
+  };
+
+  getDirections = () => {
+    if (this.state.startingPlaceId == "" || this.state.endingPlaceId == "") {
+      this.setState({ showingLocError: true });
+    } else {
+      var fuelCap = 0,
+        mpg = 0;
+      var calcOnGas = this.state.selectedIndex.row;
+      if (calcOnGas == 0) {
+        if (this._carousel == undefined) {
+          this.setState({ showingCarError: true });
+        } else {
+          const currentCar = this.state.cars[this._carousel._activeItem];
+          fuelCap = currentCar.fuelCap;
+          mpg = currentCar.mpg;
+          var mpgCity = currentCar.mpgCity;
+          var mpgHighway = currentCar.mpgHighway;
+
+          this.props.navigation.navigate("MapDisplay", {
+            startingLat: this.state.startingLat,
+            startingLong: this.state.startingLong,
+            startingPlaceId: this.state.startingPlaceId,
+            endingPlaceId: this.state.endingPlaceId,
+            placeIdsList: this.state.placeIdsList,
+            fuelLeft: this.state.fuelPercent * 0.01 * fuelCap,
+            fuelCap: fuelCap,
+            mpg: mpg,
+            mpgCity: mpgCity,
+            mpgHighway: mpgHighway,
+            calcOnGas: this.state.selectedIndex.row,
+            numStops: this.state.numberOfStops,
+          });
+        }
+      } else {
+        this.props.navigation.navigate("MapDisplay", {
+          startingLat: this.state.startingLat,
+          startingLong: this.state.startingLong,
+          startingPlaceId: this.state.startingPlaceId,
+          endingPlaceId: this.state.endingPlaceId,
+          placeIdsList: this.state.placeIdsList,
+          fuelLeft: this.state.fuelPercent * 0.01 * fuelCap,
+          fuelCap: fuelCap,
+          mpg: mpg,
+          mpgCity: mpgCity,
+          mpgHighway: mpgHighway,
+          calcOnGas: this.state.selectedIndex.row,
+          numStops: this.state.numberOfStops,
+        });
+      }
+    }
   };
 
   getPlaceInfo = (place, details, index) => {
@@ -232,6 +341,15 @@ class LocationInput extends Component {
     }
   };
 
+  customizeStops = () => {
+    this.props.navigation.navigate("CustomizeStops", {
+      startingLat: this.state.startingLat,
+      startingLong: this.state.startingLong,
+      startingPlaceId: this.state.startingPlaceId,
+      endingPlaceId: this.state.endingPlaceId,
+    });
+  };
+
   render() {
     const options = ["Get Stops Based On Gas", "Set Fixed Number of Stops"];
 
@@ -320,12 +438,14 @@ class LocationInput extends Component {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.customStopsButtonTitle}>Customize Stops</Text>
-            <Button style={styles.customStopsButton}>
+            <Button
+              style={styles.customStopsButton}
+              onPress={this.customizeStops}
+            >
               <Icon
                 style={styles.customStopsIcon}
                 fill="#ffffff"
                 name="brush-outline"
-                // onPress={}
               />
             </Button>
           </View>
@@ -343,58 +463,7 @@ class LocationInput extends Component {
           <Button
             style={styles.navigateButton}
             size="giant"
-            onPress={() => {
-              if (
-                this.state.startingPlaceId == "" ||
-                this.state.endingPlaceId == ""
-              ) {
-                this.setState({ showingLocError: true });
-              } else {
-                var fuelCap = 0,
-                  mpg = 0;
-                var calcOnGas = this.state.selectedIndex.row;
-                if (calcOnGas == 0) {
-                  if (this._carousel == undefined) {
-                    this.setState({ showingCarError: true });
-                  } else {
-                    const currentCar =
-                      this.state.cars[this._carousel._activeItem];
-                    fuelCap = currentCar.fuelCap;
-                    mpg = currentCar.mpg;
-                    var mpgCity = currentCar.mpgCity;
-                    var mpgHighway = currentCar.mpgHighway;
-
-                    this.props.navigation.navigate("MapScreen", {
-                      startingLat: this.state.startingLat,
-                      startingLong: this.state.startingLong,
-                      startingPlaceId: this.state.startingPlaceId,
-                      endingPlaceId: this.state.endingPlaceId,
-                      fuelLeft: this.state.fuelPercent * 0.01 * fuelCap,
-                      fuelCap: fuelCap,
-                      mpg: mpg,
-                      mpgCity: mpgCity,
-                      mpgHighway: mpgHighway,
-                      calcOnGas: this.state.selectedIndex.row,
-                      numStops: this.state.numberOfStops,
-                    });
-                  }
-                } else {
-                  this.props.navigation.navigate("MapScreen", {
-                    startingLat: this.state.startingLat,
-                    startingLong: this.state.startingLong,
-                    startingPlaceId: this.state.startingPlaceId,
-                    endingPlaceId: this.state.endingPlaceId,
-                    fuelLeft: this.state.fuelPercent * 0.01 * fuelCap,
-                    fuelCap: fuelCap,
-                    mpg: mpg,
-                    mpgCity: mpgCity,
-                    mpgHighway: mpgHighway,
-                    calcOnGas: this.state.selectedIndex.row,
-                    numStops: this.state.numberOfStops,
-                  });
-                }
-              }
-            }}
+            onPress={this.getDirections}
           >
             Get Directions
           </Button>

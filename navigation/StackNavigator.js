@@ -1,10 +1,12 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
-// import MapDisplay from "../screens/MapDisplay";
+
 import MapScreen from "../screens/MapScreen";
-import LocationInput from "../screens/LocationInput";
 import VehicleInput from "../screens/VehicleInput";
 import Settings from "../screens/Settings";
+import WelcomeScreen from "../screens/WelcomeScreen";
+import LocationInput from "../screens/LocationInput";
+import CustomizeStops from "../screens/CustomizeStops";
 
 import {
   Icon,
@@ -72,6 +74,14 @@ const StackNavigator = () => {
       }}
     >
       <Stack.Screen
+        name="WelcomeScreen"
+        component={WelcomeScreen}
+        options={{
+          title: "Welcome",
+          headerTitleAlign: "center",
+        }}
+      />
+      <Stack.Screen
         name="LocationInput"
         component={LocationInput}
         options={({ navigation }) => ({
@@ -80,11 +90,6 @@ const StackNavigator = () => {
           headerRight: () => renderRightActions(navigation),
         })}
       />
-      {/* <Stack.Screen
-        name="MapDisplay"
-        component={MapDisplay}
-        options={{ title: "Your Route", headerTitleAlign: "center" }}
-      /> */}
       <Stack.Screen
         name="MapScreen"
         component={MapScreen}
@@ -94,6 +99,11 @@ const StackNavigator = () => {
         name="VehicleInput"
         component={VehicleInput}
         options={{ title: "Add Vehicle", headerTitleAlign: "center" }}
+      />
+      <Stack.Screen
+        name="CustomizeStops"
+        component={CustomizeStops}
+        options={{ title: "Customize your stops", headerTitleAlign: "center" }}
       />
       <Stack.Screen
         name="Settings"
