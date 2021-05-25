@@ -44,7 +44,7 @@ function StopInfo(props) {
           data={photos}
           renderItem={({ item, index }) => renderStopImage(item)}
           sliderWidth={300}
-          itemWidth={180}
+          itemWidth={220}
         />
       </View>
     );
@@ -116,7 +116,7 @@ const renderStopImage = (photo) => {
 const styles = StyleSheet.create({
   cardView: {
     width: "90%",
-    height: "35%",
+    height: 230,
     position: "absolute",
     bottom: 20,
     paddingTop: 10,
@@ -153,16 +153,17 @@ const styles = StyleSheet.create({
     right: 3,
   },
 
-  cardScroll: {
-    height: "60%",
-    width: "100%",
-  },
+  // cardScroll: {
+  //   height: "60%",
+  //   width: "100%",
+  // },
 
   cardImage: {
     marginTop: 10,
     marginRight: 8,
-    height: 100,
-    resizeMode: "contain",
+    borderRadius: 6,
+    height: 120,
+    resizeMode: "cover",
   },
 
   deleteButton: {
