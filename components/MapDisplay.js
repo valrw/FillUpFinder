@@ -7,7 +7,7 @@ import {
   Animated,
   TouchableOpacity,
 } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker, Callout, PROVIDER_GOOGLE } from "react-native-maps";
 import { ROOT_URL } from "../constants/api";
 import colors from "../constants/colors";
 // import StopInfo from "../components/StopInfo";
@@ -19,6 +19,8 @@ import haversine from "haversine-distance";
 import { nightStyle } from "../constants/mapStyles.js";
 import { StoreContext } from "../contexts/StoreContext";
 import debounce from "lodash.debounce";
+import MarkerPointer from "./MarkerPointer";
+import { Icon } from "@ui-kitten/components";
 
 // const ANIMATED_VAL = 310;
 
@@ -368,11 +370,11 @@ class MapDisplay extends PureComponent {
   };
 
   // Get blue icons for all icons, light blue for the selected icon
-  getMarkerIcon = (index) => {
-    if (this.state.isStopShown && index == this.state.currStopIndex) {
-      return require("../assets/map_marker2.png");
-    } else return require("../assets/map_marker.png");
-  };
+  // getMarkerIcon = (index) => {
+  //   if (this.state.isStopShown && index == this.state.currStopIndex) {
+  //     return require("../assets/map_marker2.png");
+  //   } else return require("../assets/map_marker.png");
+  // };
 
   // When randomly pressing on the map, dismiss the stop information view
   onMapPress = () => {
@@ -461,6 +463,7 @@ class MapDisplay extends PureComponent {
                 latitude: station.latitude,
                 longitude: station.longitude,
               }}
+              tracksViewChanges={false}
               onPress={(e) => {
                 this.props.setCurrStop(station);
                 e.stopPropagation();
@@ -468,9 +471,16 @@ class MapDisplay extends PureComponent {
               }}
             >
               <Image
-                source={this.getMarkerIcon(index)}
+                source={this.props.getMarkerIcon(station)}
                 style={styles.mapMarkerIcon}
               />
+              <Callout tooltip>
+                {/* <View
+                  style={{ width: 100, height: 100, backgroundColor: "white" }}
+                > */}
+                <MarkerPointer />
+                {/* </View> */}
+              </Callout>
             </Marker>
           ))}
 
@@ -509,7 +519,7 @@ class MapDisplay extends PureComponent {
           })}
         </MapView>
 
-        <TouchableOpacity
+        {/* <TouchableOpacity
           onPress={this.zoomToUserLocation}
           style={[
             this.state.isStopShown || this.state.segments?.length == 0
@@ -525,7 +535,7 @@ class MapDisplay extends PureComponent {
             source={require("../assets/target.png")}
             style={styles.fabIcon}
           ></Image>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         {this.loadingSpinner()}
 
@@ -583,6 +593,22 @@ const styles = StyleSheet.create({
   mapMarkerIcon: {
     width: 30,
     height: 30,
+  },
+  icon: {
+    width: 20,
+    height: 20,
+  },
+  callout: {
+    width: 20,
+    height: 20,
+    borderRadius: 100,
+    borderWidth: 6,
+    borderColor: "#3fdcfc",
+    bottom: 30,
+    // marginBottom: -20,
+    // position: "relative",
+    // bottom: 100,
+    // border: 13,
   },
 
   locationMarker: {

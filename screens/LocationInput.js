@@ -364,7 +364,7 @@ class LocationInput extends Component {
                     var mpgCity = currentCar.mpgCity;
                     var mpgHighway = currentCar.mpgHighway;
 
-                    this.props.navigation.navigate("MapDisplay", {
+                    this.props.navigation.navigate("MapScreen", {
                       startingLat: this.state.startingLat,
                       startingLong: this.state.startingLong,
                       startingPlaceId: this.state.startingPlaceId,
@@ -379,19 +379,6 @@ class LocationInput extends Component {
                     });
                   }
                 } else {
-                  // this.props.navigation.navigate("MapDisplay", {
-                  //   startingLat: this.state.startingLat,
-                  //   startingLong: this.state.startingLong,
-                  //   startingPlaceId: this.state.startingPlaceId,
-                  //   endingPlaceId: this.state.endingPlaceId,
-                  //   fuelLeft: this.state.fuelPercent * 0.01 * fuelCap,
-                  //   fuelCap: fuelCap,
-                  //   mpg: mpg,
-                  //   mpgCity: mpgCity,
-                  //   mpgHighway: mpgHighway,
-                  //   calcOnGas: this.state.selectedIndex.row,
-                  //   numStops: this.state.numberOfStops,
-                  // });
                   this.props.navigation.navigate("MapScreen", {
                     startingLat: this.state.startingLat,
                     startingLong: this.state.startingLong,
