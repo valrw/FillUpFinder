@@ -16,7 +16,7 @@ function WelcomeScreen({ navigation }) {
   return (
     <ImageBackground
       style={styles.container}
-      source={require("../assets/images/logo.jpg")}
+      source={require("../assets/images/map-bg.jpg")}
     >
       <View style={styles.welcomeTextContainer}>
         <Text style={styles.welcomeText}>Hack-A-Thing 2</Text>
