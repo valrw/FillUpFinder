@@ -1,74 +1,47 @@
-import React, { useState, useRef, useContext } from "react";
-import { StyleSheet, Image, TouchableOpacity } from "react-native";
-
+import React, { useState, useRef } from "react";
+import { StyleSheet } from "react-native";
 import MapDisplay from "../components/MapDisplay";
 import StopInfo from "../components/StopInfo";
-import GpsDisplay from "../components/GpsDisplay";
-import { StoreContext } from "../contexts/StoreContext";
-
-const getMarkerIcon = (stop) => {
-  // console.log(stop);
-  return require("../assets/map_marker.png");
-
-  // if (this.state.isStopShown && index == this.state.currStopIndex) {
-  //   return require("../assets/map_marker2.png");
-  // } else return require("../assets/map_marker.png");
-};
+import ConfirmModal from "../components/ConfirmModal";
 
 function MapScreen(props) {
   const [currStop, setCurrStop] = useState(null);
-  const storeContext = useContext(StoreContext);
+  const [confirmModalIsDisplayed, setConfirmModalIsDisplayed] = useState(false);
 
-  // const mapRef = useRef()
+  const mapRef = useRef();
 
   return (
     <>
       <MapDisplay
         params={props.route.params}
         setCurrStop={setCurrStop}
-        // ref={mapRef}
+        ref={mapRef}
       />
-      {currStop && (
+      {currStop?.station && (
         <StopInfo
           // anim={slideAnimation}
-          currStop={currStop}
-          onDeleteStop={props.onDeletePress}
+          currStop={currStop.station}
+          onDeleteStop={() => {
+            setConfirmModalIsDisplayed(true);
+          }}
         />
       )}
 
-      {/* {!currStop && (
-        //Previous version from MapDisplay.js
-
-        <GpsDisplay
-          gpsMode={this.state.GpsMode}
-          timeLeft={this.state.timeLeft}s
-          onStart={() => {
-            this.setState({ GpsMode: true });
+      {confirmModalIsDisplayed && (
+        <ConfirmModal
+          title={"Delete Stop"}
+          subtitle={
+            "Are you sure you want to remove this stop from your route?"
+          }
+          onConfirm={() => {
+            setConfirmModalIsDisplayed(false);
+            mapRef.current.deleteStop(currStop.index);
+          }}
+          onCancel={() => {
+            setConfirmModalIsDisplayed(false);
           }}
         />
-
-        Still need to implement functionality, right now it's not doing anything
-        <GpsDisplay
-          gpsMode={false}
-          timeLeft={0}
-          onStart={() => {
-            this.setState({ GpsMode: true });
-          }}
-        />
-      )} */}
-
-      <TouchableOpacity
-        onPress={() => mapRef.current.zoomToUserLocation("currentLocation")}
-        style={{
-          ...styles.fab,
-          backgroundColor: storeContext.theme === "light" ? "white" : "#383838",
-        }}
-      >
-        <Image
-          source={require("../assets/target.png")}
-          style={styles.fabIcon}
-        ></Image>
-      </TouchableOpacity>
+      )}
     </>
   );
 }

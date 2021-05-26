@@ -11,7 +11,6 @@ import MapView, { Marker, Callout, PROVIDER_GOOGLE } from "react-native-maps";
 import { ROOT_URL } from "../constants/api";
 import colors from "../constants/colors";
 import StopInfo from "../components/StopInfo";
-import ConfirmModal from "../components/ConfirmModal";
 import ErrorModal from "../components/ErrorModal";
 import GpsDisplay from "../components/GpsDisplay";
 import { getLocation } from "../services/LocationService.js";
@@ -23,8 +22,7 @@ import { Icon } from "@ui-kitten/components";
 import { v4 as uuidv4 } from "uuid";
 
 // const ANIMATED_VAL = 310;
-var curKey = 1;
-class MapDisplay extends Component {
+class MapDisplay extends PureComponent {
   static contextType = StoreContext;
   constructor(props) {
     super(props);
@@ -51,14 +49,14 @@ class MapDisplay extends Component {
       fineLocation: null,
       showFab: true,
     };
+    // this.showingModal = false;
+
+    this.fabRef = React.createRef();
   }
 
   zoomToUserLocation = (coords) => {
     if (!coords) return;
-    if (coords == "currentLocation") {
-      console.log("Heeey");
-      return;
-    }
+
     const camera = {
       center: {
         latitude: coords.latitude,
@@ -83,10 +81,6 @@ class MapDisplay extends Component {
     let calcOnGas = true;
     if (params.calcOnGas == 1) calcOnGas = false;
     let numStops = params.numStops;
-
-    this.isShowingModal = true;
-
-    this.curKey = 1;
 
     this.setState({ calcOnGas });
 
@@ -116,13 +110,6 @@ class MapDisplay extends Component {
       mpgCity,
       mpgHighway
     );
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    if (nextState.segments != this.state.segments) {
-      return true;
-    }
-    return false;
   }
 
   // async handleStops(startPos, endPos, placeIds, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg) {
@@ -439,7 +426,6 @@ class MapDisplay extends Component {
       }
 
       newStopsList.splice(removedStopIndex, 1, ...newStops);
-
       this.setState({ segments: newRoute, stopsList: newStopsList });
     } catch (error) {
       console.log(error);
@@ -470,23 +456,12 @@ class MapDisplay extends Component {
     // });
     // Animate the slide in entrance of the stop information view
     // if (!this.state.isStopShown) slideInAnimation.start();
-    // this.setState({ currStopIndex: index, isStopShown: true });
-    // this.setState({ isStopShown: true });
-  };
-
-  // Get blue icons for all icons, light blue for the selected icon
-  getMarkerIcon = (index) => {
-    if (this.state.isStopShown && index == this.state.currStopIndex) {
-      return require("../assets/map_marker2.png");
-    } else return require("../assets/map_marker.png");
   };
 
   // When randomly pressing on the map, dismiss the stop information view
   onMapPress = () => {
     this.props.setCurrStop(null);
-    // if (this.state.isStopShown) {
-    //   this.setState({ isStopShown: false });
-    // }
+    // this.fabRef.current.setNativeProps({ opacity: 1 });
     // Animated.timing(this.state.slideAnimate, {
     //   toValue: ANIMATED_VAL,
     //   duration: 150,
@@ -535,7 +510,6 @@ class MapDisplay extends Component {
             longitudeDelta: 0.0421,
           }}
           onPress={this.onMapPress}
-          // provider={PROVIDER_Google}
           provider={PROVIDER_GOOGLE}
           showsUserLocation={true}
           zoomTapEnabled={false}
@@ -577,11 +551,9 @@ class MapDisplay extends Component {
               }}
               onPress={(e) => {
                 e.stopPropagation();
-                this.props.setCurrStop(station);
-                this.setState({ showFab: false });
-                // this.onMarkerClick(index);
+                this.props.setCurrStop({ station, index });
+                // this.fabRef.current.setNativeProps({ opacity: 0 });
               }}
-              // tracksViewChanges={false}
             >
               <Image
                 source={this.getMarkerIcon(index)}
@@ -633,6 +605,7 @@ class MapDisplay extends Component {
 
         <TouchableOpacity
           onPress={() => this.zoomToUserLocation(this.state.fineLocation)}
+          ref={this.fabRef}
           style={[
             !this.state.showFab ? styles.fab : { ...styles.fab, bottom: 110 },
             {
@@ -648,21 +621,6 @@ class MapDisplay extends Component {
         </TouchableOpacity>
 
         {this.loadingSpinner()}
-
-        <ConfirmModal
-          visible={this.state.showingModal}
-          title={"Delete Stop"}
-          subtitle={
-            "Are you sure you want to remove this stop from your route?"
-          }
-          onConfirm={() => {
-            this.setState({ showingModal: false });
-            this.deleteStop(this.state.currStopIndex);
-          }}
-          onCancel={() => {
-            this.setState({ showingModal: false });
-          }}
-        />
 
         <ErrorModal
           visible={this.state.showingError}
