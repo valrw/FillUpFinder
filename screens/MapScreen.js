@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useRef, useContext } from "react";
+import { StyleSheet, Image, TouchableOpacity } from "react-native";
+
 import MapDisplay from "../components/MapDisplay";
 import StopInfo from "../components/StopInfo";
 import GpsDisplay from "../components/GpsDisplay";
+import { StoreContext } from "../contexts/StoreContext";
 
 const getMarkerIcon = (stop) => {
   // console.log(stop);
@@ -14,29 +17,16 @@ const getMarkerIcon = (stop) => {
 
 function MapScreen(props) {
   const [currStop, setCurrStop] = useState(null);
+  const storeContext = useContext(StoreContext);
 
-  // useCallback(
-  //   (stop) => {
-  //     callback;
-  //   },
-  //   [input]
-  // );
-
-  // const getMarkerIcon = (stop) => {
-  //   console.log(stop);
-  //   return require("../assets/map_marker.png");
-
-  //   // if (this.state.isStopShown && index == this.state.currStopIndex) {
-  //   //   return require("../assets/map_marker2.png");
-  //   // } else return require("../assets/map_marker.png");
-  // };
+  // const mapRef = useRef()
 
   return (
     <>
       <MapDisplay
         params={props.route.params}
         setCurrStop={setCurrStop}
-        getMarkerIcon={getMarkerIcon}
+        // ref={mapRef}
       />
       {currStop && (
         <StopInfo
@@ -46,46 +36,61 @@ function MapScreen(props) {
         />
       )}
 
-      {!currStop && (
+      {/* {!currStop && (
         //Previous version from MapDisplay.js
 
-        // <GpsDisplay
-        //   gpsMode={this.state.GpsMode}
-        //   timeLeft={this.state.timeLeft}
-        //   onStart={() => {
-        //     this.setState({ GpsMode: true });
-        //   }}
-        // />
+        <GpsDisplay
+          gpsMode={this.state.GpsMode}
+          timeLeft={this.state.timeLeft}s
+          onStart={() => {
+            this.setState({ GpsMode: true });
+          }}
+        />
 
-        // Still need to implement functionality, right now it's not doing anything
+        Still need to implement functionality, right now it's not doing anything
         <GpsDisplay
           gpsMode={false}
           timeLeft={0}
-          // onStart={() => {
-          //   this.setState({ GpsMode: true });
-          // }}
+          onStart={() => {
+            this.setState({ GpsMode: true });
+          }}
         />
-      )}
+      )} */}
 
-      {/* <TouchableOpacity
-        onPress={this.zoomToUserLocation}
-        style={[
-          this.state.isStopShown || this.state.segments?.length == 0
-            ? styles.fab
-            : { ...styles.fab, bottom: 110 },
-          {
-            backgroundColor:
-              this.context.theme === "light" ? "white" : "#383838",
-          },
-        ]}
+      <TouchableOpacity
+        onPress={() => mapRef.current.zoomToUserLocation("currentLocation")}
+        style={{
+          ...styles.fab,
+          backgroundColor: storeContext.theme === "light" ? "white" : "#383838",
+        }}
       >
         <Image
           source={require("../assets/target.png")}
           style={styles.fabIcon}
         ></Image>
-      </TouchableOpacity> */}
+      </TouchableOpacity>
     </>
   );
 }
 
 export default MapScreen;
+
+const styles = StyleSheet.create({
+  fab: {
+    position: "absolute",
+    borderRadius: 99,
+    width: 65,
+    height: 65,
+    alignItems: "center",
+    justifyContent: "center",
+    right: 20,
+    bottom: 35,
+    elevation: 3,
+    zIndex: 3,
+  },
+
+  fabIcon: {
+    width: 30,
+    height: 30,
+  },
+});

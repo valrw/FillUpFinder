@@ -7,7 +7,7 @@ import {
   Animated,
   TouchableOpacity,
 } from "react-native";
-import { Text, Icon, useTheme } from "@ui-kitten/components";
+import { Text, Icon, useTheme, Spinner } from "@ui-kitten/components";
 import Carousel from "react-native-snap-carousel";
 import axios from "axios";
 
@@ -17,34 +17,35 @@ function StopInfo(props) {
   const theme = useTheme();
   const [photos, setPhotos] = useState([]);
 
+  const [photosLoading, setPhotosLoading] = useState(true);
+
   if (props.currStop === undefined || props.currStop === null) return <View />;
 
   // Fetch Photos to display
   useEffect(() => {
+    setPhotosLoading(true);
     if (props.currStop.placeId !== undefined) {
       getPhotos(props.currStop.placeId).then((res) => {
         setPhotos(res);
+        setPhotosLoading(false);
       });
     }
-  }, [props.currStop.placeId]);
+  }, [props.currStop]);
 
   // Render photos in a Carousel
   const renderStopImages = () => {
-    if (!photos || photos.length === 0) return;
     return (
-      <View
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Carousel
-          data={photos}
-          renderItem={({ item, index }) => renderStopImage(item)}
-          sliderWidth={300}
-          itemWidth={220}
-        />
+      <View style={styles.carouselContainer}>
+        {photosLoading ? (
+          <Spinner size="giant" />
+        ) : (
+          <Carousel
+            data={photos}
+            renderItem={({ item, index }) => renderStopImage(item)}
+            sliderWidth={300}
+            itemWidth={220}
+          />
+        )}
       </View>
     );
   };
@@ -173,5 +174,14 @@ const styles = StyleSheet.create({
   trashIcon: {
     height: 24,
     width: 24,
+  },
+  carouselContainer: {
+    display: "flex",
+    flex: 1,
+    backgroundColor: "pink",
+    // minHeight: 130,
+    justifyContent: "center",
+    alignContent: "center",
+    alignItems: "center",
   },
 });

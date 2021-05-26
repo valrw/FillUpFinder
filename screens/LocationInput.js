@@ -176,7 +176,7 @@ class LocationInput extends Component {
           var mpgCity = currentCar.mpgCity;
           var mpgHighway = currentCar.mpgHighway;
 
-          this.props.navigation.navigate("MapDisplay", {
+          this.props.navigation.navigate("MapScreen", {
             startingLat: this.state.startingLat,
             startingLong: this.state.startingLong,
             startingPlaceId: this.state.startingPlaceId,
@@ -192,7 +192,7 @@ class LocationInput extends Component {
           });
         }
       } else {
-        this.props.navigation.navigate("MapDisplay", {
+        this.props.navigation.navigate("MapScreen", {
           startingLat: this.state.startingLat,
           startingLong: this.state.startingLong,
           startingPlaceId: this.state.startingPlaceId,
