@@ -3,10 +3,11 @@ import Constants from "expo-constants";
 import {
   StyleSheet,
   View,
-  Image,
   Animated,
   TouchableOpacity,
+  ScrollView,
 } from "react-native";
+import Image from "react-native-scalable-image";
 import { Text, Icon, useTheme } from "@ui-kitten/components";
 import Carousel from "react-native-snap-carousel";
 import axios from "axios";
@@ -40,12 +41,15 @@ function StopInfo(props) {
           alignItems: "center",
         }}
       >
-        <Carousel
+        <ScrollView horizontal={true}>
+          {photos.map((photo, index) => renderStopImage(photo, index))}
+        </ScrollView>
+        {/* <Carousel
           data={photos}
-          renderItem={({ item, index }) => renderStopImage(item)}
-          sliderWidth={300}
-          itemWidth={220}
-        />
+          renderItem={({ item }) => renderStopImage(item)}
+          sliderWidth={400}
+          itemWidth={200}
+        /> */}
       </View>
     );
   };
@@ -87,6 +91,7 @@ const renderRatingsInfo = (rating) => {
       <Image
         style={styles.starIcon}
         resizeMode="contain"
+        height={15}
         source={require("../assets/star.png")}
       />
       <Text>{rating + "/5"}</Text>
@@ -103,14 +108,21 @@ const getPhotos = async (placeID) => {
   return photos;
 };
 
-const renderStopImage = (photo) => {
+const renderStopImage = (photo, key) => {
   if (photo.photo_reference == undefined) return;
 
   let maxheight = 300;
   let currUri = `https://maps.googleapis.com/maps/api/place/photo?maxheight=${maxheight}&photoreference=`;
   currUri = currUri + photo.photo_reference;
   currUri = currUri + "&key=" + API_KEY;
-  return <Image source={{ uri: currUri }} style={styles.cardImage} />;
+  return (
+    <Image
+      key={key}
+      source={{ uri: currUri }}
+      height={150}
+      style={styles.cardImage}
+    />
+  );
 };
 
 const styles = StyleSheet.create({
@@ -159,9 +171,7 @@ const styles = StyleSheet.create({
   cardImage: {
     marginTop: 10,
     marginRight: 8,
-    borderRadius: 6,
-    height: 120,
-    resizeMode: "cover",
+    height: 150,
   },
 
   deleteButton: {

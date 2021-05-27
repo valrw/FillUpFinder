@@ -89,14 +89,6 @@ const StackNavigator = () => {
       }}
     >
       <Stack.Screen
-        name="WelcomeScreen"
-        component={WelcomeScreen}
-        options={{
-          title: "Welcome",
-          headerTitleAlign: "center",
-        }}
-      />
-      <Stack.Screen
         name="LocationInput"
         component={LocationInput}
         options={({ navigation }) => ({
