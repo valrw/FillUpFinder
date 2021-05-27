@@ -1,12 +1,5 @@
-import React, { Component, PureComponent } from "react";
-import {
-  StyleSheet,
-  View,
-  ActivityIndicator,
-  Image,
-  Animated,
-  TouchableOpacity,
-} from "react-native";
+import React, { PureComponent } from "react";
+import { StyleSheet, View, ActivityIndicator, Image } from "react-native";
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from "react-native-maps";
 import { ROOT_URL } from "../constants/api";
 import colors from "../constants/colors";
@@ -16,14 +9,10 @@ import GpsDisplay from "../components/GpsDisplay";
 import { getLocation } from "../services/LocationService.js";
 import haversine from "haversine-distance";
 import { nightStyle } from "../constants/mapStyles.js";
-import { StoreContext } from "../contexts/StoreContext";
 import debounce from "lodash.debounce";
-import { Icon, withStyles } from "@ui-kitten/components";
-import { v4 as uuidv4 } from "uuid";
+import { Icon } from "@ui-kitten/components";
 
-// const ANIMATED_VAL = 310;
 class MapDisplay extends PureComponent {
-  // static contextType = StoreContext;
   constructor(props) {
     super(props);
     this.mapComponent = null;
@@ -39,9 +28,7 @@ class MapDisplay extends PureComponent {
       isStopShown: false,
       currStopIndex: 0,
       currSegIndex: [0, 0],
-      // slideAnimate: new Animated.Value(ANIMATED_VAL),
       timeLeft: 0,
-
       showingModal: false,
       showingError: false,
       replacingStop: false,
@@ -452,25 +439,16 @@ class MapDisplay extends PureComponent {
 
   // Show the stop information view
   onMarkerClick = (index) => {
-    // this.gpsRef.current.setHidden(true);
-    // let slideInAnimation = Animated.timing(this.state.slideAnimate, {
-    //   toValue: 0,
-    //   duration: 300,
-    //   useNativeDriver: true,
-    // });
-    // Animate the slide in entrance of the stop information view
-    // if (!this.state.isStopShown) slideInAnimation.start();
+    // This hides the GPS without having to rerender the MapDisplay component
+    this.gpsRef.current.setNativeProps({ opacity: 0 });
   };
 
   // When randomly pressing on the map, dismiss the stop information view
   onMapPress = () => {
+    // This dismisses the stop info view
     this.props.setCurrStop(null);
-    // this.fabRef.current.setNativeProps({ opacity: 1 });
-    // Animated.timing(this.state.slideAnimate, {
-    //   toValue: ANIMATED_VAL,
-    //   duration: 150,
-    //   useNativeDriver: true,
-    // }).start();
+    // This unhides the GPS without having to rerender the MapDisplay component
+    this.gpsRef.current.setNativeProps({ opacity: 1 });
   };
 
   renderTimeLeft = () => {
@@ -491,16 +469,6 @@ class MapDisplay extends PureComponent {
   };
 
   render() {
-    // const theme = this.props.eva.theme;
-    // const slideAnimation = {
-    //   transform: [{ translateY: this.state.slideAnimate }],
-    // };
-
-    // let currStop = { name: "", vicinity: "" };
-
-    // if (this.state.isStopShown)
-    //   currStop = this.state.stopsList[this.state.currStopIndex];
-
     const transparent = "#0000ff30";
     const regular = "#0000ff";
 
@@ -559,7 +527,6 @@ class MapDisplay extends PureComponent {
                 e.stopPropagation();
                 this.props.setCurrStop({ station, index });
                 this.onMarkerClick();
-                // this.fabRef.current.setNativeProps({ opacity: 0 });
               }}
             >
               <Image source={this.markerImg} style={styles.mapMarkerIcon} />
@@ -621,11 +588,7 @@ class MapDisplay extends PureComponent {
           }}
         />
 
-        <StopInfo
-          // anim={slideAnimation}
-          // currStop={currStop}
-          onDeleteStop={this.onDeletePress}
-        />
+        <StopInfo onDeleteStop={this.onDeletePress} />
 
         {this.renderTimeLeft()}
       </View>
@@ -633,7 +596,6 @@ class MapDisplay extends PureComponent {
   }
 }
 
-// export default MapDisplay = withStyles(MapDisplay);
 export default MapDisplay = MapDisplay;
 
 const styles = StyleSheet.create({
@@ -685,10 +647,6 @@ const styles = StyleSheet.create({
   markerIndicator: {
     width: 30,
     height: 30,
-    elevation: 10,
-    shadowColor: "black",
-    // borderWidth: 1,
-    borderColor: "black",
     marginBottom: -3,
   },
   markerIndicatorContainer: {

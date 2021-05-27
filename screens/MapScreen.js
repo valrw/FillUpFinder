@@ -9,8 +9,6 @@ function MapScreen(props) {
   const [currStop, setCurrStop] = useState(null);
   const [confirmModalIsDisplayed, setConfirmModalIsDisplayed] = useState(false);
 
-  const [recalculating, setRecalculating] = useState(false);
-
   const mapRef = useRef();
   const context = useContext(StoreContext);
 
@@ -20,11 +18,9 @@ function MapScreen(props) {
         params={props.route.params}
         setCurrStop={setCurrStop}
         ref={mapRef}
-        setRecalculating={setRecalculating}
       />
       {currStop?.station && (
         <StopInfo
-          // anim={slideAnimation}
           currStop={currStop.station}
           onDeleteStop={() => {
             setConfirmModalIsDisplayed(true);
@@ -53,7 +49,6 @@ function MapScreen(props) {
           onPress={() => {
             mapRef.current.zoomToUserLocation("current");
           }}
-          // ref={this.fabRef}
           style={{
             ...styles.fab,
             backgroundColor: context.theme === "light" ? "white" : "#383838",
@@ -82,23 +77,6 @@ function MapScreen(props) {
           ></Image>
         </TouchableOpacity>
       )}
-
-      {/* renderTimeLeft = () => {
-    if (this.state.segments.length == 0 || this.state.isStopShown) return null;
-
-    return (
-      <GpsDisplay
-        gpsMode={this.state.GpsMode}
-        ref={this.gpsRef}
-        timeLeft={this.state.timeLeft}
-        recalculating={this.state.recalculating}
-        onStart={() => {
-          this.setState((prevState) => ({ GpsMode: !prevState.GpsMode }));
-          this.zoomToUserLocation(this.state.fineLocation);
-        }}
-      />
-    );
-  }; */}
     </>
   );
 }
