@@ -152,11 +152,6 @@ const styles = StyleSheet.create({
     right: 3,
   },
 
-  // cardScroll: {
-  //   height: "60%",
-  //   width: "100%",
-  // },
-
   cardImage: {
     marginTop: 10,
     marginRight: 8,
@@ -174,12 +169,11 @@ const styles = StyleSheet.create({
   trashIcon: {
     height: 24,
     width: 24,
+    margin: 3,
   },
   carouselContainer: {
     display: "flex",
     flex: 1,
-    backgroundColor: "pink",
-    // minHeight: 130,
     justifyContent: "center",
     alignContent: "center",
     alignItems: "center",

@@ -18,12 +18,12 @@ import haversine from "haversine-distance";
 import { nightStyle } from "../constants/mapStyles.js";
 import { StoreContext } from "../contexts/StoreContext";
 import debounce from "lodash.debounce";
-import { Icon } from "@ui-kitten/components";
+import { Icon, withStyles } from "@ui-kitten/components";
 import { v4 as uuidv4 } from "uuid";
 
 // const ANIMATED_VAL = 310;
 class MapDisplay extends PureComponent {
-  static contextType = StoreContext;
+  // static contextType = StoreContext;
   constructor(props) {
     super(props);
     this.mapComponent = null;
@@ -49,18 +49,21 @@ class MapDisplay extends PureComponent {
       fineLocation: null,
       showFab: true,
     };
-    // this.showingModal = false;
 
-    this.fabRef = React.createRef();
+    this.gpsRef = React.createRef();
+    this.markerImg = require("../assets/map_marker.png");
   }
 
   zoomToUserLocation = (coords) => {
     if (!coords) return;
-
+    let coordinates = coords;
+    if (coords === "current") {
+      coordinates = this.state.fineLocation;
+    }
     const camera = {
       center: {
-        latitude: coords.latitude,
-        longitude: coords.longitude,
+        latitude: coordinates.latitude,
+        longitude: coordinates.longitude,
       },
       altitude: 10000,
       zoom: 15,
@@ -449,6 +452,7 @@ class MapDisplay extends PureComponent {
 
   // Show the stop information view
   onMarkerClick = (index) => {
+    // this.gpsRef.current.setHidden(true);
     // let slideInAnimation = Animated.timing(this.state.slideAnimate, {
     //   toValue: 0,
     //   duration: 300,
@@ -475,6 +479,7 @@ class MapDisplay extends PureComponent {
     return (
       <GpsDisplay
         gpsMode={this.state.GpsMode}
+        ref={this.gpsRef}
         timeLeft={this.state.timeLeft}
         recalculating={this.state.recalculating}
         onStart={() => {
@@ -486,6 +491,7 @@ class MapDisplay extends PureComponent {
   };
 
   render() {
+    // const theme = this.props.eva.theme;
     // const slideAnimation = {
     //   transform: [{ translateY: this.state.slideAnimate }],
     // };
@@ -552,19 +558,19 @@ class MapDisplay extends PureComponent {
               onPress={(e) => {
                 e.stopPropagation();
                 this.props.setCurrStop({ station, index });
+                this.onMarkerClick();
                 // this.fabRef.current.setNativeProps({ opacity: 0 });
               }}
             >
-              <Image
-                source={this.getMarkerIcon(index)}
-                style={styles.mapMarkerIcon}
-              />
+              <Image source={this.markerImg} style={styles.mapMarkerIcon} />
 
               <Callout tooltip>
                 <Icon
                   style={styles.markerIndicator}
-                  fill={colors.markerBlue}
+                  fill={"white"}
                   name="arrow-down"
+                  stroke={"#222B45"}
+                  strokeWidth={0.8}
                 />
               </Callout>
             </Marker>
@@ -603,23 +609,6 @@ class MapDisplay extends PureComponent {
           })}
         </MapView>
 
-        <TouchableOpacity
-          onPress={() => this.zoomToUserLocation(this.state.fineLocation)}
-          ref={this.fabRef}
-          style={[
-            !this.state.showFab ? styles.fab : { ...styles.fab, bottom: 110 },
-            {
-              backgroundColor:
-                this.context.theme === "light" ? "white" : "#383838",
-            },
-          ]}
-        >
-          <Image
-            source={require("../assets/target.png")}
-            style={styles.fabIcon}
-          ></Image>
-        </TouchableOpacity>
-
         {this.loadingSpinner()}
 
         <ErrorModal
@@ -644,7 +633,8 @@ class MapDisplay extends PureComponent {
   }
 }
 
-export default MapDisplay;
+// export default MapDisplay = withStyles(MapDisplay);
+export default MapDisplay = MapDisplay;
 
 const styles = StyleSheet.create({
   container: {
@@ -695,6 +685,10 @@ const styles = StyleSheet.create({
   markerIndicator: {
     width: 30,
     height: 30,
+    elevation: 10,
+    shadowColor: "black",
+    // borderWidth: 1,
+    borderColor: "black",
     marginBottom: -3,
   },
   markerIndicatorContainer: {
