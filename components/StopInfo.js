@@ -7,7 +7,7 @@ import {
   Animated,
   TouchableOpacity,
 } from "react-native";
-import { Text, Icon, useTheme } from "@ui-kitten/components";
+import { Text, Icon, useTheme, Spinner } from "@ui-kitten/components";
 import Carousel from "react-native-snap-carousel";
 import axios from "axios";
 
@@ -17,44 +17,44 @@ function StopInfo(props) {
   const theme = useTheme();
   const [photos, setPhotos] = useState([]);
 
-  if (props.currStop == undefined) return <View />;
+  const [photosLoading, setPhotosLoading] = useState(true);
+
+  if (props.currStop === undefined || props.currStop === null) return <View />;
 
   // Fetch Photos to display
   useEffect(() => {
+    setPhotosLoading(true);
     if (props.currStop.placeId !== undefined) {
       getPhotos(props.currStop.placeId).then((res) => {
         setPhotos(res);
+        setPhotosLoading(false);
       });
     }
-  }, [props.currStop.placeId]);
+  }, [props.currStop]);
 
   // Render photos in a Carousel
   const renderStopImages = () => {
-    if (!photos || photos.length === 0) return;
     return (
-      <View
-        style={{
-          // backgroundColor: "pink",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Carousel
-          data={photos}
-          renderItem={({ item, index }) => renderStopImage(item)}
-          sliderWidth={300}
-          itemWidth={220}
-        />
+      <View style={styles.carouselContainer}>
+        {photosLoading ? (
+          <Spinner size="giant" />
+        ) : (
+          <Carousel
+            data={photos}
+            renderItem={({ item, index }) => renderStopImage(item)}
+            sliderWidth={300}
+            itemWidth={220}
+          />
+        )}
       </View>
     );
   };
 
   return (
-    <Animated.View
+    <View
       style={[
         styles.cardView,
-        props.anim,
+        // props.anim,
         { backgroundColor: theme["background-basic-color-1"] },
       ]}
     >
@@ -74,7 +74,7 @@ function StopInfo(props) {
           name="trash-2-outline"
         />
       </TouchableOpacity>
-    </Animated.View>
+    </View>
   );
 }
 
@@ -96,7 +96,6 @@ const renderRatingsInfo = (rating) => {
 
 const getPhotos = async (placeID) => {
   const req = `https://maps.googleapis.com/maps/api/place/details/json?key=${API_KEY}&place_id=${placeID}`;
-  // console.log(req);
   const response = await axios.get(req);
   const photos = response.data.result.photos;
 
@@ -153,11 +152,6 @@ const styles = StyleSheet.create({
     right: 3,
   },
 
-  // cardScroll: {
-  //   height: "60%",
-  //   width: "100%",
-  // },
-
   cardImage: {
     marginTop: 10,
     marginRight: 8,
@@ -175,5 +169,13 @@ const styles = StyleSheet.create({
   trashIcon: {
     height: 24,
     width: 24,
+    margin: 3,
+  },
+  carouselContainer: {
+    display: "flex",
+    flex: 1,
+    justifyContent: "center",
+    alignContent: "center",
+    alignItems: "center",
   },
 });

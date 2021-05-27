@@ -36,6 +36,8 @@ const styles = StyleSheet.create({
 
   modalContainer: {
     width: "60%",
+    minWidth: 270,
+    // width: 300,
     flexDirection: "column",
     justifyContent: "flex-start",
     alignItems: "center",

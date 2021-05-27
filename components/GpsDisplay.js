@@ -1,8 +1,8 @@
-import React from "react";
+import React, { forwardRef } from "react";
 import { Platform, ActivityIndicator, View, StyleSheet } from "react-native";
 import { Text, Button, useTheme } from "@ui-kitten/components";
 
-function GpsDisplay(props) {
+const GpsDisplay = forwardRef((props, ref) => {
   const theme = useTheme();
   let timeTitle = props.gpsMode ? "Time Left" : "Total Time";
 
@@ -49,6 +49,7 @@ function GpsDisplay(props) {
 
   return (
     <View
+      ref={ref}
       style={[
         Platform.OS == "android"
           ? styles.displayContainer
@@ -59,7 +60,7 @@ function GpsDisplay(props) {
       {renderContents()}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   displayContainer: {

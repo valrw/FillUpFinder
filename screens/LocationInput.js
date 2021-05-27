@@ -49,7 +49,7 @@ class LocationInput extends Component {
     showingCarError: false,
     showingLocError: false,
 
-    placeIdsList: []
+    placeIdsList: [],
   };
 
   componentDidMount() {
@@ -71,27 +71,26 @@ class LocationInput extends Component {
       var placeIDs = params.placeIdsList;
 
       if (start !== "") {
-          this.setState({ startingPlaceId: start });
+        this.setState({ startingPlaceId: start });
       }
 
       if (latitude !== "") {
-          this.setState({ startingLat: latitude });
+        this.setState({ startingLat: latitude });
       }
 
       if (longitude !== "") {
-          this.setState({ startingLat: longitude });
+        this.setState({ startingLat: longitude });
       }
 
       if (end !== "") {
-          this.setState({ endingPlaceId: end });
+        this.setState({ endingPlaceId: end });
       }
 
       this.setState({ placeIdsList: placeIDs });
     }
-    console.log('START: ', start)
-    console.log('END: ', end)
+    console.log("START: ", start);
+    console.log("END: ", end);
   }
-
 
   componentDidUpdate(prevProps, prevState) {
     if (this.props.route.params == null) return;
@@ -112,27 +111,26 @@ class LocationInput extends Component {
       var placeIDs = params.placeIdsList;
 
       if (start !== "") {
-          this.setState({ startingPlaceId: start });
+        this.setState({ startingPlaceId: start });
       }
 
       if (latitude !== "") {
-          this.setState({ startingLat: latitude });
+        this.setState({ startingLat: latitude });
       }
 
       if (longitude !== "") {
-          this.setState({ startingLat: longitude });
+        this.setState({ startingLat: longitude });
       }
 
       if (end !== "") {
-          this.setState({ endingPlaceId: end });
+        this.setState({ endingPlaceId: end });
       }
 
       this.setState({ placeIdsList: placeIDs });
     }
-    console.log('START: ', start)
-    console.log('END: ', end)
+    console.log("START: ", start);
+    console.log("END: ", end);
   }
-
 
   // Save current car list to async storage
   saveCars = () => {
@@ -141,7 +139,6 @@ class LocationInput extends Component {
       AsyncStorage.setItem("@cars", JSON.stringify(cars));
     });
   };
-
 
   // Add a car and then update the car list in async storage
   addCar = (car) => {
@@ -153,7 +150,6 @@ class LocationInput extends Component {
     });
   };
 
-
   // Delete car and then update the car list in async storage
   deleteCar = () => {
     const { cars } = this.state;
@@ -163,28 +159,24 @@ class LocationInput extends Component {
     this.setState({ cars: newCars }, this.saveCars);
   };
 
-
   getDirections = () => {
     if (this.state.startingPlaceId == "" || this.state.endingPlaceId == "") {
       this.setState({ showingLocError: true });
-    }
-
-    else {
+    } else {
       var fuelCap = 0,
         mpg = 0;
       var calcOnGas = this.state.selectedIndex.row;
       if (calcOnGas == 0) {
         if (this._carousel == undefined) {
           this.setState({ showingCarError: true });
-        }
-        else {
+        } else {
           const currentCar = this.state.cars[this._carousel._activeItem];
           fuelCap = currentCar.fuelCap;
           mpg = currentCar.mpg;
           var mpgCity = currentCar.mpgCity;
           var mpgHighway = currentCar.mpgHighway;
 
-          this.props.navigation.navigate("MapDisplay", {
+          this.props.navigation.navigate("MapScreen", {
             startingLat: this.state.startingLat,
             startingLong: this.state.startingLong,
             startingPlaceId: this.state.startingPlaceId,
@@ -200,7 +192,7 @@ class LocationInput extends Component {
           });
         }
       } else {
-        this.props.navigation.navigate("MapDisplay", {
+        this.props.navigation.navigate("MapScreen", {
           startingLat: this.state.startingLat,
           startingLong: this.state.startingLong,
           startingPlaceId: this.state.startingPlaceId,
@@ -218,7 +210,6 @@ class LocationInput extends Component {
     }
   };
 
-
   getPlaceInfo = (place, details, index) => {
     if (index == 0) {
       // Starting Location
@@ -234,7 +225,6 @@ class LocationInput extends Component {
       this.setState({ endingPlaceId: place.place_id });
     }
   };
-
 
   renderTripOptions = (selectedOption) => {
     if (selectedOption == 0) {
@@ -351,7 +341,6 @@ class LocationInput extends Component {
     }
   };
 
-
   customizeStops = () => {
     this.props.navigation.navigate("CustomizeStops", {
       startingLat: this.state.startingLat,
@@ -448,16 +437,17 @@ class LocationInput extends Component {
             </Select>
           </View>
           <View style={{ flex: 1 }}>
-          <Text style={styles.customStopsButtonTitle}>Customize Stops</Text>
-          <Button 
-          style={styles.customStopsButton} 
-          onPress={this.customizeStops}>
-          <Icon
-            style={styles.customStopsIcon}
-            fill="#ffffff"
-            name="brush-outline"
-          />
-          </Button>
+            <Text style={styles.customStopsButtonTitle}>Customize Stops</Text>
+            <Button
+              style={styles.customStopsButton}
+              onPress={this.customizeStops}
+            >
+              <Icon
+                style={styles.customStopsIcon}
+                fill="#ffffff"
+                name="brush-outline"
+              />
+            </Button>
           </View>
         </View>
 
@@ -482,9 +472,7 @@ class LocationInput extends Component {
         <ErrorModal
           visible={this.state.showingCarError}
           title={"No Vehicle Entered"}
-          subtitle={
-            "Please choose a vehicle to calculate stops based on gas."
-          }
+          subtitle={"Please choose a vehicle to calculate stops based on gas."}
           onConfirm={() => {
             this.setState({ showingCarError: false });
           }}
@@ -493,11 +481,9 @@ class LocationInput extends Component {
         <ErrorModal
           visible={this.state.showingLocError}
           title={"Missing Location"}
-          subtitle={
-            "Please enter a valid starting point and destination."
-          }
+          subtitle={"Please enter a valid starting point and destination."}
           onConfirm={() => {
-            this.setState({ showingLocError: false});
+            this.setState({ showingLocError: false });
           }}
         />
       </Layout>
