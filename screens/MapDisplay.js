@@ -108,55 +108,6 @@ class MapDisplay extends Component {
     );
   }
 
-  // async handleStops(startPos, endPos, placeIds, fuelLeft, fuelCap, mpg, calcOnGas, numStops, mpgCity = mpg, mpgHighway = mpg) {
-  //   try {
-  //     console.log('BEFORE: ', placeIds)
-  //     placeIds.splice(0, 1);
-  //     var tempStart = [startPos]
-  //     var allPlaceIds = tempStart.concat(placeIds);
-  //     allPlaceIds.concat(endPos);
-  //     console.log('AFTER: ', allPlaceIds)
-
-  //     for (let stop = 0; stop < allPlaceIds.length - 1; stop++) {
-  //       var url = `${ROOT_URL}/api/directions/${allPlaceIds[stop]}/${allPlaceIds[stop+1]}/${fuelLeft}/${fuelCap}/${mpg}/${calcOnGas}/`;
-  //       if (!calcOnGas) url = url + `${numStops}/`;
-  //       else url = url + `?mpgCity=${mpgCity}&mpgHighway=${mpgHighway}`;
-
-  //       var resp = await fetch(url);
-  //       var respJson = await resp.json();
-  //       var segments = respJson.route;
-
-  //       var stops = respJson.stops;
-  //       var stopsList = respJson.stopsList;
-
-  //       var start = segments[0].coords[0];
-  //       var lastSeg = segments[segments.length - 1];
-  //       var end = lastSeg.coords[lastSeg.coords.length - 1];
-
-  //       this.setState((prevState) => {
-  //         prevSegments = [...prevState.segments];
-  //         prevSegments.append(segments);
-
-  //         prevStopsList = [...prevState.stopsList];
-  //         prevStopsList.append(stopsList);
-
-  //         this.setState({ segments: prevSegments, stopsList: prevStopsList});
-  //       })
-
-  //       // this.setState({ segments, start, end, stops, stopsList });
-  //     }
-
-  //     // Zoom out the map
-  //     this.mapComponent.animateToRegion(respJson.zoomBounds);
-  //     this.getPositionUpdate(this.state.location);
-
-  //     return segments;
-  //   } catch (error) {
-  //     console.log(error);
-  //     return error;
-  //   }
-  // }
-
   getPositionUpdate = (position) => {
     if (!position) return;
     if (!this.state.GpsMode) return;
@@ -548,7 +499,7 @@ class MapDisplay extends Component {
 
           {this.state.stopsList.map((station, index) => (
             <Marker
-              key={index}
+              key={`${station.latitude},${station.longitude}`}
               coordinate={{
                 latitude: station.latitude,
                 longitude: station.longitude,
@@ -557,12 +508,9 @@ class MapDisplay extends Component {
                 e.stopPropagation();
                 this.onMarkerClick(index);
               }}
+              image={this.getMarkerIcon()}
               tracksViewChanges={false}
             >
-              <Image
-                source={this.getMarkerIcon(index)}
-                style={styles.mapMarkerIcon}
-              />
             </Marker>
           ))}
 

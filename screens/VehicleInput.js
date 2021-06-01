@@ -104,6 +104,7 @@ const VehicleInput = () => {
         mpgHighway: manualMPG
           ? convertedMPG(manualMPGVal)
           : convertedMPG(mpgHighway),
+        prevScreen: "VehicleInput",
       });
     }
   };
