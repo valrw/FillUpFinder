@@ -4,15 +4,21 @@ import Constants from "expo-constants";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 
 class LocationInputText extends Component {
+
   state = {
     sessionId: "",
     borderColor: this.props.themedColors.borderColor,
+    text: "",
   };
 
   updateSessionId = () => {
     var sessionId = Math.random().toString(36).substring(2);
     this.setState({ sessionId });
   };
+
+  updateAddressText = (text) => {
+    this.setState({ text });
+  }
 
   componentDidMount() {
     this.updateSessionId();
@@ -24,6 +30,7 @@ class LocationInputText extends Component {
     ) {
       this.setState({ borderColor: this.props.themedColors.borderColor });
     }
+    this.props.input_ref.current?.setAddressText(this.state.text);
   }
 
   render() {

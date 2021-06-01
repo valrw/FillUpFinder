@@ -27,6 +27,10 @@ class LocationInput extends Component {
   constructor(props) {
     super(props);
     this.startingInputRef = React.createRef();
+    this.destInputRef = React.createRef();
+    this.startingRef = React.createRef();
+    this.destRef = React.createRef();
+    // GLOBAL.locationInputScreen = this;
   }
 
   state = {
@@ -34,6 +38,8 @@ class LocationInput extends Component {
     startingLong: -117.919,
     startingPlaceId: "",
     endingPlaceId: "",
+    startText: "",
+    endText: "",
 
     selectedIndex: new IndexPath(0),
     numberOfStops: 0,
@@ -49,7 +55,8 @@ class LocationInput extends Component {
     showingCarError: false,
     showingLocError: false,
 
-    placeIdsList: []
+    placeIdsList: [],
+    stopsText: [],
   };
 
   componentDidMount() {
@@ -62,41 +69,9 @@ class LocationInput extends Component {
       }
     });
 
-    var params = this.props.route.params;
-    if (params !== undefined) {
-      var start = params.startingPlaceId;
-      var end = params.endingPlaceId;
-      var latitude = params.startingLat;
-      var longitude = params.startingLong;
-      var placeIDs = params.placeIdsList;
-
-      if (start !== "") {
-          this.setState({ startingPlaceId: start });
-      }
-
-      if (latitude !== "") {
-          this.setState({ startingLat: latitude });
-      }
-
-      if (longitude !== "") {
-          this.setState({ startingLat: longitude });
-      }
-
-      if (end !== "") {
-          this.setState({ endingPlaceId: end });
-      }
-
-      this.setState({ placeIdsList: placeIDs });
-    }
-    console.log('START: ', start)
-    console.log('END: ', end)
-  }
-
-
-  componentDidUpdate(prevProps, prevState) {
-    if (this.props.route.params == null) return;
-    if (this.props.route.params != prevProps.route.params) {
-      const params = this.props.route.params;
+    const params = this.props.route.params;
+    if (params == undefined || params == null) return;
+    if (params.prevScreen == "VehicleInput") {
       this.addCar({
         name: params.vehicle,
         mpg: params.mpg,
@@ -104,15 +79,24 @@ class LocationInput extends Component {
         mpgHighway: params.mpgHighway,
         fuelCap: params.fuelCap,
       });
+    }
 
+    else if (params.prevScreen == "CustomizeStops") {
       var start = params.startingPlaceId;
       var end = params.endingPlaceId;
+      var startText = params.startText;
+      var endText = params.endText;
       var latitude = params.startingLat;
       var longitude = params.startingLong;
       var placeIDs = params.placeIdsList;
+      var stopsText = params.stopsText;
 
       if (start !== "") {
-          this.setState({ startingPlaceId: start });
+          this.setState({
+            startingPlaceId: start,
+            startText,
+          });
+          this.startingRef.current?.updateAddressText(startText);
       }
 
       if (latitude !== "") {
@@ -124,13 +108,73 @@ class LocationInput extends Component {
       }
 
       if (end !== "") {
-          this.setState({ endingPlaceId: end });
+          this.setState({
+            endingPlaceId: end,
+            endText,
+          });
+          this.destRef.current?.updateAddressText(endText);
       }
 
-      this.setState({ placeIdsList: placeIDs });
+      this.setState({ placeIdsList: placeIDs,
+                      stopsText,
+                    });
     }
-    console.log('START: ', start)
-    console.log('END: ', end)
+  }
+
+
+  componentDidUpdate(prevProps, prevState) {
+    const params = this.props.route.params;
+    if (params == undefined || params == null) return;
+    if (params != prevProps.route.params) {
+      if (params.prevScreen == "VehicleInput") {
+        this.addCar({
+          name: params.vehicle,
+          mpg: params.mpg,
+          mpgCity: params.mpgCity,
+          mpgHighway: params.mpgHighway,
+          fuelCap: params.fuelCap,
+        });
+      }
+
+      else if (params.prevScreen == "CustomizeStops") {
+        var start = params.startingPlaceId;
+        var end = params.endingPlaceId;
+        var startText = params.startText;
+        var endText = params.endText;
+        var latitude = params.startingLat;
+        var longitude = params.startingLong;
+        var placeIDs = params.placeIdsList;
+        var stopsText = params.stopsText;
+  
+        if (start !== "") {
+            this.setState({
+              startingPlaceId: start,
+              startText,
+            });
+            this.startingRef.current?.updateAddressText(startText);
+        }
+  
+        if (latitude !== "") {
+            this.setState({ startingLat: latitude });
+        }
+  
+        if (longitude !== "") {
+            this.setState({ startingLat: longitude });
+        }
+  
+        if (end !== "") {
+            this.setState({
+              endingPlaceId: end,
+              endText,
+            });
+            this.destRef.current?.updateAddressText(endText);
+        }
+  
+        this.setState({ placeIdsList: placeIDs,
+                        stopsText,
+                      });
+      }
+    }
   }
 
 
@@ -223,15 +267,21 @@ class LocationInput extends Component {
     if (index == 0) {
       // Starting Location
       var location = details.geometry.location;
+      this.startingRef.current?.updateAddressText(place.description);
       this.setState({
         startingPlaceId: place.place_id,
         startingLat: location.lat,
         startingLong: location.lng,
+        startText: this.startingInputRef.current?.getAddressText(),
       });
       return;
     } else if (index == 1) {
       // Ending Location
-      this.setState({ endingPlaceId: place.place_id });
+      this.destRef.current?.updateAddressText(place.description);
+      this.setState({
+        endingPlaceId: place.place_id,
+        endText: this.destInputRef.current?.getAddressText(),
+      });
     }
   };
 
@@ -358,6 +408,10 @@ class LocationInput extends Component {
       startingLong: this.state.startingLong,
       startingPlaceId: this.state.startingPlaceId,
       endingPlaceId: this.state.endingPlaceId,
+      startText: this.state.startText,
+      endText: this.state.endText,
+      placeIdsList: this.state.placeIdsList,
+      stopsText: this.state.stopsText,
     });
   };
 
@@ -386,6 +440,8 @@ class LocationInput extends Component {
               this.getPlaceInfo(data, details, 0)
             }
             input_ref={this.startingInputRef}
+            ref={this.startingRef}
+            initText={this.state.startText}
             themedColors={themedColors}
             stylesInput={this.props.eva.style.themedInputBox}
             listViewStyle={{ width: "120%" }}
@@ -411,7 +467,7 @@ class LocationInput extends Component {
                 startingLong: lng,
               });
 
-              this.startingInputRef.current?.setAddressText(place.address);
+              this.startingRef.current?.updateAddressText(place.address);
             }}
           ></Button>
         </View>
@@ -419,6 +475,9 @@ class LocationInput extends Component {
         <Text style={styles.inputTitle}>Destination:</Text>
         <LocationInputText
           // theme={this.props.eva.theme}
+          input_ref={this.destInputRef}
+          ref={this.destRef}
+          initText={this.state.endText}
           themedColors={themedColors}
           onSelectLocation={(data, details) =>
             this.getPlaceInfo(data, details, 1)

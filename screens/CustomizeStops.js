@@ -8,72 +8,79 @@ LogBox.ignoreLogs(['VirtualizedLists should never be nested inside plain ScrollV
 class CustomizeStops extends Component {
     constructor(props) {
         super(props);
+
+        const params = props.route.params;
+
         this.startingInputRef = React.createRef();
+        this.destInputRef = React.createRef();
+        this.stopInputRefs = [];
+        
+        this.startingRef = React.createRef();
+        this.destRef = React.createRef();
+        this.stopRefs = [];
+
+        this.state = {
+            startingLat: params.startingLat,
+            startingLong: params.startingLong,
+            startingPlaceId: params.startingPlaceId,
+            endingPlaceId: params.endingPlaceId,
+            startText: params.startText,
+            endText: params.endText,
+            placeIdsList: params.placeIdsList,
+            stopsText: params.stopsText,
+
+            stops: [],
+            stopCount: 0,
+        };
     }
 
-    state = {
-        startingLat: 33.8121,
-        startingLong: -117.919,
-        startingPlaceId: "",
-        endingPlaceId: "",
-        placeIdsList: [],
-
-        stops: [],
-        stopCount: 0,
-      };
-
     
-    componentDidMount() {
-        var params = this.props.route.params;
-        var start = params.startingPlaceId;
-        var end = params.endingPlaceId;
-        var latitude = params.startingLat;
-        var longitude = params.startingLong;
-
-        if (start !== "") {
-            this.setState({ startingPlaceId: start });
-        }
-
-        if (latitude !== "") {
-            this.setState({ startingLat: latitude });
-        }
-
-        if (longitude !== "") {
-            this.setState({ startingLat: longitude });
-        }
-
-        if (end !== "") {
-            this.setState({ endingPlaceId: end });
+    async componentDidMount() {
+        this.startingRef.current?.updateAddressText(this.state.startText);
+        this.destRef.current?.updateAddressText(this.state.endText);
+        for (let i = 0; i < this.stopRefs.length; i++) {
+            this.stopRefs[i].current?.updateAddressText(this.state.stopsText[i]);
         }
     }
 
 
     getPlaceInfo = (place, details, index) => {
-        let currPlaceIds = this.state.placeIdsList
+        let currPlaceIds = this.state.placeIdsList;
+        let currStopText = this.state.stopsText;
 
         if (index == 0) {
           // Starting Location
           var location = details.geometry.location;
+          this.startingRef.current?.updateAddressText(place.description);
           this.setState({
             startingPlaceId: place.place_id,
             startingLat: location.lat,
             startingLong: location.lng,
+            startText: this.startingInputRef.current?.getAddressText()
           });
         } else if (index == 100) {
           // Ending Location
+          this.destRef.current?.updateAddressText(place.description);
           this.setState({ endingPlaceId: place.place_id });
         } else {
-          currPlaceIds[index - 1] = place.place_id
-          this.setState({ placeIdsList: currPlaceIds })
+          this.stopRefs[index - 1].current?.updateAddressText(place.description);
+          currPlaceIds[index - 1] = place.place_id;
+          currStopText[index - 1] = place.description;
+          this.setState({
+              placeIdsList: currPlaceIds,
+              stopsText: currStopText,
+              endText: this.destInputRef.current?.getAddressText(),
+          })
         }
     };
 
 
     addStop = () => {
-        this.setState({
-            stops: this.state.stops.concat(this.state.stopCount),
-            stopCount: this.state.stopCount + 1,
-        });
+        this.setState(prevState => ({
+            placeIdsList: prevState.placeIdsList.concat(""),
+            stops: prevState.stops.concat(this.state.stopCount),
+            stopCount: prevState.stopCount + 1,
+        }));
     };
 
 
@@ -92,6 +99,9 @@ class CustomizeStops extends Component {
                 onSelectLocation={(data, details) =>
                     this.getPlaceInfo(data, details, stopNumber)
                 }
+                input_ref={(ref) => this.stopInputRefs[index] = ref}
+                ref={(ref) => this.stopRefs[index] = ref}
+                initText={this.state.stopsText[index]}
                 themedColors={themedColors}
                 stylesInput={this.props.eva.style.themedInputBox}
                 listViewStyle={{ width: "120%"}}
@@ -116,6 +126,20 @@ class CustomizeStops extends Component {
         }
     };
 
+    renderClearButton = () => {
+        if (this.state.placeIdsList.length > 0) {
+            return (
+                <Button
+                    style={{marginTop: 20, backgroundColor: "grey", borderColor: "grey"}}
+                    size="medium"
+                    onPress={this.clearStops}
+                >
+                    Clear Stops
+                </Button>
+            )
+        }
+    }
+
 
     doneCustomizing = () => {
         this.props.navigation.navigate("LocationInput", {
@@ -123,9 +147,21 @@ class CustomizeStops extends Component {
           startingLong: this.state.startingLong,
           startingPlaceId: this.state.startingPlaceId,
           endingPlaceId: this.state.endingPlaceId,
-          placeIdsList: this.state.placeIdsList
+          startText: this.state.startText,
+          endText: this.state.endText,
+          placeIdsList: this.state.placeIdsList,
+          stopsText: this.state.stopsText,
+          prevScreen: "CustomizeStops",
         });
     };
+
+    clearStops = () => {
+        this.setState({
+            placeIdsList: [],
+            stops: [],
+            stopCount: 0,
+        });
+    }
 
 
     render() {
@@ -148,6 +184,8 @@ class CustomizeStops extends Component {
                         this.getPlaceInfo(data, details, 0)
                     }
                     input_ref={this.startingInputRef}
+                    ref={this.startingRef}
+                    initText={this.state.startText}
                     themedColors={themedColors}
                     stylesInput={this.props.eva.style.themedInputBox}
                     stylesContainer={{ width: "85%", height: 40}}
@@ -177,15 +215,18 @@ class CustomizeStops extends Component {
                     ></Button>
                 </View>
 
-                {this.state.stops.map((stop, index) => {
+                {this.state.placeIdsList.map((stop, index) => {
                     return this.renderStops(stop, index);
                 })}
 
                 <Text style={styles.inputTitle}>Destination:</Text>
                 <LocationInputText
+                input_ref={this.destInputRef}
+                ref={this.destRef}
                 onSelectLocation={(data, details) =>
                     this.getPlaceInfo(data, details, 100)
                 }
+                initText={this.state.endText}
                 themedColors={themedColors}
                 stylesInput={this.props.eva.style.themedInputBox}
                 stylesContainer={{ width: "85%", height: 40 }}
@@ -200,6 +241,7 @@ class CustomizeStops extends Component {
                 </Button>
 
                 {this.renderDoneButton()}
+                {this.renderClearButton()}
                 
             </ScrollView>
         );
